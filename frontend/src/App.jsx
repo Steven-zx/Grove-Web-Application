@@ -11,20 +11,20 @@ import About from "./pages/About";
 export default function App() {
   return (
     <Router>
-      <div className="flex min-h-screen bg-gray-50 text-gray-900">
-        <Sidebar />
-        <div className="flex flex-col flex-1">
+      <Sidebar />
+      <div className="min-h-screen bg-white text-gray-900 flex flex-col flex-1 ml-64">
+        <header className="fixed top-0 left-64 right-0 z-40">
           <Navbar />
-          <main className="p-6">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/announcements" element={<Announcements />} />
-              <Route path="/amenities" element={<Amenities />} />
-              <Route path="/gallery" element={<Gallery />} />
-              <Route path="/about" element={<About />} />
-            </Routes>
-          </main>
-        </div>
+        </header>
+        <main className="p-6 pt-20">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/announcements" element={<Announcements />} />
+            <Route path="/amenities" element={<Amenities />} />
+            <Route path="/gallery" element={<Gallery />} />
+            <Route path="/about" element={<About />} />
+          </Routes>
+        </main>
       </div>
     </Router>
   );

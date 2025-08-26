@@ -13,11 +13,11 @@ const nav = [
 
 export default function Sidebar() {
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 p-4 flex flex-col h-screen">
+  <aside className="fixed top-0 left-0 h-screen w-70 bg-white p-4 flex flex-col z-30">
       <div>
         <div className="flex items-center gap-2 mb-6">
           <img src={logo} alt="Logo" className="h-10" />
-          <h1 className="text-xl font-bold text-green-700" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+          <h1 className="text-xl font-bold" style={{ color: '#40863A', fontFamily: 'Montserrat, sans-serif' }}>
             Augustine Grove
           </h1>
         </div>
@@ -28,10 +28,11 @@ export default function Sidebar() {
               to={item.to}
               className={({ isActive }) =>
                 `
-                flex items-center gap-2 px-4 py-2 rounded-lg transition-colors
+                flex items-center gap-2 px-4 py-4 rounded-r-lg transition-colors
                 ${isActive ? "bg-[#E5EBE0] text-gray-900" : "bg-white text-gray-800 hover:bg-[#EFEFEF]"}
                 `
               }
+              style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
             >
               {item.icon}
               <span>{item.label}</span>
