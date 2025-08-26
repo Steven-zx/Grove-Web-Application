@@ -13,7 +13,7 @@ const nav = [
 
 export default function Sidebar() {
   return (
-  <aside className="fixed top-0 left-0 h-screen w-70 bg-white p-4 flex flex-col z-30">
+  <aside className="fixed top-0 left-0 h-screen w-74 bg-white p-4 flex flex-col z-30">
       <div>
         <div className="flex items-center gap-2 mb-6">
           <img src={logo} alt="Logo" className="h-10" />

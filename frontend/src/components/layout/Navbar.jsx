@@ -3,7 +3,7 @@ import { Flag, Search, User } from "lucide-react";
 
 export default function Navbar() {
   return (
-    <nav className="fixed top-0 left-70 right-0 h-16 bg-white flex items-center justify-between px-6 z-40">
+    <nav className="fixed top-0 left-74 right-0 h-16 bg-white flex items-center justify-between px-6 z-40">
       {/* Search */}
       <div className="flex items-center gap-2 w-full max-w-xl">
         <div className="relative flex-1">
