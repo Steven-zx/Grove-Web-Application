@@ -4,8 +4,11 @@ import heroImg from "../assets/hero.png";
 import InfoCard from "../components/shared/InfoCard";
 import Map from "../components/Map";
 import { Shield, Bird, CheckCircle, QrCode } from "lucide-react";
+import QrCodeModal from "../components/QrCode";
 
 export default function Home() {
+  const [qrOpen, setQrOpen] = React.useState(false);
+
   return (
   <main className="p-6 bg-white">
       {/* Hero Section */}
@@ -59,11 +62,12 @@ export default function Home() {
 
           {/* QR code card */}
           <div className="rounded-2xl bg-white border border-gray-200 p-5 flex flex-col gap-2 text-sm transition-colors duration-200 group hover:bg-[#EFEFEF] items-start">
-            <button type="button" className="flex items-center gap-2 flex-nowrap w-full bg-transparent group-hover:bg-[#EFEFEF] rounded-xl p-0 border-0 transition-colors duration-200 text-left">
+            <button type="button" onClick={() => setQrOpen(true)} className="flex items-center gap-2 flex-nowrap w-full bg-transparent group-hover:bg-[#EFEFEF] rounded-xl p-0 border-0 transition-colors duration-200 text-left">
               <QrCode size={28} className="transition-colors duration-200 group-hover:text-[#40863A] text-gray-800" />
               <span className="whitespace-nowrap text-left">Generate QR code to register<br />for entry as visitor</span>
             </button>
           </div>
+          <QrCodeModal open={qrOpen} onClose={() => setQrOpen(false)} />
         </div>
 
         {/* Right: Map (spans 2 columns) */}
