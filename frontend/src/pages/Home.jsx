@@ -1,3 +1,5 @@
+// Home Page
+
 import React from "react";
 import { NavLink } from "react-router-dom";
 import heroImg from "../assets/hero.png";
@@ -10,7 +12,7 @@ export default function Home() {
   const [qrOpen, setQrOpen] = React.useState(false);
 
   return (
-  <main className="p-6 bg-white">
+  <main className="p-6 bg-white" style={{ marginLeft: '3rem' }}>
       {/* Hero Section */}
       <section>
         <div className="relative rounded-2xl overflow-hidden inline-block w-full mb-4 max-h-180">
