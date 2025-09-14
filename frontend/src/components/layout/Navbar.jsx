@@ -32,7 +32,7 @@ export default function Navbar() {
           <input
             type="text"
             placeholder="Search…"
-            className="w-full rounded-full border border-gray-300 pl-9 pr-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-green-100"
+            className="w-full rounded-full border border-gray-300 pl-9 pr-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#E5EBE0]"
           />
         </div>
       </div>
@@ -41,7 +41,7 @@ export default function Navbar() {
       <div className="flex items-center gap-3">
         <button
           aria-label="Report"
-          className="h-10 w-10 rounded-full bg-[#E5EBE0] hover:bg-[#EFEFEF] flex items-center justify-center transition-colors"
+          className="h-10 w-10 rounded-full bg-[#E5EBE0] hover:bg-[#EFEFEF] flex items-center justify-center transition-colors cursor-pointer"
           onClick={() => setReportOpen(true)}
         >
           <Flag size={18} />
@@ -53,7 +53,7 @@ export default function Navbar() {
         <div className="relative" ref={profileBtnRef}>
           <button
             aria-label="Profile"
-            className="h-10 w-10 rounded-full bg-[#E5EBE0] hover:bg-[#EFEFEF] flex items-center justify-center transition-colors"
+            className="h-10 w-10 rounded-full bg-[#E5EBE0] hover:bg-[#EFEFEF] flex items-center justify-center transition-colors cursor-pointer"
             onClick={() => setDropdownOpen((v) => !v)}
           >
             <User size={18} />

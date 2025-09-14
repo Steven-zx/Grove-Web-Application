@@ -30,7 +30,7 @@ export default function ReportIssueModal({ open, onClose }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.25)" }}>
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-3xl w-full relative">
         <button
-          className="absolute top-4 right-4 text-2xl text-[#1e1e1e] hover:text-[#1e1e1e]"
+          className="absolute top-4 right-4 text-2xl text-[#1e1e1e] hover:text-[#1e1e1e] cursor-pointer"
           onClick={onClose}
           aria-label="Close"
         >
@@ -77,7 +77,7 @@ export default function ReportIssueModal({ open, onClose }) {
             <textarea name="description" value={form.description} onChange={handleChange} className="w-full rounded-lg border border-gray-300 p-3 mb-2" rows={4} placeholder="Please describe the issue in detail." />
           </div>
           <div className="md:col-span-2 flex justify-end mt-4">
-            <button type="submit" className="rounded-full bg-[#40863A] text-white font-semibold px-8 py-3 text-base hover:bg-[#35702c] transition-colors">Submit report</button>
+            <button type="submit" className="rounded-full bg-[#40863A] text-white font-semibold px-8 py-3 text-base hover:bg-[#35702c] transition-colors cursor-pointer">Submit report</button>
           </div>
         </form>
       </div>
