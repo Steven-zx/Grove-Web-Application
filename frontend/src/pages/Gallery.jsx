@@ -85,7 +85,7 @@ export default function Gallery() {
   }
 
   return (
-    <main className="bg-white min-h-screen p-6" style={{ marginLeft: '3rem' }}>
+    <main className="bg-white min-h-screen max-w-screen-xl p-6" style={{ marginLeft: '3rem' }}>
       {/* Category Tabs */}
       <nav className="flex gap-4 mb-8 overflow-x-auto">
         {categories.map(cat => (
