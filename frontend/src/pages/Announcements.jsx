@@ -4,38 +4,105 @@ import AnnouncementCard from "../components/AnnouncementCard";
 import announcement1 from "../assets/announcement1.png";
 import announcement2 from "../assets/announcement2.png";
 
-// Dummy data for now, replace with backend fetch later
-const initialAnnouncements = [
+// Fallback data for when backend is not available
+const fallbackAnnouncements = [
   {
     id: 1,
-    author: "Admin",
-    date: "August 21 at 8:49 PM",
-    content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In placerat dui vitae ex blandit mattis. Curabitur purus felis, scelerisque in ...",
-    image: announcement1,
+    title: "Community Update",
+    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In placerat dui vitae ex blandit mattis. Curabitur purus felis, scelerisque in ...",
+    category: "General",
+    importance: "Medium",
+    date: "2025-01-21T20:49:00Z",
+    image_url: announcement1,
   },
   {
-    id: 2,
-    author: "Admin",
-    date: "August 21 at 1:49 PM",
-    content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In placerat dui vitae ex blandit mattis. Curabitur purus felis, scelerisque in ...",
-    image: announcement2,
+    id: 2, 
+    title: "Facilities Maintenance",
+    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In placerat dui vitae ex blandit mattis. Curabitur purus felis, scelerisque in ...",
+    category: "Facilities", 
+    importance: "High",
+    date: "2025-01-21T13:49:00Z",
+    image_url: announcement2,
   },
 ];
 
 const categories = ["All categories", "General", "Facilities", "Upgrade"];
 
 export default function Announcements() {
-  const [announcements, setAnnouncements] = React.useState(initialAnnouncements);
+  const [announcements, setAnnouncements] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState("");
   const [filters, setFilters] = React.useState({
     category: "All categories",
     date: "",
     sort: "Newest First",
   });
 
-  // Placeholder for backend fetch
-  // React.useEffect(() => {
-  //   fetchAnnouncements(filters).then(setAnnouncements);
-  // }, [filters]);
+  // Fetch announcements from backend
+  React.useEffect(() => {
+    fetchAnnouncements();
+  }, [filters]);
+
+  async function fetchAnnouncements() {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams();
+      
+      if (filters.category !== "All categories") {
+        params.append('category', filters.category);
+      }
+      if (filters.date) {
+        params.append('date', filters.date);
+      }
+      params.append('sort', filters.sort === "Newest First" ? 'desc' : 'asc');
+
+      const response = await fetch(`/api/announcements?${params}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch announcements');
+      }
+
+      const data = await response.json();
+      
+      // Transform backend data to match frontend format
+      const transformedData = data.map(item => ({
+        id: item.id,
+        author: "Admin",
+        date: new Date(item.date).toLocaleDateString('en-US', { 
+          month: 'long', 
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit'
+        }),
+        content: item.description,
+        image: item.image_url
+      }));
+
+      setAnnouncements(transformedData);
+      setError("");
+    } catch (err) {
+      console.error('Error fetching announcements:', err);
+      setError("Failed to load announcements. Showing fallback data.");
+      
+      // Use fallback data
+      const transformedFallback = fallbackAnnouncements.map(item => ({
+        id: item.id,
+        author: "Admin", 
+        date: new Date(item.date).toLocaleDateString('en-US', {
+          month: 'long',
+          day: 'numeric', 
+          hour: 'numeric',
+          minute: '2-digit'
+        }),
+        content: item.description,
+        image: item.image_url
+      }));
+      
+      setAnnouncements(transformedFallback);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   function handleFilterChange(e) {
     const { name, value } = e.target;
@@ -44,7 +111,7 @@ export default function Announcements() {
 
   function handleFind(e) {
     e.preventDefault();
-    // Future: fetch filtered announcements from backend
+    fetchAnnouncements();
   }
 
   return (
@@ -54,11 +121,30 @@ export default function Announcements() {
         <div className="flex items-center gap-4 mb-4">
           <h2 className="text-2xl font-bold">Community Updates</h2>
         </div>
-        <div className="flex flex-col gap-8">
-          {announcements.map(a => (
-            <AnnouncementCard key={a.id} {...a} />
-          ))}
-        </div>
+        
+        {error && (
+          <div className="mb-4 p-3 bg-yellow-100 border border-yellow-300 text-yellow-800 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
+        
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="text-gray-500">Loading announcements...</div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-8">
+            {announcements.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                No announcements found.
+              </div>
+            ) : (
+              announcements.map(a => (
+                <AnnouncementCard key={a.id} {...a} />
+              ))
+            )}
+          </div>
+        )}
       </main>
 
       {/* Notice and Filters on right, fixed on scroll */}

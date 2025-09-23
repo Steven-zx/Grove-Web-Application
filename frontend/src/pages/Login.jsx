@@ -1,9 +1,56 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.svg";
 import bgImg from "../assets/login-bg.png";
 
 export default function Login() {
+	const navigate = useNavigate();
+	const [form, setForm] = useState({
+		email: "",
+		password: ""
+	});
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState("");
+
+	function handleChange(e) {
+		const { name, value } = e.target;
+		setForm(f => ({ ...f, [name]: value }));
+		setError("");
+	}
+
+	async function handleSubmit(e) {
+		e.preventDefault();
+		setLoading(true);
+		setError("");
+
+		try {
+			const response = await fetch('/api/login', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(form)
+			});
+
+			const data = await response.json();
+
+			if (!response.ok) {
+				throw new Error(data.error || 'Login failed');
+			}
+
+			// Store user session (you might want to use a state management solution)
+			localStorage.setItem('user', JSON.stringify(data.user));
+			localStorage.setItem('session', JSON.stringify(data.session));
+			
+			// Redirect to home page
+			navigate('/');
+		} catch (err) {
+			setError(err.message);
+		} finally {
+			setLoading(false);
+		}
+	}
+
 	return (
 		<div className="min-h-screen flex flex-col bg-white">
 			{/* Header */}
@@ -25,6 +72,13 @@ export default function Login() {
 					{/* Card */}
 					<div className="relative z-10 w-full max-w-md mx-auto bg-white rounded-3xl shadow-lg p-10 flex flex-col items-center">
 						<h2 className="text-2xl font-bold mb-8 text-center">Welcome back</h2>
+						
+						{error && (
+							<div className="w-full mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg text-sm">
+								{error}
+							</div>
+						)}
+
 						{/* Google button */}
 						<button type="button" className="w-full flex items-center justify-center gap-2 bg-gray-100 rounded-full py-3 mb-6 font-medium text-[#1e1e1e] border-none">
 							<img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="h-5 w-5" />
@@ -36,10 +90,32 @@ export default function Login() {
 							<div className="flex-1 h-px bg-gray-200" />
 						</div>
 						{/* Form */}
-						<form className="w-full flex flex-col gap-4">
-							<input type="email" placeholder="Email Address" className="w-full rounded-xl border border-gray-300 p-4 text-base bg-white" />
-							<input type="password" placeholder="Password" className="w-full rounded-xl border border-gray-300 p-4 text-base bg-white" />
-							<button type="submit" className="w-full rounded-full bg-[#40863A] text-white font-semibold py-3 mt-2 text-base hover:bg-[#35702c] transition-colors">Log in</button>
+						<form className="w-full flex flex-col gap-4" onSubmit={handleSubmit}>
+							<input 
+								type="email" 
+								name="email"
+								value={form.email}
+								onChange={handleChange}
+								placeholder="Email Address" 
+								className="w-full rounded-xl border border-gray-300 p-4 text-base bg-white" 
+								required 
+							/>
+							<input 
+								type="password" 
+								name="password"
+								value={form.password}
+								onChange={handleChange}
+								placeholder="Password" 
+								className="w-full rounded-xl border border-gray-300 p-4 text-base bg-white" 
+								required 
+							/>
+							<button 
+								type="submit" 
+								disabled={loading}
+								className="w-full rounded-full bg-[#40863A] text-white font-semibold py-3 mt-2 text-base hover:bg-[#35702c] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+							>
+								{loading ? 'Signing in...' : 'Log in'}
+							</button>
 						</form>
 						<div className="w-full flex flex-col items-center mt-6 text-sm">
 							<Link to="/forgot-password" className="text-gray-400 mb-2 hover:underline">Forgot password?</Link>

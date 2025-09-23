@@ -3,7 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const bodyParser = require('body-parser');
 const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,6 +11,15 @@ const PORT = process.env.PORT || 3000;
 // Initialize Supabase
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
+
+// Debug: Check if environment variables are loaded
+if (!supabaseUrl || !supabaseKey) {
+  console.error('Missing Supabase environment variables:');
+  console.error('SUPABASE_URL:', supabaseUrl ? 'Found' : 'Missing');
+  console.error('SUPABASE_KEY:', supabaseKey ? 'Found' : 'Missing');
+  process.exit(1);
+}
+
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Middleware
@@ -266,7 +275,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Serve the frontend for all other routes
-app.get('*', (req, res) => {
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
 });
 

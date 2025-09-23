@@ -35,7 +35,10 @@ export default function QrCodeModal({ open, onClose }) {
     setError("");
   }
 
-  function handleSubmit(e) {
+  const [loading, setLoading] = React.useState(false);
+  const [success, setSuccess] = React.useState("");
+
+  async function handleSubmit(e) {
     e.preventDefault();
     const newErrors = {};
     if (!form.resident) newErrors.resident = "Please fill out this field";
@@ -45,6 +48,7 @@ export default function QrCodeModal({ open, onClose }) {
     if (!form.numVisitors) newErrors.numVisitors = "Please fill out this field";
     if (!form.date) newErrors.date = "Please fill out this field";
     setErrors(newErrors);
+    
     if (Object.keys(newErrors).length > 0) {
       // Scroll to first error
       const firstError = Object.keys(newErrors)[0];
@@ -52,9 +56,55 @@ export default function QrCodeModal({ open, onClose }) {
       if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
-    // Submit logic here
-    setErrors({});
-    onClose();
+
+    try {
+      setLoading(true);
+      const response = await fetch('/api/visitors', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          resident_name: form.resident,
+          full_name: form.visitor,
+          visit_date: form.date,
+          visit_purpose: form.purpose,
+          mobile_number: form.residence, // Note: this might need adjustment based on your form structure
+          vehicle_info: form.vehicle,
+          residence_address: form.residence,
+          num_visitors: form.numVisitors
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate QR code');
+      }
+
+      setSuccess(`QR code generated successfully! Code: ${data.qr_code}`);
+      setErrors({});
+      
+      // Reset form after successful submission
+      setTimeout(() => {
+        setForm({
+          resident: "",
+          purpose: "",
+          visitor: "",
+          vehicle: "",
+          residence: "",
+          numVisitors: "1",
+          date: ""
+        });
+        setSuccess("");
+        onClose();
+      }, 2000);
+      
+    } catch (error) {
+      setErrors({ general: error.message });
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (!open) return null;
@@ -70,6 +120,19 @@ export default function QrCodeModal({ open, onClose }) {
           &times;
         </button>
         <h2 className="text-2xl font-bold mb-6">Generate visitor QR code</h2>
+        
+        {errors.general && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg text-sm">
+            {errors.general}
+          </div>
+        )}
+        
+        {success && (
+          <div className="mb-4 p-3 bg-green-100 border border-green-300 text-green-700 rounded-lg text-sm">
+            {success}
+          </div>
+        )}
+        
         <form className="grid grid-cols-1 md:grid-cols-2 gap-6" onSubmit={handleSubmit}>
           <div>
             <label className="block font-semibold mb-1 text-gray-800">
@@ -128,7 +191,13 @@ export default function QrCodeModal({ open, onClose }) {
             {errors.date && <div className="text-red-500 text-xs mb-2">{errors.date}</div>}
           </div>
         <div className="flex justify-end mt-8">
-          <GreenButton type="submit">Generate QR code</GreenButton>
+          <button 
+            type="submit"
+            disabled={loading}
+            className="px-6 py-2 rounded-full font-semibold bg-[#40863A] text-white hover:bg-[#35702c] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Generating...' : 'Generate QR code'}
+          </button>
         </div>
       </form>
       </div>

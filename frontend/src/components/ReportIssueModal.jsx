@@ -12,16 +12,62 @@ export default function ReportIssueModal({ open, onClose }) {
     contact: "",
     description: ""
   });
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState("");
+  const [success, setSuccess] = React.useState("");
 
   function handleChange(e) {
     const { name, value } = e.target;
     setForm(f => ({ ...f, [name]: value }));
+    setError("");
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    // Submit logic here
-    onClose();
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch('/api/concerns', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: form.name,
+          location: form.location,
+          issue_type: form.type,
+          email: form.contact,
+          description: form.description
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to submit report');
+      }
+
+      setSuccess('Report submitted successfully!');
+      
+      // Reset form and close modal after success
+      setTimeout(() => {
+        setForm({
+          name: "",
+          location: "",
+          type: "",
+          contact: "",
+          description: ""
+        });
+        setSuccess("");
+        onClose();
+      }, 2000);
+
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (!open) return null;
@@ -37,6 +83,19 @@ export default function ReportIssueModal({ open, onClose }) {
           &times;
         </button>
         <h2 className="text-2xl font-bold mb-6">Report an issue</h2>
+        
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
+        
+        {success && (
+          <div className="mb-4 p-3 bg-green-100 border border-green-300 text-green-700 rounded-lg text-sm">
+            {success}
+          </div>
+        )}
+        
         <form className="grid grid-cols-1 md:grid-cols-2 gap-6" onSubmit={handleSubmit}>
           <div>
             <label className="block font-semibold mb-1 text-[#1e1e1e]">
@@ -77,7 +136,13 @@ export default function ReportIssueModal({ open, onClose }) {
             <textarea name="description" value={form.description} onChange={handleChange} className="w-full rounded-lg border border-gray-300 p-3 mb-2" rows={4} placeholder="Please describe the issue in detail." />
           </div>
           <div className="md:col-span-2 flex justify-end mt-4">
-            <button type="submit" className="rounded-full bg-[#40863A] text-white font-semibold px-8 py-3 text-base hover:bg-[#35702c] transition-colors cursor-pointer">Submit report</button>
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="rounded-full bg-[#40863A] text-white font-semibold px-8 py-3 text-base hover:bg-[#35702c] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Submitting...' : 'Submit report'}
+            </button>
           </div>
         </form>
       </div>

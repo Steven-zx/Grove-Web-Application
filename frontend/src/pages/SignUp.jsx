@@ -1,15 +1,51 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.svg";
-import bgImg from "../assets/login-bg.png"; 
-import { useNavigate } from "react-router-dom";
+import bgImg from "../assets/login-bg.png";
 
 export default function SignUp() {
-		const navigate = useNavigate();
-		function handleContinue(e) {
-			e.preventDefault();
-			navigate("/signup-details");
+	const navigate = useNavigate();
+	const [form, setForm] = useState({
+		email: "",
+		password: "",
+		confirmPassword: ""
+	});
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState("");
+
+	function handleChange(e) {
+		const { name, value } = e.target;
+		setForm(f => ({ ...f, [name]: value }));
+		setError("");
+	}
+
+	async function handleContinue(e) {
+		e.preventDefault();
+		setLoading(true);
+		setError("");
+
+		// Basic validation
+		if (form.password !== form.confirmPassword) {
+			setError("Passwords don't match");
+			setLoading(false);
+			return;
 		}
+
+		if (form.password.length < 6) {
+			setError("Password must be at least 6 characters long");
+			setLoading(false);
+			return;
+		}
+
+		// Store form data temporarily for the next step
+		localStorage.setItem('signupData', JSON.stringify({
+			email: form.email,
+			password: form.password
+		}));
+		
+		navigate("/signup-details");
+		setLoading(false);
+	}
 		return (
 		<div className="min-h-screen flex flex-col bg-white">
 			{/* Header */}
@@ -31,6 +67,13 @@ export default function SignUp() {
 					{/* Card */}
 					<div className="relative z-10 w-full max-w-md mx-auto bg-white rounded-3xl shadow-lg p-10 flex flex-col items-center">
 						<h2 className="text-2xl font-bold mb-8 text-center">Join the community</h2>
+						
+						{error && (
+							<div className="w-full mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg text-sm">
+								{error}
+							</div>
+						)}
+
 						{/* Google button */}
 						<button type="button" className="w-full flex items-center justify-center gap-2 bg-gray-100 rounded-full py-3 mb-6 font-medium text-[#1e1e1e] border-none">
 							<img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="h-5 w-5" />
@@ -42,12 +85,42 @@ export default function SignUp() {
 							<div className="flex-1 h-px bg-gray-200" />
 						</div>
 						{/* Form */}
-									<form className="w-full flex flex-col gap-4" onSubmit={handleContinue}>
-										<input type="email" placeholder="Email Address" className="w-full rounded-xl border border-gray-300 p-4 text-base bg-white" />
-										<input type="password" placeholder="Create a password" className="w-full rounded-xl border border-gray-300 p-4 text-base bg-white" />
-										<input type="password" placeholder="Confirm password" className="w-full rounded-xl border border-gray-300 p-4 text-base bg-white" />
-										<button type="submit" className="w-full rounded-full bg-[#40863A] text-white font-semibold py-3 mt-2 text-base hover:bg-[#35702c] transition-colors">Continue</button>
-									</form>
+						<form className="w-full flex flex-col gap-4" onSubmit={handleContinue}>
+							<input 
+								type="email" 
+								name="email"
+								value={form.email}
+								onChange={handleChange}
+								placeholder="Email Address" 
+								className="w-full rounded-xl border border-gray-300 p-4 text-base bg-white" 
+								required 
+							/>
+							<input 
+								type="password" 
+								name="password"
+								value={form.password}
+								onChange={handleChange}
+								placeholder="Create a password" 
+								className="w-full rounded-xl border border-gray-300 p-4 text-base bg-white" 
+								required 
+							/>
+							<input 
+								type="password" 
+								name="confirmPassword"
+								value={form.confirmPassword}
+								onChange={handleChange}
+								placeholder="Confirm password" 
+								className="w-full rounded-xl border border-gray-300 p-4 text-base bg-white" 
+								required 
+							/>
+							<button 
+								type="submit" 
+								disabled={loading}
+								className="w-full rounded-full bg-[#40863A] text-white font-semibold py-3 mt-2 text-base hover:bg-[#35702c] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+							>
+								{loading ? 'Processing...' : 'Continue'}
+							</button>
+						</form>
 						<div className="w-full flex flex-col items-center mt-6 text-sm">
 							<span className="text-gray-400">Already have an account? <Link to="/login" className="text-green-600 font-medium hover:underline">Sign in</Link></span>
 						</div>
