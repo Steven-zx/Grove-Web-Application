@@ -1,93 +1,228 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import InfoCard from '../components/shared/InfoCard';
+import CalendarWidget from '../components/CalendarWidget';
+import GeneralConditions from '../components/GeneralConditions';
+import clubhouseImg from '../assets/clubhouse.png';
+import poolImg from '../assets/pool.png';
+import courtImg from '../assets/court.png';
+import playgroundImg from '../assets/playground.png';
+
+// PLACEHOLDER: Amenity images mapping - Backend-ready for API integration
+const amenityImages = {
+  1: clubhouseImg,
+  2: poolImg, 
+  3: courtImg,
+  4: playgroundImg,
+  'Clubhouse': clubhouseImg,
+  'Swimming Pool': poolImg,
+  'Basketball Court': courtImg,
+  'Playground': playgroundImg
+};
 
 export default function YourBookings() {
-  const [bookings, setBookings] = useState([]);
   const navigate = useNavigate();
+  const [bookings, setBookings] = useState([]);
 
   useEffect(() => {
-    // Load bookings from localStorage
-    const savedBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-    setBookings(savedBookings);
+    // Backend-ready: Replace with API call
+    // const fetchBookings = async () => {
+    //   try {
+    //     const response = await fetch('/api/user/bookings', {
+    //       headers: { 'Authorization': `Bearer ${userToken}` }
+    //     });
+    //     const data = await response.json();
+    //     setBookings(data);
+    //   } catch (error) {
+    //     console.error('Error fetching bookings:', error);
+    //   }
+    // };
+    // fetchBookings();
+
+    const storedBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+    setBookings(storedBookings);
   }, []);
 
-  const handleCancelBooking = (bookingToCancel) => {
-    // Remove the booking from localStorage
-    const updatedBookings = bookings.filter(
-      booking => booking.amenityId !== bookingToCancel.amenityId || 
-                 booking.date !== bookingToCancel.date
-    );
-    localStorage.setItem('bookings', JSON.stringify(updatedBookings));
+  const handleCancelBooking = async (bookingId) => {
+    // Backend-ready: Replace with API call
+    // try {
+    //   const response = await fetch(`/api/bookings/${bookingId}`, {
+    //     method: 'DELETE',
+    //     headers: { 'Authorization': `Bearer ${userToken}` }
+    //   });
+    //   if (response.ok) {
+    //     setBookings(bookings.filter(booking => booking.id !== bookingId));
+    //   }
+    // } catch (error) {
+    //   console.error('Error cancelling booking:', error);
+    // }
+
+    const updatedBookings = bookings.filter(booking => booking.id !== bookingId);
     setBookings(updatedBookings);
+    localStorage.setItem('bookings', JSON.stringify(updatedBookings));
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'No Date';
+    let date = typeof dateString === 'string' && dateString.includes('-') 
+      ? new Date(dateString + 'T00:00:00') 
+      : new Date(dateString);
+    
+    return isNaN(date.getTime()) ? 'No Date' : date.toLocaleDateString('en-US', {
+      weekday: 'short', month: 'short', day: 'numeric'
+    });
+  };
+
+  const formatTime = (timeString) => {
+    if (!timeString) return 'Invalid Time';
+    return new Date(`1970-01-01T${timeString}`).toLocaleTimeString('en-US', {
+      hour: 'numeric', minute: '2-digit', hour12: true
+    });
+  };
+
+  const formatTimeRange = (startTime, endTime) => {
+    if (!startTime || !endTime) return 'Invalid Time';
+    return `${formatTime(startTime)} - ${formatTime(endTime)}`;
+  };
+
+  const getStatusMessage = (status) => {
+    const messages = {
+      'Pending': 'Waiting for admin approval',
+      'Confirmed': 'Booking confirmed! You\'re all set ✨',
+      'Rejected': 'Booking was not approved 😔',
+      'Cancelled': 'Booking cancelled'
+    };
+    return messages[status] || 'Status unknown';
   };
 
   const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
-      case 'approved':
-        return 'bg-green-100 text-green-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'rejected':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+    const colors = {
+      'Confirmed': 'bg-emerald-50 border-emerald-200 text-emerald-700',
+      'Pending': 'bg-gray-50 border-gray-200 text-gray-700',
+      'Rejected': 'bg-rose-50 border-rose-200 text-rose-700',
+      'Cancelled': 'bg-gray-50 border-gray-200 text-gray-700'
+    };
+    return colors[status] || 'bg-gray-50 border-gray-200 text-gray-700';
   };
 
+  const getStatusDot = (status) => {
+    const dots = {
+      'Confirmed': 'bg-emerald-500',
+      'Pending': 'bg-gray-400',
+      'Rejected': 'bg-rose-500',
+      'Cancelled': 'bg-gray-500'
+    };
+    return dots[status] || 'bg-gray-500';
+  };
+
+  // PLACEHOLDER: General conditions - Backend-ready for API integration
+  const generalConditions = [
+    'Bookings must be made at least 24 hours in advance',
+    'All bookings are subject to availability and admin approval',
+    'Cancellations must be made at least 4 hours before the booking time',
+    'Late arrivals may result in booking cancellation without refund'
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Your Bookings</h1>
+    <div className="flex min-h-screen bg-[#FFFFFF]">
+      {/* Main Content */}
+      <div className="flex-1 ml-12 py-6 px-6">
+        {/* Header Buttons */}
+        <div className="flex justify-start gap-4 mb-8">
           <button
             onClick={() => navigate('/amenities')}
-            className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+            className="bg-white text-black px-6 py-2 rounded-[10px] border border-gray-300 font-normal text-sm hover:bg-gray-50 transition-colors"
           >
-            Book New Amenity
+            Book Amenity
+          </button>
+          <button className="bg-[#40863A] text-white px-6 py-2 rounded-[10px] font-medium text-sm">
+            Your Bookings
           </button>
         </div>
 
-        {bookings.length === 0 ? (
-          <div className="text-center py-12">
-            <h3 className="text-lg text-gray-500 mb-4">You don't have any bookings yet</h3>
-            <button
-              onClick={() => navigate('/amenities')}
-              className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700"
-            >
-              Book an Amenity
-            </button>
-          </div>
-        ) : (
-          <div className="bg-white shadow overflow-hidden sm:rounded-md">
-            <ul className="divide-y divide-gray-200">
-              {bookings.map((booking, index) => (
-                <li key={index} className="px-6 py-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900">
-                        {booking.amenityName}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        Date: {new Date(booking.date).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      <span className={`px-3 py-1 rounded-full text-sm ${getStatusColor(booking.status)}`}>
-                        {booking.status}
-                      </span>
-                      <button
-                        onClick={() => handleCancelBooking(booking)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        Cancel
-                      </button>
+        {/* Bookings Content */}
+        <div className="max-w-[720px]">
+          {bookings.length === 0 ? (
+            <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center">
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">No bookings yet!</h3>
+              <p className="text-gray-600 mb-8 max-w-sm mx-auto leading-relaxed">
+                Ready to make your first booking? Browse our amazing amenities and reserve your spot today!
+              </p>
+              <button
+                onClick={() => navigate('/amenities')}
+                className="bg-[#40863A] text-white px-8 py-3 rounded-xl font-medium text-sm"
+              >
+                Browse Amenities
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-8">
+              {bookings.map((booking) => (
+                <div key={booking.id} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all">
+                  <div className="w-full h-40 rounded-xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 mb-4">
+                    <img 
+                      src={amenityImages[booking.amenityId] || amenityImages[booking.amenityName] || clubhouseImg} 
+                      alt={booking.amenityName}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2 text-center">{booking.amenityName}</h3>
+
+                  <div className={`px-3 py-2 rounded-full border ${getStatusColor(booking.status)} mb-4 text-center`}>
+                    <div className="flex items-center justify-center space-x-2">
+                      {booking.status !== 'Pending' && (
+                        <div className={`w-2 h-2 rounded-full ${getStatusDot(booking.status)}`}></div>
+                      )}
+                      <span className="text-xs font-medium">{booking.status}</span>
                     </div>
                   </div>
-                </li>
+
+                  <div className="mb-4">
+                    <p className="text-xs text-gray-700 text-center">{getStatusMessage(booking.status)}</p>
+                  </div>
+                  
+                  <div className="space-y-3 mb-6">
+                    <div className="text-center">
+                      <p className="text-xs text-gray-500 mb-1">Date & Time</p>
+                      <p className="font-semibold text-gray-900 text-sm">
+                        {formatDate(booking.date)} • {formatTimeRange(booking.startTime, booking.endTime)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {(booking.status === 'Pending' || booking.status === 'Confirmed') && (
+                    <button
+                      onClick={() => handleCancelBooking(booking.id)}
+                      className="w-full text-rose-600 hover:text-rose-700 text-sm font-medium hover:bg-gray-50 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      <span>Cancel Booking</span>
+                    </button>
+                  )}
+                </div>
               ))}
-            </ul>
-          </div>
-        )}
+            </div>
+          )}
+        </div>
+
+        <div className="max-w-[720px]">
+          <GeneralConditions conditions={generalConditions} />
+        </div>
+      </div>
+
+      <div className="fixed w-80 bg-white overflow-y-auto p-6" style={{ right: '100px', top: '54px', height: 'calc(100vh - 54px)' }}>
+        <div className="mb-6 w-full max-w-xs">
+          <InfoCard title="Notice" className="h-32">
+            <p className="text-xs leading-relaxed">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut 
+              labore et dolore magna aliqua.
+            </p>
+          </InfoCard>
+        </div>
+        <CalendarWidget />
       </div>
     </div>
   );

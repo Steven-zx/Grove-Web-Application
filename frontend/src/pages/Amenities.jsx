@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import InfoCard from '../components/shared/InfoCard';
-import Calendar from '../components/Calendar';
+import CalendarWidget from '../components/CalendarWidget';
 import AmenityCard from '../components/AmenityCard';
 import GeneralConditions from '../components/GeneralConditions';
 
@@ -11,6 +11,7 @@ import poolImg from '../assets/pool.png';
 import courtImg from '../assets/court.png';
 import playgroundImg from '../assets/playground.png';
 
+// PLACEHOLDER: Amenity data - Backend-ready for API integration
 const amenities = [
   { id: 1, name: 'Clubhouse', status: 'Available', image: clubhouseImg },
   { id: 2, name: 'Swimming Pool', status: 'Limited', image: poolImg },
@@ -29,21 +30,7 @@ export default function Amenities() {
     navigate('/booking-modal', { state: { amenity } });
   };
 
-  const handleConfirmBooking = (date) => {
-    const booking = {
-      amenityId: selectedAmenity.id,
-      amenityName: selectedAmenity.name,
-      date,
-      status: 'Pending'
-    };
-    
-    const existingBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-    localStorage.setItem('bookings', JSON.stringify([...existingBookings, booking]));
-    
-    setShowBookingModal(false);
-    navigate('/your-bookings');
-  };
-
+  // PLACEHOLDER: General conditions - Backend-ready for API integration
   const generalConditions = [
     'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
     'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
@@ -76,7 +63,9 @@ export default function Amenities() {
         </div>
 
         {/* General Conditions */}
-        <GeneralConditions conditions={generalConditions} />
+        <div className="max-w-[720px]">
+          <GeneralConditions conditions={generalConditions} />
+        </div>
       </div>
 
       {/* Fixed Right Sidebar - Only adjust positioning */}
@@ -89,7 +78,7 @@ export default function Amenities() {
             </p>
           </InfoCard>
         </div>
-        <Calendar />
+        <CalendarWidget />
       </div>
 
 

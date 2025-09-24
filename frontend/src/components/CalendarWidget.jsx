@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const Calendar = () => {
+const CalendarWidget = () => {
   const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
   const today = new Date();
@@ -58,4 +58,4 @@ const Calendar = () => {
   );
 };
 
-export default Calendar;
+export default CalendarWidget;

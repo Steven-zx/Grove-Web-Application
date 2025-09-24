@@ -4,23 +4,24 @@ import GeneralConditions from '../components/GeneralConditions';
 
 export default function Calendar() {
   const navigate = useNavigate();
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 7, 19)); // August 19, 2025 (Tuesday)
+  const [currentDate, setCurrentDate] = useState(new Date(2025, 7, 19)); // PLACEHOLDER: August 19, 2025
   const [selectedAmenity, setSelectedAmenity] = useState('Clubhouse');
   const [showMonthDropdown, setShowMonthDropdown] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date(2025, 7, 19)); // Currently selected date for booking
+  const [selectedDate, setSelectedDate] = useState(new Date(2025, 7, 19)); // PLACEHOLDER: Currently selected date for booking
   
-  const today = new Date(2025, 7, 19); // Set today as August 19, 2025
+  const today = new Date(2025, 7, 19); // PLACEHOLDER: Set today as August 19, 2025
   const monthName = currentDate.toLocaleString('default', { month: 'long' });
   const year = currentDate.getFullYear();
   
-  const amenities = ['Clubhouse', 'Swimming Pool', 'Basketball Court'];
+  // Backend-ready: These will be fetched from API
+  const amenities = ['Clubhouse', 'Swimming Pool', 'Basketball Court']; // PLACEHOLDER data
   const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
   const years = Array.from({ length: 10 }, (_, i) => 2024 + i); // 2024-2033
   
-  // Sample booking conditions - replace with data from backend
+  // PLACEHOLDER: Sample booking conditions - replace with data from backend API
   const bookingConditions = [
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
@@ -40,7 +41,7 @@ export default function Calendar() {
     weekDays.push(day);
   }
   
-  // Dynamic bookings based on actual dates - This will be replaced with API call
+  // PLACEHOLDER: Dynamic bookings - Backend-ready for API integration
   const bookings = [
     { 
       id: 1,
@@ -66,10 +67,12 @@ export default function Calendar() {
     }
   ];
 
-  // TODO: Replace with actual API call
+  // Backend-ready: Replace with actual API call
   // const fetchBookings = async (startDate, endDate) => {
   //   try {
-  //     const response = await fetch(`/api/bookings?start=${startDate}&end=${endDate}`);
+  //     const response = await fetch(`/api/bookings?start=${startDate}&end=${endDate}&amenity=${selectedAmenity}`, {
+  //       headers: { 'Authorization': `Bearer ${userToken}` }
+  //     });
   //     const data = await response.json();
   //     return data;
   //   } catch (error) {

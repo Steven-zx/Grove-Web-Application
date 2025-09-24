@@ -1,6 +1,7 @@
 import React from 'react';
 
 const AmenityCard = ({ amenity, onBook }) => {
+  // PLACEHOLDER: Description - This will be fetched from backend API based on amenity ID
   const description = 'A versatile space designed for community gatherings, celebrations, and meetings. It serves as the heart of social activities within Augustine Grove, offering a comfortable venue for residents to connect and build stronger relationships.';
 
   return (
