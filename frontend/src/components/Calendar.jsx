@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Calendar = () => {
+  const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
   const today = new Date();
   
@@ -45,7 +47,12 @@ const Calendar = () => {
       </div>
       
       <div className="mt-4 text-center">
-        <button className="text-sm text-[#40863A] hover:underline">View Calendar</button>
+        <button 
+          onClick={() => navigate('/calendar')}
+          className="text-sm text-[#40863A] hover:underline"
+        >
+          View Calendar
+        </button>
       </div>
     </div>
   );

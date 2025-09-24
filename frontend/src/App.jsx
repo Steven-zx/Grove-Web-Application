@@ -11,6 +11,9 @@ import SignUp from "./pages/SignUp";
 import SignUpDetails from "./pages/SignUpDetails";
 import SignUpComplete from "./pages/SignUpComplete";
 import About from "./pages/About";
+import BookingModal from "./pages/BookingModal";
+import YourBookings from "./pages/YourBookings";
+import Calendar from "./pages/Calendar";
 
 export default function App() {
   return (
@@ -35,6 +38,9 @@ export default function App() {
                     <Route path="/" element={<Home />} />
                     <Route path="/announcements" element={<Announcements />} />
                     <Route path="/amenities" element={<Amenities />} />
+                    <Route path="/booking-modal" element={<BookingModal />} />
+                    <Route path="/your-bookings" element={<YourBookings />} />
+                    <Route path="/calendar" element={<Calendar />} />
                     <Route path="/gallery" element={<Gallery />} />
                     <Route path="/about" element={<About />} />
                   </Routes>

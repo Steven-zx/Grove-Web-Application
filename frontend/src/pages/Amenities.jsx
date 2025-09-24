@@ -81,9 +81,9 @@ export default function Amenities() {
 
       {/* Fixed Right Sidebar - Only adjust positioning */}
       <div className="fixed w-80 bg-white overflow-y-auto p-6" style={{ right: '100px', top: '54px', height: 'calc(100vh - 54px)' }}>
-        <div className="mb-6">
-          <InfoCard title="Notice">
-            <p className="text-sm">
+        <div className="mb-6 w-full max-w-xs">
+          <InfoCard title="Notice" className="h-32">
+            <p className="text-xs leading-relaxed">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut 
               labore et dolore magna aliqua.
             </p>
