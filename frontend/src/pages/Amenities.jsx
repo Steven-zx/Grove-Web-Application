@@ -55,16 +55,19 @@ export default function Amenities() {
           </button>
         </div>
 
-        {/* Amenities Grid */}
-        <div className="grid grid-cols-2 gap-4 max-w-[720px]">
-          {amenities.map((amenity) => (
-            <AmenityCard key={amenity.id} amenity={amenity} onBook={handleBook} />
-          ))}
-        </div>
-
-        {/* General Conditions */}
+        {/* Amenities Section - Container for both grid and conditions */}
         <div className="max-w-[720px]">
-          <GeneralConditions conditions={generalConditions} />
+          {/* Amenities Grid */}
+          <div className="grid grid-cols-2 gap-4">
+            {amenities.map((amenity) => (
+              <AmenityCard key={amenity.id} amenity={amenity} onBook={handleBook} />
+            ))}
+          </div>
+
+          {/* General Conditions - Inherits same width as grid */}
+          <div className="mt-12">
+            <GeneralConditions conditions={generalConditions} />
+          </div>
         </div>
       </div>
 

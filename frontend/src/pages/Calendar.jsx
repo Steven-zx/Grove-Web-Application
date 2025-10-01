@@ -4,12 +4,12 @@ import GeneralConditions from '../components/GeneralConditions';
 
 export default function Calendar() {
   const navigate = useNavigate();
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 7, 19)); // PLACEHOLDER: August 19, 2025
+  const [currentDate, setCurrentDate] = useState(new Date()); // Use actual current date
   const [selectedAmenity, setSelectedAmenity] = useState('Clubhouse');
   const [showMonthDropdown, setShowMonthDropdown] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date(2025, 7, 19)); // PLACEHOLDER: Currently selected date for booking
+  const [selectedDate, setSelectedDate] = useState(new Date()); // Use actual current date
   
-  const today = new Date(2025, 7, 19); // PLACEHOLDER: Set today as August 19, 2025
+  const today = new Date(); // Use actual current date
   const monthName = currentDate.toLocaleString('default', { month: 'long' });
   const year = currentDate.getFullYear();
   
@@ -45,7 +45,7 @@ export default function Calendar() {
   const bookings = [
     { 
       id: 1,
-      date: new Date(2025, 7, 18), 
+      date: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 1), // Yesterday
       startTime: '8:00 AM', 
       endTime: '12:00 PM',
       timeRange: '8:00 AM - 12:00 PM',
@@ -56,7 +56,7 @@ export default function Calendar() {
     },
     { 
       id: 2,
-      date: new Date(2025, 7, 20), 
+      date: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 2), // Day after tomorrow
       startTime: '1:00 PM', 
       endTime: '6:00 PM',
       timeRange: '1:00 PM - 6:00 PM',
@@ -399,6 +399,7 @@ export default function Calendar() {
             </div>
           </div>
 
+          {/* General Conditions - Inherits same width as calendar */}
           <GeneralConditions conditions={bookingConditions} />
         </div>
 
