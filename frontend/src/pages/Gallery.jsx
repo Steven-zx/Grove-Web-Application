@@ -154,12 +154,12 @@ export default function Gallery() {
                   {idx > 0 && (
                     <button
                       onClick={() => setSelectedImage(images[idx - 1])}
-                      className="absolute top-1/2 left-8 -translate-y-1/2 w-14 h-14 flex items-center justify-center bg-white shadow-lg rounded-full hover:bg-gray-100 focus:outline-none cursor-pointer"
+                      className="absolute top-1/2 left-8 -translate-y-1/2 w-14 h-14 flex items-center justify-center bg-white shadow-lg rounded-full hover:bg-[#EFEFEF] focus:outline-none cursor-pointer"
                       style={{ zIndex: 2 }}
                       aria-label="Previous image"
                     >
                       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="16" cy="16" r="16" fill="white" />
+                        <circle cx="16" cy="16" r="16" />
                         <path d="M19 10L13 16L19 22" stroke="#222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     </button>
@@ -167,12 +167,12 @@ export default function Gallery() {
                   {idx < images.length - 1 && (
                     <button
                       onClick={() => setSelectedImage(images[idx + 1])}
-                      className="absolute top-1/2 right-8 -translate-y-1/2 w-14 h-14 flex items-center justify-center bg-white shadow-lg rounded-full hover:bg-gray-100 focus:outline-none cursor-pointer"
+                      className="absolute top-1/2 right-8 -translate-y-1/2 w-14 h-14 flex items-center justify-center bg-white shadow-lg rounded-full hover:bg-[#EFEFEF] focus:outline-none cursor-pointer"
                       style={{ zIndex: 2 }}
                       aria-label="Next image"
                     >
                       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="16" cy="16" r="16" fill="white" />
+                        <circle cx="16" cy="16" r="16" />
                         <path d="M13 10L19 16L13 22" stroke="#222" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     </button>

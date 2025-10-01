@@ -4,11 +4,11 @@ import mapImg from "../assets/map.png";
 
 export default function Map() {
   return (
-  <div className="relative rounded-2xl overflow-hidden h-full w-full flex items-center justify-center"
+  <div className="relative rounded-2xl overflow-hidden h-full max-h-full w-full flex items-center justify-center"
   style={{ backgroundColor: "#EFEFEF" }}
   >
       <TransformWrapper
-        initialScale={1}
+  initialScale={0.8}
         minScale={0.5}
         maxScale={4}
         wheel={{ step: 0.1 }}
@@ -22,7 +22,7 @@ export default function Map() {
               <button type="button" onClick={() => resetTransform()} className="px-2 py-1 bg-white rounded shadow">Reset</button>
             </div>
             <TransformComponent>
-              <img src={mapImg} alt="Map" className="w-full h-full object-contain" style={{ display: 'block' }} />
+              <img src={mapImg} alt="Map" className="w-full max-h-full object-contain" style={{ display: 'block' }} />
             </TransformComponent>
           </>
         )}
