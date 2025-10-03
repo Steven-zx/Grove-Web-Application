@@ -38,52 +38,60 @@ export default function Amenities() {
     'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
   ];
 
-  return (
-    <div className="flex min-h-screen bg-[#FFFFFF]">
-      {/* Main Content */}
-      <div className="flex-1 ml-12 py-6 px-6">
-        {/* Header Buttons */}
-        <div className="flex justify-start gap-4 mb-8">
-          <button className="bg-[#40863A] text-white px-6 py-2 rounded-lg font-medium text-sm">
-            Book Amenity
-          </button>
-          <button
-            onClick={() => navigate('/your-bookings')}
-            className="bg-white text-black px-6 py-2 rounded-lg border border-gray-300 font-normal text-sm"
-          >
-            Your Bookings
-          </button>
-        </div>
-
-        {/* Amenities Section - Container for both grid and conditions */}
-        <div className="max-w-[720px]">
-          {/* Amenities Grid */}
-          <div className="grid grid-cols-2 gap-4">
-            {amenities.map((amenity) => (
-              <AmenityCard key={amenity.id} amenity={amenity} onBook={handleBook} />
-            ))}
-          </div>
-
-          {/* General Conditions - Inherits same width as grid */}
-          <div className="mt-12">
-            <GeneralConditions conditions={generalConditions} />
-          </div>
-        </div>
+return (
+  <div className="flex min-h-screen bg-[#FFFFFF]">
+    {/* Main Content */}
+    <div className="flex-1 px-2 md:px-8 flex flex-col gap-6 md:min-w-[350px] md:max-w-[900px]">
+      {/* Header Buttons */}
+      <div className="flex justify-start gap-4 mb-8">
+        <button className="bg-[#40863A] text-white px-6 py-2 rounded-lg font-medium text-sm">
+          Book Amenity
+        </button>
+        <button
+          onClick={() => navigate('/your-bookings')}
+          className="bg-white text-black px-6 py-2 rounded-lg border border-gray-300 font-normal text-sm"
+        >
+          Your Bookings
+        </button>
       </div>
 
-      {/* Fixed Right Sidebar - Only adjust positioning */}
-      <div className="fixed w-80 bg-white overflow-y-auto p-6" style={{ right: '100px', top: '54px', height: 'calc(100vh - 54px)' }}>
-        <div className="mb-6 w-full max-w-xs">
-          <InfoCard title="Notice" className="h-32">
-            <p className="text-xs leading-relaxed">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut 
-              labore et dolore magna aliqua.
-            </p>
-          </InfoCard>
-        </div>
+      {/* Mobile: Notice + Calendar above grid */}
+      <div className="md:hidden w-full px-2 py-3 flex flex-col gap-3">
+        <InfoCard title="Notice" className="h-32">
+          <p className="text-xs leading-relaxed">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut 
+            labore et dolore magna aliqua.
+          </p>
+        </InfoCard>
         <CalendarWidget />
       </div>
 
+      {/* Amenities Grid */}
+      <div className="max-w-3xl w-full">
+        <div className="grid grid-cols-2 gap-4">
+          {amenities.map((amenity) => (
+            <AmenityCard key={amenity.id} amenity={amenity} onBook={handleBook} />
+          ))}
+        </div>
+      </div>
+
+
+      {/* General Conditions */}
+      <div className="mt-12">
+        <GeneralConditions conditions={generalConditions} />
+      </div>
+    </div>
+
+    {/* Desktop Sidebar */}
+    <aside className="hidden md:flex w-80 px-2 py-0 flex-col gap-3 min-h-screen">
+      <InfoCard title="Notice" className="h-32">
+        <p className="text-xs leading-relaxed">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut 
+          labore et dolore magna aliqua.
+        </p>
+      </InfoCard>
+      <CalendarWidget />
+    </aside>
 
     </div>
   );

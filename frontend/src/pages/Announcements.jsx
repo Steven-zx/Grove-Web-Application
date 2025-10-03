@@ -49,9 +49,9 @@ export default function Announcements() {
   }
 
   return (
-  <div className="flex bg-white min-h-screen" style={{ justifyContent: 'flex-start' }}>
+  <div className="flex flex-col md:flex-row bg-white min-h-screen md:justify-start md:items-start w-full md:max-w-[1400px] md:mx-auto">
       {/* Main content */}
-  <main className="flex-1 pl-8 pr-4 flex flex-col gap-6" style={{ maxWidth: '700px', minWidth: '350px', marginLeft: '3rem' }}>
+  <main className="flex-1 px-2 md:px-8 flex flex-col gap-6 md:min-w-[350px] md:max-w-[900px]">
         <div className="flex items-center gap-4 mb-4">
           <h2 className="text-2xl font-bold">Community Updates</h2>
         </div>
@@ -62,8 +62,8 @@ export default function Announcements() {
         </div>
       </main>
 
-      {/* Notice and Filters on right, fixed on scroll */}
-  <aside className="w-80 px-2 py-0 flex flex-col gap-3 min-h-screen fixed" style={{ left: 'calc(650px + 23rem)', top: '4.5rem', height: 'calc(100vh - 4.5rem)', zIndex: 30, background: 'white' }}>
+      {/* Desktop: sidebar next to main content, not fixed */}
+      <aside className="hidden md:flex w-80 px-2 py-0 flex-col gap-3 min-h-screen">
         <div className="bg-white rounded-2xl border border-gray-200 p-4">
           <h3 className="font-bold mb-2">Notice</h3>
           <p className="text-sm text-gray-600">There will be an increase in the monthly dues from ₱800 to ₱850.</p>
@@ -81,6 +81,26 @@ export default function Announcements() {
           submitText="Find"
         />
       </aside>
+
+      {/* Mobile: Filters and Notice above main content */}
+      <div className="md:hidden w-full px-2 py-3 flex flex-col gap-3">
+        <div className="bg-white rounded-2xl border border-gray-200 p-4">
+          <h3 className="font-bold mb-2">Notice</h3>
+          <p className="text-sm text-gray-600">There will be an increase in the monthly dues from ₱800 to ₱850.</p>
+        </div>
+        <FiltersCard
+          title="Filters"
+          fields={[
+            { label: "Category", name: "category", type: "select", options: categories },
+            { label: "Date", name: "date", type: "date" },
+            { label: "Sort by", name: "sort", type: "select", options: ["Newest First", "Oldest First"] },
+          ]}
+          values={filters}
+          onChange={handleFilterChange}
+          onSubmit={handleFind}
+          submitText="Find"
+        />
+      </div>
     </div>
   );
 }

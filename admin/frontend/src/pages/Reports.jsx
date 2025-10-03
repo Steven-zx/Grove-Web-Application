@@ -156,32 +156,6 @@ function Reports() {
                     submitText="Find"
                 />
             </aside>
-
-            {/* Mobile: above table, full width */}
-            <div className="md:hidden w-full px-2 py-3 flex flex-col gap-3">
-                <FiltersCard
-                    title="Filters"
-                    fields={[
-                        {
-                            label: "Issue Type",
-                            name: "type",
-                            type: "select",
-                            options: ["Noise", "Maintenance", "Safety", "Other"],
-                        },
-                        { label: "Date", name: "date", type: "date" },
-                        {
-                            label: "Sort by",
-                            name: "sort",
-                            type: "select",
-                            options: ["Newest First", "Oldest First"],
-                        },
-                    ]}
-                    values={filters}
-                    onChange={handleFilterChange}
-                    onSubmit={handleFind}
-                    submitText="Find"
-                />
-            </div>
         </div>
     );
 }
