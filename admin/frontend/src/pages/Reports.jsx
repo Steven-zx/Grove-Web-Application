@@ -217,34 +217,35 @@ function Reports() {
                 )}
             </main>
 
-            {/* Responsive FiltersCard */}
-            {/* Desktop: sidebar next to main content, not fixed */}
-            <aside
-                className="hidden md:flex w-80 px-2 py-0 flex-col gap-3 min-h-screen"
-            >
-                <FiltersCard
-                    title="Filters"
-                    fields={[
-                        {
-                            label: "Issue Type",
-                            name: "type",
-                            type: "select",
-                            options: ["Noise", "Maintenance", "Safety", "Other"],
-                        },
-                        { label: "Date", name: "date", type: "date" },
-                        {
-                            label: "Sort by",
-                            name: "sort",
-                            type: "select",
-                            options: ["Newest First", "Oldest First"],
-                        },
-                    ]}
-                    values={filters}
-                    onChange={handleFilterChange}
-                    onSubmit={handleFind}
-                    submitText="Find"
-                />
-            </aside>
+            {/* Responsive FiltersCard: only show when not in details view */}
+            {!openReportId && (
+                <aside
+                    className="hidden md:flex w-80 px-2 py-0 flex-col gap-3 min-h-screen"
+                >
+                    <FiltersCard
+                        title="Filters"
+                        fields={[
+                            {
+                                label: "Issue Type",
+                                name: "type",
+                                type: "select",
+                                options: ["Noise", "Maintenance", "Safety", "Other"],
+                            },
+                            { label: "Date", name: "date", type: "date" },
+                            {
+                                label: "Sort by",
+                                name: "sort",
+                                type: "select",
+                                options: ["Newest First", "Oldest First"],
+                            },
+                        ]}
+                        values={filters}
+                        onChange={handleFilterChange}
+                        onSubmit={handleFind}
+                        submitText="Find"
+                    />
+                </aside>
+            )}
         </div>
     );
 }

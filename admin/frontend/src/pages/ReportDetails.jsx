@@ -13,7 +13,7 @@ function ReportDetails({ report, onBack, onDelete, onResolve }) {
 
     return (
         <div className="flex flex-col min-h-screen bg-white w-full">
-            <div className="flex items-center gap-3 pt-8 pl-8">
+            <div className="flex items-center gap-3 pt-8 pl-8 relative">
                 {/* Back arrow */}
                 <button
                     type="button"
@@ -24,6 +24,11 @@ function ReportDetails({ report, onBack, onDelete, onResolve }) {
                     <ArrowLeft size={28} color="#1E1E1E" strokeWidth={2} />
                 </button>
                 {/* Status and actions */}
+                {/* Date top right */}
+                <div className="absolute right-8 top-8 text-sm text-[#222] font-normal">
+                    {report.date ? report.date : ""}
+                    {report.time ? `, ${report.time}` : ", 8:01 AM"}
+                </div>
                 <button
                     type="button"
                     className={
@@ -51,7 +56,7 @@ function ReportDetails({ report, onBack, onDelete, onResolve }) {
                 <h2 className="text-2xl font-semibold mb-2">{report.type}</h2>
                 <div className="flex items-center gap-3 mb-2">
                     {/* User avatar */}
-                    <div className="w-10 h-10 rounded-full bg-[#EFEFEF] flex items-center justify-center text-lg font-bold text-[#1E1E1E]">
+                    <div className="w-10 h-10 rounded-full bg-[#E5EBE0] flex items-center justify-center text-lg font-bold text-[#1E1E1E]">
                         {report.name ? report.name[0] : "?"}
                     </div>
                     <div>
