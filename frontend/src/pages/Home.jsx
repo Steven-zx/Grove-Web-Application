@@ -88,7 +88,9 @@ export default function Home() {
       : heroIndex - 1;
 
   return (
-    <main className="p-6 bg-white" style={{ marginLeft: "3rem" }}>
+  <div className="flex flex-col md:flex-row bg-white min-h-screen md:justify-start md:items-start w-full md:max-w-[1400px] md:mx-auto">
+    {/* Main content */}
+    <main className="flex-1 px-2 md:px-8 flex flex-col gap-6 md:min-w-[350px] md:max-w-auto">
       {/* Hero Section */}
       <section>
         <div className="relative rounded-2xl overflow-hidden inline-block w-full mb-4">
@@ -109,7 +111,7 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Overlayed text */}
+          {/* Overlayed text*/}
           <div className="absolute" style={{ top: "5rem", left: "5rem", zIndex: 3 }}>
             <div
               style={{
@@ -122,13 +124,13 @@ export default function Home() {
               }}
             >
               <div
-                className="text-4xl md:text-6xl font-regular mb-2"
+                className="text-2xl md:text-4xl lg:text-6xl font-regular mb-2"
                 style={{ color: heroTexts[textIndex].color }}
               >
                 {heroTexts[textIndex].lines[0]}
               </div>
               <div
-                className="text-2xl md:text-4xl font-regular"
+                className="text-lg md:text-2xl lg:text-4xl font-regular"
                 style={{ color: heroTexts[textIndex].color }}
               >
                 {heroTexts[textIndex].lines[1]}
@@ -286,5 +288,6 @@ export default function Home() {
         </div>
       </div>
     </main>
+  </div>
   );
 }
