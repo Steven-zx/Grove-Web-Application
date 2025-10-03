@@ -219,9 +219,8 @@ function Reports() {
 
             {/* Responsive FiltersCard: only show when not in details view */}
             {!openReportId && (
-                <aside
-                    className="hidden md:flex w-80 px-2 py-0 flex-col gap-3 min-h-screen"
-                >
+                <aside className="hidden md:flex w-80 px-2 py-0 flex-col gap-3 min-h-screen">
+                    <div className="sticky top-20 flex flex-col gap-3">
                     <FiltersCard
                         title="Filters"
                         fields={[
@@ -244,6 +243,7 @@ function Reports() {
                         onSubmit={handleFind}
                         submitText="Find"
                     />
+                    </div>
                 </aside>
             )}
         </div>
