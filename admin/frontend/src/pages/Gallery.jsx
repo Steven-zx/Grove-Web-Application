@@ -128,7 +128,9 @@ export default function Gallery() {
   }
 
   return (
-    <main className="bg-white min-h-screen max-w-screen-xl p-6" style={{ marginLeft: '3rem' }}>
+  <div className="flex flex-col md:flex-row bg-white min-h-screen md:justify-start md:items-start w-full md:max-w-[1400px] md:mx-auto">
+    {/* Main content */}
+    <main className="flex-1 px-2 md:px-8 flex flex-col gap-6 md:min-w-[350px] md:max-w-auto">
       {/* Category Tabs */}
       <nav className="flex gap-4 mb-8 overflow-x-auto items-end">
         {categories.map(cat => (
@@ -319,6 +321,7 @@ export default function Gallery() {
         </div>
       )}
     </main>
+  </div>
   );
 }
 

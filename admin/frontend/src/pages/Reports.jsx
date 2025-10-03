@@ -113,9 +113,9 @@ function Reports() {
     const openReport = reports.find(r => r.id === openReportId);
 
     return (
-        <div className="flex flex-col md:flex-row bg-white min-h-screen md:justify-start md:items-start w-full">
-            {/* Main content and filters side by side */}
-            <main className="flex-1 px-2 md:pl-8 md:pr-4 flex flex-col gap-6 md:min-w-[350px] md:ml-0">
+        <div className="flex flex-col md:flex-row bg-white min-h-screen md:justify-start md:items-start w-full md:max-w-[1400px] md:mx-auto">
+            {/* Main content */}
+            <main className="flex-1 px-2 md:px-8 flex flex-col gap-6 md:min-w-[350px] md:max-w-auto">
                 {/* Show details modal if openReportId is set */}
                 {openReportId ? (
                     <ReportDetails
