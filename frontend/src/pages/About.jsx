@@ -170,7 +170,9 @@ export default function About() {
   };
 
   return (
-  <main className="bg-white min-h-screen max-w-screen-xl" style={{ marginLeft: "3rem" }}>
+  <div className="flex flex-col md:flex-row bg-white min-h-screen md:justify-start md:items-start w-full md:max-w-[1400px] md:mx-auto">
+    {/* Main content */}
+    <main className="flex-1 px-2 md:px-8 flex flex-col gap-6 md:min-w-[350px] md:max-w-auto">
       {/* Header */}
       <div className="pt-1 pb-5">
         <div className="inline-flex items-center gap-2 text-sm text-[#1E1E1E] bg-white px-4 py-2 rounded-lg border border-[#D9D9D9]">
@@ -470,5 +472,6 @@ export default function About() {
         </div>
       </div>
     </main>
+  </div>
   );
 }
