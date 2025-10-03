@@ -55,19 +55,8 @@ return (
         </button>
       </div>
 
-      {/* Mobile: Notice + Calendar above grid */}
-      <div className="md:hidden w-full px-2 py-3 flex flex-col gap-3">
-        <InfoCard title="Notice" className="h-32">
-          <p className="text-xs leading-relaxed">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut 
-            labore et dolore magna aliqua.
-          </p>
-        </InfoCard>
-        <CalendarWidget />
-      </div>
-
       {/* Amenities Grid */}
-      <div className="max-w-3xl w-full">
+      <div>
         <div className="grid grid-cols-2 gap-4">
           {amenities.map((amenity) => (
             <AmenityCard key={amenity.id} amenity={amenity} onBook={handleBook} />
@@ -77,21 +66,23 @@ return (
 
 
       {/* General Conditions */}
-      <div className="mt-12">
+      <div>
         <GeneralConditions conditions={generalConditions} />
       </div>
     </main>
 
-    {/* Desktop Sidebar */}
+    {/* Desktop Sidebar: sticky */}
     <aside className="hidden md:flex w-80 px-2 py-0 flex-col gap-3 min-h-screen">
-      <div className="bg-white rounded-2xl border border-gray-200 p-5">
-        <h3 className="font-bold mb-2">Notice</h3>
-        <p className="text-sm text-gray-600">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-          labore et dolore magna aliqua.
-        </p>
+      <div className="sticky top-20 flex flex-col gap-3">
+        <div className="bg-white rounded-2xl border border-gray-200 p-5">
+          <h3 className="font-bold mb-2">Notice</h3>
+          <p className="text-sm text-gray-600">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
+            labore et dolore magna aliqua.
+          </p>
+        </div>
+        <CalendarWidget />
       </div>
-      <CalendarWidget />
     </aside>
     </div>
   );
