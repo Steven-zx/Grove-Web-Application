@@ -1,9 +1,11 @@
 import React from "react";
-import { Flag, Search, User, LogIn } from "lucide-react";
+import { Flag, Search, User, LogIn, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
 import ReportIssueModal from "../ReportIssueModal";
 
 export default function Navbar() {
+  // Placeholder for authentication state, replace with real auth logic
+  const isLoggedIn = true; // Set to false to simulate logged out
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const [reportOpen, setReportOpen] = React.useState(false);
   const profileBtnRef = React.useRef(null);
@@ -32,7 +34,7 @@ export default function Navbar() {
           <input
             type="text"
             placeholder="Search…"
-            className="w-full rounded-full border border-gray-300 pl-9 pr-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#E5EBE0]"
+            className="w-full rounded-full border border-[#D9D9D9] pl-9 pr-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#E5EBE0]"
           />
         </div>
       </div>
@@ -60,10 +62,23 @@ export default function Navbar() {
           </button>
           {dropdownOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl border border-gray-100 py-2 z-50">
-              <Link to="/login" className="flex items-center gap-3 px-5 py-3 text-[#1e1e1e] hover:bg-gray-50 transition-colors">
-                <LogIn size={20} />
-                <span className="font-medium">Login</span>
-              </Link>
+              {isLoggedIn && (
+                <Link to="/profile" className="flex items-center gap-3 px-5 py-3 text-[#1e1e1e] hover:bg-gray-50 transition-colors">
+                  <User size={20} />
+                  <span className="font-medium">Profile</span>
+                </Link>
+              )}
+              {isLoggedIn ? (
+                <Link to="/logout" className="flex items-center gap-3 px-5 py-3 text-[#1e1e1e] hover:bg-gray-50 transition-colors">
+                  <LogOut size={20} />
+                  <span className="font-medium">Logout</span>
+                </Link>
+              ) : (
+                <Link to="/login" className="flex items-center gap-3 px-5 py-3 text-[#1e1e1e] hover:bg-gray-50 transition-colors">
+                  <LogIn size={20} />
+                  <span className="font-medium">Login</span>
+                </Link>
+              )}
             </div>
           )}
         </div>

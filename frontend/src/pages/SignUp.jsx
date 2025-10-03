@@ -136,9 +136,9 @@ export default function SignUp() {
 						</div>
 						{/* Form */}
 									<form className="w-full flex flex-col gap-4" onSubmit={handleContinue}>
-										<input type="email" placeholder="Email Address" className="w-full rounded-xl border border-gray-300 p-4 text-base bg-white" />
-										<input type="password" placeholder="Create a password" className="w-full rounded-xl border border-gray-300 p-4 text-base bg-white" />
-										<input type="password" placeholder="Confirm password" className="w-full rounded-xl border border-gray-300 p-4 text-base bg-white" />
+										<input type="email" placeholder="Email Address" className="w-full rounded-xl border border-[#D9D9D9] p-4 text-base bg-white" />
+										<input type="password" placeholder="Create a password" className="w-full rounded-xl border border-[#D9D9D9] p-4 text-base bg-white" />
+										<input type="password" placeholder="Confirm password" className="w-full rounded-xl border border-[#D9D9D9] p-4 text-base bg-white" />
 										<button type="submit" className="w-full rounded-full bg-[#40863A] text-white font-semibold py-3 mt-2 text-base hover:bg-[#35702c] transition-colors">Continue</button>
 									</form>
 						<div className="w-full flex flex-col items-center mt-6 text-sm">

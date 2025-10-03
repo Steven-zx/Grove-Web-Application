@@ -14,15 +14,25 @@ import About from "./pages/About";
 import BookingModal from "./pages/BookingModal";
 import YourBookings from "./pages/YourBookings";
 import Calendar from "./pages/Calendar";
+import Profile from "./pages/Profile";
+
+function Logout() {
+  // Placeholder logout page, replace with real logic
+  React.useEffect(() => {
+    window.location.href = "/login";
+  }, []);
+  return <div className="p-8 text-center">Logging out...</div>;
+}
 
 export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/signup-details" element={<SignUpDetails />} />
-        <Route path="/signup-complete" element={<SignUpComplete />} />
+    <Route path="/login" element={<Login />} />
+    <Route path="/logout" element={<Login />} />
+    <Route path="/signup" element={<SignUp />} />
+    <Route path="/signup-details" element={<SignUpDetails />} />
+    <Route path="/signup-complete" element={<SignUpComplete />} />
         <Route
           path="*"
           element={
@@ -34,14 +44,15 @@ export default function App() {
                 </header>
                 <main className="p-6 pt-20">
                   <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/announcements" element={<Announcements />} />
-                    <Route path="/amenities" element={<Amenities />} />
-                    <Route path="/booking-modal" element={<BookingModal />} />
-                    <Route path="/your-bookings" element={<YourBookings />} />
-                    <Route path="/calendar" element={<Calendar />} />
-                    <Route path="/gallery" element={<Gallery />} />
-                    <Route path="/about" element={<About />} />
+                      <Route path="/" element={<Home />} />
+                      <Route path="/announcements" element={<Announcements />} />
+                      <Route path="/amenities" element={<Amenities />} />
+                      <Route path="/booking-modal" element={<BookingModal />} />
+                      <Route path="/your-bookings" element={<YourBookings />} />
+                      <Route path="/calendar" element={<Calendar />} />
+                      <Route path="/gallery" element={<Gallery />} />
+                      <Route path="/about" element={<About />} />
+                      <Route path="/profile" element={<Profile />} />
                   </Routes>
                 </main>
               </div>

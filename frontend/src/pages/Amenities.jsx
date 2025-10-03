@@ -49,7 +49,7 @@ return (
         </button>
         <button
           onClick={() => navigate('/your-bookings')}
-          className="bg-white text-black px-6 py-2 rounded-lg border border-gray-300 font-normal text-sm"
+          className="bg-white text-black px-6 py-2 rounded-lg border border-[#D9D9D9] font-normal text-sm"
         >
           Your Bookings
         </button>

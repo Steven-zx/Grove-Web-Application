@@ -172,8 +172,8 @@ export default function About() {
   return (
   <main className="bg-white min-h-screen max-w-screen-xl" style={{ marginLeft: "3rem" }}>
       {/* Header */}
-  <div className="pt-1 pb-5">
-        <div className="inline-flex items-center gap-2 text-sm text-[#1E1E1E] bg-white px-4 py-2 rounded-lg border border-gray-300">
+      <div className="pt-1 pb-5">
+        <div className="inline-flex items-center gap-2 text-sm text-[#1E1E1E] bg-white px-4 py-2 rounded-lg border border-[#D9D9D9]">
           <span>Augustine Grove Residential Village</span>
         </div>
       </div>
@@ -212,10 +212,10 @@ export default function About() {
             {/* Features */}
             <div className="space-y-4">
               <div className="w-[100%] ml-auto">
-                <div className="flex items-center gap-4 p-4 bg-white border border-gray-300 rounded-lg">
+                <div className="flex items-center gap-4 p-4 bg-white border border-[#D9D9D9] rounded-lg">
                   {/* Icon + Title */}
                   <div className="flex flex-col items-center justify-center">
-                    <div className="w-20 h-14 flex items-center justify-center rounded-lg border border-gray-300 bg-white mb-2">
+                    <div className="w-20 h-14 flex items-center justify-center rounded-lg border border-[#D9D9D9] bg-white mb-2">
                       <Shield className="w-6 h-6 text-[#1E1E1E]" />
                     </div>
                     <span className="text-lg font-medium text-gray-900">SECURE</span>
@@ -228,9 +228,9 @@ export default function About() {
                 </div>
               </div>
               <div className="w-[90%] ml-auto">
-                <div className="flex items-center gap-4 p-4 bg-white border border-gray-300 rounded-lg">
+                <div className="flex items-center gap-4 p-4 bg-white border border-[#D9D9D9] rounded-lg">
                   <div className="flex flex-col items-center justify-center">
-                    <div className="w-20 h-14 flex items-center justify-center rounded-lg border border-gray-300 bg-white mb-2">
+                    <div className="w-20 h-14 flex items-center justify-center rounded-lg border border-[#D9D9D9] bg-white mb-2">
                       <Bird className="w-6 h-6 text-[#1E1E1E]" />
                     </div>
                     <span className="text-lg font-medium text-gray-900">PEACEFUL</span>
@@ -243,9 +243,9 @@ export default function About() {
                 </div>
               </div>
               <div className="w-[80%] ml-auto">
-                <div className="flex items-center gap-4 p-4 bg-white border border-gray-300 rounded-lg">
+                <div className="flex items-center gap-4 p-4 bg-white border border-[#D9D9D9] rounded-lg">
                   <div className="flex flex-col items-center justify-center">
-                    <div className="w-20 h-14 flex items-center justify-center rounded-lg border border-gray-300 bg-white mb-2">
+                    <div className="w-20 h-14 flex items-center justify-center rounded-lg border border-[#D9D9D9] bg-white mb-2">
                       <CheckCircle className="w-6 h-6 text-[#1E1E1E]" />
                     </div>
                     <span className="text-lg font-medium text-gray-900">CONVENIENT</span>
@@ -285,7 +285,7 @@ export default function About() {
       {/* House Rules */}
       <div className="flex justify-start">
         <div className="bg-white rounded-lg mb-1 max-w-7xl w-full pb-3 min-h-[220px] md:min-h-[300px] lg:min-h-[450px]">
-          <div className="grid grid-cols-1 lg:grid-cols-2 items-stretch rounded-lg border border-gray-300">
+          <div className="grid grid-cols-1 lg:grid-cols-2 items-stretch rounded-lg border border-[#D9D9D9]">
             <div className="bg-[#E5EBE0] rounded-tl-lg rounded-bl-lg p-10 flex flex-col h-full">
               {rules[activeRule]}
             </div>
@@ -333,11 +333,11 @@ export default function About() {
       <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1.2fr_0.6fr] gap-5 mb-2 max-w-7xl w-full pt-1 pb-3 min-h-[220px] md:min-h-[300px] lg:min-h-[450px]">
           {/* Get in touch */}
           <div className="h-full flex flex-col justify-between gap-4">
-            <div className="bg-white rounded-lg border border-gray-300 p-10">
+            <div className="bg-white rounded-lg border border-[#D9D9D9] p-10">
               <h2 className="text-2xl font-semi text-gray-900 mb-2">Get in touch</h2>
               <p className="text-gray-600 mb-4">Let us know how we can help.</p>
             </div>
-            <div className="bg-white rounded-lg border border-gray-300 p-10">
+            <div className="bg-white rounded-lg border border-[#D9D9D9] p-10">
               <h3 className="text-lg font-medium text-gray-900 mb-4">
                 AGVR Homeowner's Association
               </h3>
@@ -350,7 +350,7 @@ export default function About() {
                   <div key={i} className="flex items-center gap-3">
                     <User
                       strokeWidth={1}
-                      className="w-15 h-13 text-gray-500 rounded-lg border border-gray-300 p-1 bg-white"
+                      className="w-15 h-13 text-gray-500 rounded-lg border border-[#D9D9D9] p-1 bg-white"
                     />
                     <div>
                       <p className="font-medium text-gray-900">{person.name}</p>
@@ -371,7 +371,7 @@ export default function About() {
                 <div className="flex items-center gap-3">
                   <Building
                     strokeWidth={1}
-                    className="w-15 h-13 text-gray-500 rounded-lg border border-gray-300 p-1 bg-white"
+                    className="w-15 h-13 text-gray-500 rounded-lg border border-[#D9D9D9] p-1 bg-white"
                   />
                   <div>
                     <p className="font-medium text-gray-900">Admin Office</p>
@@ -382,7 +382,7 @@ export default function About() {
                 <div className="flex items-center gap-3">
                   <Shield
                     strokeWidth={1}
-                    className="w-15 h-13 text-gray-500 rounded-lg border border-gray-300 p-1 bg-white"
+                    className="w-15 h-13 text-gray-500 rounded-lg border border-[#D9D9D9] p-1 bg-white"
                   />
                   <div>
                     <p className="font-medium text-gray-900">Security Guardhouse</p>
@@ -393,7 +393,7 @@ export default function About() {
                 <div className="flex items-center gap-3">
                   <Wrench
                     strokeWidth={1}
-                    className="w-15 h-13 text-gray-500 rounded-lg border border-gray-300 p-1 bg-white"
+                    className="w-15 h-13 text-gray-500 rounded-lg border border-[#D9D9D9] p-1 bg-white"
                   />
                   <div>
                     <p className="font-medium text-gray-900">Maintenance</p>
@@ -404,7 +404,7 @@ export default function About() {
                 <div className="flex items-center gap-3">
                   <Mail
                     strokeWidth={1}
-                    className="w-15 h-13 text-gray-500 rounded-lg border border-gray-300 p-1 bg-white"
+                    className="w-15 h-13 text-gray-500 rounded-lg border border-[#D9D9D9] p-1 bg-white"
                   />
                   <div>
                     <p className="font-medium text-gray-900">Augustine Grove Residential Village</p>
@@ -414,7 +414,7 @@ export default function About() {
                 <div className="flex items-center gap-3">
                   <MapPin
                     strokeWidth={1}
-                    className="w-15 h-13 text-gray-500 rounded-lg border border-gray-300 p-1 bg-white"
+                    className="w-15 h-13 text-gray-500 rounded-lg border border-[#D9D9D9] p-1 bg-white"
                   />
                   <div>
                     <p className="font-medium text-gray-900">Sambag, Jaro, Iloilo City</p>
@@ -427,13 +427,13 @@ export default function About() {
 
           {/* Grove Life */}
           <div className="flex flex-col gap-4 items-center">
-            <div className="bg-white rounded-lg border border-gray-300 p-4 flex flex-col justify-center h-full w-full flex-grow">
+            <div className="bg-white rounded-lg border border-[#D9D9D9] p-4 flex flex-col justify-center h-full w-full flex-grow">
             <div className="self-center">
               <p className="text-xl text-[#1E1E1E]">Choose the</p>
               <p className="text-3xl italic text-[#1E1E1E]">Grove Life</p>
             </div>
           </div>
-            <div className="bg-white rounded-lg border border-gray-300 p-4 flex flex-col justify-center items-center w-full flex-shrink">
+            <div className="bg-white rounded-lg border border-[#D9D9D9] p-4 flex flex-col justify-center items-center w-full flex-shrink">
               <img src={agRealLogo} alt="Augustine Grove Logo" className="w-42 h-42" />
             </div>
           </div>
@@ -443,7 +443,7 @@ export default function About() {
       {/* FAQ */}
     <div className="flex justify-start">
       <div className="bg-white rounded-lg p-2 mb-1 max-w-7xl w-full pb-3 min-h-[220px] md:min-h-[300px] lg:min-h-[450px]">
-          <div className="inline-flex items-center gap-2 text-sm font-normal text-[#1E1E1E] bg-white px-4 py-2 rounded-lg border border-gray-300 mb-4">
+          <div className="inline-flex items-center gap-2 text-sm font-normal text-[#1E1E1E] bg-white px-4 py-2 rounded-lg border border-[#D9D9D9] mb-4">
             <span>Frequently Asked Questions</span>
           </div>
 

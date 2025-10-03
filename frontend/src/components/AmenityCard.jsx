@@ -29,7 +29,7 @@ const AmenityCard = ({ amenity, onBook }) => {
           className={`w-full py-2.5 rounded-full font-normal text-sm mt-auto ${
             amenity.status === 'Not Available'
               ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              : 'bg-white border border-gray-300 text-black hover:bg-gray-50'
+              : 'bg-white border border-[#D9D9D9] text-black hover:bg-gray-50'
           }`}
         >
           {amenity.status === 'Not Available' ? 'Coming Soon' : 'Book'}

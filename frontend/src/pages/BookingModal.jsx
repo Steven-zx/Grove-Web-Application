@@ -169,7 +169,7 @@ export default function BookingModal() {
                 value={formData.firstName}
                 onChange={handleInputChange}
                 placeholder="John"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 bg-gray-50"
+                className="w-full px-4 py-3 border border-[#D9D9D9] rounded-lg focus:outline-none focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 bg-gray-50"
                 required
               />
               {formData.firstName && (
@@ -188,7 +188,7 @@ export default function BookingModal() {
                 value={formData.lastName}
                 onChange={handleInputChange}
                 placeholder="Smith"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 bg-gray-50"
+                className="w-full px-4 py-3 border border-[#D9D9D9] rounded-lg focus:outline-none focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 bg-gray-50"
                 required
               />
               {formData.lastName && (
@@ -208,7 +208,7 @@ export default function BookingModal() {
               value={formData.address}
               onChange={handleInputChange}
               placeholder="Block 3, Lot 8, Phase 2"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 bg-gray-50"
+              className="w-full px-4 py-3 border border-[#D9D9D9] rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 bg-gray-50"
               required
             />
             {formData.address && (
@@ -228,7 +228,7 @@ export default function BookingModal() {
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="john.smith@email.com"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 bg-gray-50"
+                className="w-full px-4 py-3 border border-[#D9D9D9] rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 bg-gray-50"
                 required
               />
               {formData.email && (
@@ -247,7 +247,7 @@ export default function BookingModal() {
                 value={formData.contactNumber}
                 onChange={handleInputChange}
                 placeholder="0912 345 6789"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 bg-gray-50"
+                className="w-full px-4 py-3 border border-[#D9D9D9] rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 bg-gray-50"
                 required
               />
               {formData.contactNumber && (
@@ -267,7 +267,7 @@ export default function BookingModal() {
                 name="amenityToBook"
                 value={formData.amenityToBook}
                 readOnly
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed"
+                className="w-full px-4 py-3 border border-[#D9D9D9] rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed"
               />
             </div>
 
@@ -281,7 +281,7 @@ export default function BookingModal() {
                 name="selectDate"
                 value={formData.selectDate}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                className="w-full px-4 py-3 border border-[#D9D9D9] rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
                 required
               />
             </div>
@@ -300,7 +300,7 @@ export default function BookingModal() {
                 onChange={handleInputChange}
                 min="08:00"
                 max="18:00"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                className="w-full px-4 py-3 border border-[#D9D9D9] rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
                 required
               />
               <p className="text-xs text-gray-500 mt-1">Available from 8:00 AM to 6:00 PM</p>
@@ -318,7 +318,7 @@ export default function BookingModal() {
                 onChange={handleInputChange}
                 min="08:00"
                 max="18:00"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                className="w-full px-4 py-3 border border-[#D9D9D9] rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
                 required
               />
               <p className="text-xs text-gray-500 mt-1">Available from 8:00 AM to 6:00 PM</p>
@@ -336,7 +336,7 @@ export default function BookingModal() {
                 name="purpose"
                 value={formData.purpose}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                className="w-full px-4 py-3 border border-[#D9D9D9] rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
                 required
               />
             </div>
@@ -352,7 +352,7 @@ export default function BookingModal() {
                 value={formData.attendees}
                 onChange={handleInputChange}
                 min="1"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                className="w-full px-4 py-3 border border-[#D9D9D9] rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
                 required
               />
             </div>
@@ -368,7 +368,7 @@ export default function BookingModal() {
               value={formData.additionalNotes}
               onChange={handleInputChange}
               rows={4}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none"
+              className="w-full px-4 py-3 border border-[#D9D9D9] rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none"
               placeholder="Any additional information or special requests..."
             />
           </div>
@@ -381,7 +381,7 @@ export default function BookingModal() {
                 name="agreeToTerms"
                 checked={formData.agreeToTerms}
                 onChange={handleInputChange}
-                className="mt-1 mr-3 h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                className="mt-1 mr-3 h-4 w-4 text-green-600 focus:ring-green-500 border-[#D9D9D9] rounded"
                 required
               />
               <span className="text-sm text-gray-700">

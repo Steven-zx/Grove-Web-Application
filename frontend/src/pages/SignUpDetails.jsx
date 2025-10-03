@@ -36,17 +36,17 @@ export default function SignUpDetails() {
             <div>
               <h2 className="text-2xl font-bold mb-6 text-[#1e1e1e]">Hi, neighbor! What's your name?</h2>
               <div className="flex gap-6">
-                <input type="text" placeholder="First name" className="w-full rounded-2xl border border-gray-300 p-5 text-base bg-white" />
-                <input type="text" placeholder="Last name" className="w-full rounded-2xl border border-gray-300 p-5 text-base bg-white" />
+                <input type="text" placeholder="First name" className="w-full rounded-2xl border border-[#D9D9D9] p-5 text-base bg-white" />
+                <input type="text" placeholder="Last name" className="w-full rounded-2xl border border-[#D9D9D9] p-5 text-base bg-white" />
               </div>
             </div>
             <div>
               <h2 className="text-2xl font-bold mb-6 text-[#1e1e1e]">What's your contact number?</h2>
-              <input type="text" placeholder="Mobile number (e.g. 09123456789)" className="w-full rounded-2xl border border-gray-300 p-5 text-base bg-white" />
+              <input type="text" placeholder="Mobile number (e.g. 09123456789)" className="w-full rounded-2xl border border-[#D9D9D9] p-5 text-base bg-white" />
             </div>
             <div>
               <h2 className="text-2xl font-bold mb-6 text-[#1e1e1e]">What's your complete address?</h2>
-              <input type="text" placeholder="Address (e.g. Block 3, Lot 8, Phase 2)" className="w-full rounded-2xl border border-gray-300 p-5 text-base bg-white" />
+              <input type="text" placeholder="Address (e.g. Block 3, Lot 8, Phase 2)" className="w-full rounded-2xl border border-[#D9D9D9] p-5 text-base bg-white" />
             </div>
             <div className="flex justify-end mt-8">
               <button type="submit" className="rounded-full bg-[#40863A] text-white font-semibold px-10 py-3 text-base hover:bg-[#35702c] transition-colors">Continue</button>

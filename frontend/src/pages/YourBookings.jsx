@@ -131,7 +131,7 @@ export default function YourBookings() {
         <div className="flex justify-start gap-4 mb-8">
           <button
             onClick={() => navigate('/amenities')}
-            className="bg-white text-black px-6 py-2 rounded-[10px] border border-gray-300 font-normal text-sm hover:bg-gray-50 transition-colors"
+            className="bg-white text-black px-6 py-2 rounded-[10px] border border-[#D9D9D9] font-normal text-sm hover:bg-gray-50 transition-colors"
           >
             Book Amenity
           </button>

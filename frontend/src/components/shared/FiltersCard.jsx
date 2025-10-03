@@ -29,7 +29,7 @@ export default function FiltersCard({
               name={field.name}
               value={values[field.name] || ""}
               onChange={onChange}
-              className="w-full rounded-lg border border-gray-300 p-2"
+              className="w-full rounded-lg border border-[#D9D9D9] p-2"
             >
               {field.options.map(opt => (
                 <option key={opt} value={opt}>{opt}</option>
@@ -41,7 +41,7 @@ export default function FiltersCard({
               name={field.name}
               value={values[field.name] || ""}
               onChange={onChange}
-              className="w-full rounded-lg border border-gray-300 p-2"
+              className="w-full rounded-lg border border-[#D9D9D9] p-2"
             />
           ) : (
             <input
@@ -49,7 +49,7 @@ export default function FiltersCard({
               name={field.name}
               value={values[field.name] || ""}
               onChange={onChange}
-              className="w-full rounded-lg border border-gray-300 p-2"
+              className="w-full rounded-lg border border-[#D9D9D9] p-2"
             />
           )}
         </div>

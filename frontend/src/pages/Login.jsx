@@ -102,7 +102,7 @@ export default function Login() {
 								value={formData.email}
 								onChange={handleInputChange}
 								required
-								className="w-full rounded-xl border border-gray-300 p-4 text-base bg-white" 
+								className="w-full rounded-xl border border-[#D9D9D9] p-4 text-base bg-white" 
 							/>
 							<input 
 								type="password" 
@@ -111,7 +111,7 @@ export default function Login() {
 								value={formData.password}
 								onChange={handleInputChange}
 								required
-								className="w-full rounded-xl border border-gray-300 p-4 text-base bg-white" 
+								className="w-full rounded-xl border border-[#D9D9D9] p-4 text-base bg-white" 
 							/>
 							<button 
 								type="submit" 

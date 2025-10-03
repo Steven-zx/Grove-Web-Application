@@ -42,20 +42,20 @@ export default function ReportIssueModal({ open, onClose }) {
             <label className="block font-semibold mb-1 text-[#1e1e1e]">
               <span className="text-red-500 mr-1">*</span>Name
             </label>
-            <input name="name" value={form.name} onChange={handleChange} type="text" className="w-full rounded-lg border border-gray-300 p-3 mb-2" placeholder="Your full name" required />
+            <input name="name" value={form.name} onChange={handleChange} type="text" className="w-full rounded-lg border border-[#D9D9D9] p-3 mb-2" placeholder="Your full name" required />
           </div>
           <div>
             <label className="block font-semibold mb-1 text-[#1e1e1e]">
               <span className="text-red-500 mr-1">*</span>Location
             </label>
-            <input name="location" value={form.location} onChange={handleChange} type="text" className="w-full rounded-lg border border-gray-300 p-3 mb-2" placeholder="Where is the issue located?" required />
+            <input name="location" value={form.location} onChange={handleChange} type="text" className="w-full rounded-lg border border-[#D9D9D9] p-3 mb-2" placeholder="Where is the issue located?" required />
           </div>
           <div>
             <label className="block font-semibold mb-1 text-[#1e1e1e]">
               <span className="text-red-500 mr-1">*</span>Issue type
             </label>
             <div className="relative">
-              <select name="type" value={form.type} onChange={handleChange} className="w-full rounded-lg border border-gray-300 p-3 pr-10 mb-2 appearance-none" required>
+              <select name="type" value={form.type} onChange={handleChange} className="w-full rounded-lg border border-[#D9D9D9] p-3 pr-10 mb-2 appearance-none" required>
                 <option value="" disabled>Select issue type</option>
                 {ISSUE_TYPES.map(opt => (
                   <option key={opt} value={opt}>{opt}</option>
@@ -70,11 +70,11 @@ export default function ReportIssueModal({ open, onClose }) {
             <label className="block font-semibold mb-1 text-[#1e1e1e]">
               <span className="text-red-500 mr-1">*</span>Email address or mobile number
             </label>
-            <input name="contact" value={form.contact} onChange={handleChange} type="text" className="w-full rounded-lg border border-gray-300 p-3 mb-2" placeholder="Your email address or mobile number" required />
+            <input name="contact" value={form.contact} onChange={handleChange} type="text" className="w-full rounded-lg border border-[#D9D9D9] p-3 mb-2" placeholder="Your email address or mobile number" required />
           </div>
           <div className="md:col-span-2">
             <label className="block font-semibold mb-1 text-[#1e1e1e]">Description</label>
-            <textarea name="description" value={form.description} onChange={handleChange} className="w-full rounded-lg border border-gray-300 p-3 mb-2" rows={4} placeholder="Please describe the issue in detail." />
+            <textarea name="description" value={form.description} onChange={handleChange} className="w-full rounded-lg border border-[#D9D9D9] p-3 mb-2" rows={4} placeholder="Please describe the issue in detail." />
           </div>
           <div className="md:col-span-2 flex justify-end mt-4">
             <button type="submit" className="rounded-full bg-[#40863A] text-white font-semibold px-8 py-3 text-base hover:bg-[#35702c] transition-colors cursor-pointer">Submit report</button>

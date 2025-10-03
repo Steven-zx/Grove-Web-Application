@@ -51,7 +51,7 @@ function ReportDetails({ report, onBack, onDelete, onResolve }) {
                 <h2 className="text-2xl font-medium mb-2">{report.type}</h2>
                 <div className="flex items-center gap-3 mb-2">
                     {/* User avatar */}
-                    <div className="w-10 h-10 rounded-full bg-[#EFEFEF] flex items-center justify-center text-lg font-bold text-[#1E1E1E]">
+                    <div className="w-10 h-10 rounded-full bg-[#E5EBE0] flex items-center justify-center text-lg font-bold text-[#1E1E1E]">
                         {report.name ? report.name[0] : "?"}
                     </div>
                     {/* Username and date/time */}

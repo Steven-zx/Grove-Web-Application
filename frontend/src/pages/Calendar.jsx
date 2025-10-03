@@ -210,7 +210,7 @@ export default function Calendar() {
                         <select 
                           value={currentDate.getMonth()}
                           onChange={(e) => navigateToDate(parseInt(e.target.value), currentDate.getFullYear())}
-                          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                          className="w-full border border-[#D9D9D9] rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         >
                           {months.map((month, index) => (
                             <option key={index} value={index}>{month}</option>
@@ -224,7 +224,7 @@ export default function Calendar() {
                         <select 
                           value={currentDate.getFullYear()}
                           onChange={(e) => navigateToDate(currentDate.getMonth(), parseInt(e.target.value))}
-                          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                          className="w-full border border-[#D9D9D9] rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         >
                           {years.map(year => (
                             <option key={year} value={year}>{year}</option>
