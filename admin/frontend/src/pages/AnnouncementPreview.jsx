@@ -8,22 +8,10 @@ export default function AnnouncementPreview({ form, onEdit }) {
   // Prepare props for AnnouncementCard
   const image = form.file ? URL.createObjectURL(form.file) : undefined;
   const author = "Admin";
-  function formatDate(dateString) {
-    if (!dateString) return "";
-    const dateObj = new Date(dateString);
-    const options = { month: "long", day: "numeric" };
-    const monthDay = dateObj.toLocaleDateString(undefined, options);
-    let hours = dateObj.getHours();
-    const minutes = dateObj.getMinutes().toString().padStart(2, "0");
-    const ampm = hours >= 12 ? "PM" : "AM";
-    hours = hours % 12;
-    hours = hours ? hours : 12;
-    return `${monthDay} at ${hours}:${minutes} ${ampm}`;
-  }
-  const date = form.date ? formatDate(form.date) : "";
+  const date = form.date ? new Date(form.date).toLocaleString() : "";
   const content = form.details;
 
-  // Sidebar data (can be passed as props or hardcoded for preview)
+  // Sidebar data
   const categories = ["General", "Facilities", "Upgrade"];
   const filters = {
     category: "All categories",
@@ -47,7 +35,7 @@ export default function AnnouncementPreview({ form, onEdit }) {
           onEdit={onEdit}
           // Remove content prop, render markdown below
         />
-        <div className="prose text-sm text-[#1e1e1e] w-full max-w-2xl">
+        <div className="prose text-sm text-[#1e1e1e] mb-2 w-full max-w-2xl">
           <ReactMarkdown>{content}</ReactMarkdown>
         </div>
         <div className="flex gap-2 text-xs text-gray-400">

@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from "react";
 import AnnouncementPreview from "./AnnouncementPreview";
+import ManageAnnouncements from "./ManageAnnouncements";
 import FiltersCard from "../components/shared/FiltersCard";
 import { Image } from "lucide-react";
 
@@ -76,13 +77,13 @@ export default function Announcements() {
                     {/* Tabs */}
                     <div className="flex gap-2 mb-6">
                         <button
-                            className={`px-6 py-2 rounded-lg font-semibold text-white bg-[#40863A] ${activeTab === "post" ? "" : "opacity-70"}`}
+                            className={`px-6 py-2 rounded-xl font-semibold border border-[#D9D9D9] transition-colors duration-150 ${activeTab === "post" ? "text-[#FFFFFF] bg-[#40863A]" : "text-[#1E1E1E] bg-[#FFF]"} hover:cursor-pointer`}
                             onClick={() => setActiveTab("post")}
                         >
                             + Post Announcements
                         </button>
                         <button
-                            className={`px-6 py-2 rounded-lg font-semibold border border-gray-300 bg-white text-gray-800 ${activeTab === "manage" ? "" : "opacity-70"}`}
+                            className={`px-6 py-2 rounded-xl font-semibold border border-[#D9D9D9] transition-colors duration-150 ${activeTab === "manage" ? "text-[#FFFFFF] bg-[#40863A]" : "text-[#1E1E1E] bg-[#FFF]"} hover:cursor-pointer`}
                             onClick={() => setActiveTab("manage")}
                         >
                             Manage Announcements
@@ -260,12 +261,9 @@ export default function Announcements() {
                         </form>
                     )}
 
-                    {/* Manage Announcements Tab (placeholder) */}
+                    {/* Manage Announcements Tab */}
                     {activeTab === "manage" && (
-                        <div className="bg-white rounded-2xl border border-gray-200 p-8 mx-auto text-center text-gray-500">
-                            <h2 className="text-xl font-bold mb-2">Manage Announcements</h2>
-                            <p>Feature coming soon.</p>
-                        </div>
+                        <ManageAnnouncements />
                     )}
                 </main>
                     {/* ...existing code... */}
