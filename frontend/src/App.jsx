@@ -18,7 +18,6 @@ import Calendar from "./pages/Calendar";
 export default function App() {
   return (
     <Router>
-      {/* Only show Sidebar and Navbar if not on login/signup/signup-details/signup-complete */}
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />

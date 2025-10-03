@@ -1,6 +1,5 @@
 // Gallery Page
 
-
 import React from "react";
 import entrance from "../assets/entrance.jpg";
 import gate from "../assets/gate.jpg";
