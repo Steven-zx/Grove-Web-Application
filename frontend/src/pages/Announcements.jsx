@@ -1,6 +1,7 @@
 // Announcements Page
 import React from "react";
 import AnnouncementCard from "../components/AnnouncementCard";
+import FiltersCard from "../components/shared/FiltersCard";
 import announcement1 from "../assets/announcement1.png";
 import announcement2 from "../assets/announcement2.png";
 
@@ -67,27 +68,18 @@ export default function Announcements() {
           <h3 className="font-bold mb-2">Notice</h3>
           <p className="text-sm text-gray-600">There will be an increase in the monthly dues from ₱800 to ₱850.</p>
         </div>
-        <form className="bg-white rounded-2xl border border-gray-200 p-4 flex flex-col gap-4" onSubmit={handleFind}>
-          <h3 className="font-bold mb-2">Filters</h3>
-          <div>
-            <label className="block text-sm font-medium mb-1">Category</label>
-            <select name="category" value={filters.category} onChange={handleFilterChange} className="w-full rounded-lg border border-gray-300 p-2">
-              {categories.map(cat => <option key={cat}>{cat}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Date</label>
-            <input type="date" name="date" value={filters.date} onChange={handleFilterChange} className="w-full rounded-lg border border-gray-300 p-2" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Sort by</label>
-            <select name="sort" value={filters.sort} onChange={handleFilterChange} className="w-full rounded-lg border border-gray-300 p-2">
-              <option>Newest First</option>
-              <option>Oldest First</option>
-            </select>
-          </div>
-          <button type="submit" className="rounded-full bg-[#40863A] text-white font-semibold px-6 py-2 mt-2 hover:bg-[#35702c] transition-colors">Find</button>
-        </form>
+        <FiltersCard
+          title="Filters"
+          fields={[
+            { label: "Category", name: "category", type: "select", options: categories },
+            { label: "Date", name: "date", type: "date" },
+            { label: "Sort by", name: "sort", type: "select", options: ["Newest First", "Oldest First"] },
+          ]}
+          values={filters}
+          onChange={handleFilterChange}
+          onSubmit={handleFind}
+          submitText="Find"
+        />
       </aside>
     </div>
   );
