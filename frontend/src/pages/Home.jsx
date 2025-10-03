@@ -17,18 +17,71 @@ export default function Home() {
   const handlePrev = () => setHeroIndex((i) => (i === 0 ? heroImages.length - 1 : i - 1));
   const handleNext = () => setHeroIndex((i) => (i === heroImages.length - 1 ? 0 : i + 1));
 
-  // Removed dynamic height logic
+  // Hero overlay texts
+  const heroTexts = [
+    {
+      lines: [
+        <>Building <span className="italic">Homes,</span></>,
+        "Strengthening Community."
+      ],
+      color: "#1e1e1e"
+    },
+    {
+      lines: [
+        <>Safe <span className="italic">Spaces,</span></>,
+        "Lasting Connections."
+      ],
+      color: "#ffffff",
+      backgroundColor: "rgba(30, 30, 30, 0.25)"
+    },
+    {
+      lines: [
+        <>Building <span className="italic">Roots,</span></>,
+        "Sharing Futures."
+      ],
+      color: "#ffffff"
+    }
+  ];
 
   return (
     <main className="p-6 bg-white" style={{ marginLeft: '3rem' }}>
       {/* Hero Section */}
       <section>
-  <div className="relative rounded-2xl overflow-hidden inline-block w-full mb-4">
+        <div className="relative rounded-2xl overflow-hidden inline-block w-full mb-4">
           <img
             src={heroImages[heroIndex]}
             alt={`Augustine Grove Hero ${heroIndex + 1}`}
             className="block w-full h-full rounded-2xl object-cover"
           />
+          {/* Overlayed text */}
+          <div
+            className="absolute"
+            style={{ top: '5rem', left: '5rem', zIndex: 3 }}
+          >
+            <div
+              style={{
+                backgroundColor: heroTexts[heroIndex].backgroundColor || undefined,
+                borderRadius: heroTexts[heroIndex].backgroundColor ? '1rem' : undefined,
+                padding: '1.5rem 2.5rem',
+                display: 'inline-block',
+                maxWidth: '90vw',
+                minHeight: '7.5rem',
+              }}
+            >
+              <div
+                className="text-4xl md:text-6xl font-regular mb-2"
+                style={{ color: heroTexts[heroIndex].color }}
+              >
+                {heroTexts[heroIndex].lines[0]}
+              </div>
+              <div
+                className="text-2xl md:text-4xl font-regular"
+                style={{ color: heroTexts[heroIndex].color }}
+              >
+                {heroTexts[heroIndex].lines[1]}
+              </div>
+            </div>
+          </div>
           {/* left arrow */}
           <button
             onClick={handlePrev}
@@ -98,7 +151,7 @@ export default function Home() {
           <div className="rounded-2xl bg-white border border-gray-200 p-8 flex flex-col gap-4 text-lg lg:text-xl transition-colors duration-200 group hover:bg-[#EFEFEF] items-start w-full min-w-0  cursor-pointer">
             <button type="button" onClick={() => setQrOpen(true)} className="flex items-center gap-2 flex-nowrap w-full bg-transparent group-hover:bg-[#EFEFEF] rounded-xl p-0 border-0 transition-colors duration-200 text-left cursor-pointer">
               <QrCode size={36} className="transition-colors duration-200 group-hover:text-[#40863A] text-gray-800 shrink-0" />
-              <span className="text-left text-lg lg:text-xl break-words">Generate QR code to register for entry</span>
+              <span className="text-left text-base lg:text-lg break-words">Generate QR code to register for entry</span>
             </button>
           </div>
           <QrCodeModal open={qrOpen} onClose={() => setQrOpen(false)} />
