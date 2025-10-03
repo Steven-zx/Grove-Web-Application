@@ -24,11 +24,6 @@ function ReportDetails({ report, onBack, onDelete, onResolve }) {
                     <ArrowLeft size={28} color="#1E1E1E" strokeWidth={2} />
                 </button>
                 {/* Status and actions */}
-                {/* Date top right */}
-                <div className="absolute right-8 top-8 text-sm text-[#222] font-normal">
-                    {report.date ? report.date : ""}
-                    {report.time ? `, ${report.time}` : ", 8:01 AM"}
-                </div>
                 <button
                     type="button"
                     className={
@@ -53,25 +48,35 @@ function ReportDetails({ report, onBack, onDelete, onResolve }) {
                 </button>
             </div>
             <div className="pl-8 pt-6">
-                <h2 className="text-2xl font-semibold mb-2">{report.type}</h2>
+                <h2 className="text-2xl font-medium mb-2">{report.type}</h2>
                 <div className="flex items-center gap-3 mb-2">
                     {/* User avatar */}
-                    <div className="w-10 h-10 rounded-full bg-[#E5EBE0] flex items-center justify-center text-lg font-bold text-[#1E1E1E]">
+                    <div className="w-10 h-10 rounded-full bg-[#EFEFEF] flex items-center justify-center text-lg font-bold text-[#1E1E1E]">
                         {report.name ? report.name[0] : "?"}
                     </div>
-                    <div>
-                        <div className="font-bold text-lg text-[#1E1E1E]">{report.name}</div>
-                        <div className="text-sm text-[#222]">Location: {report.location || "Lorem Ipsum"}</div>
-                        <div className="text-sm text-[#222]">Email Address or Mobile No.: {report.contact || "09123456789"}</div>
+                    {/* Username and date/time */}
+                    <div className="flex items-center w-full">
+                        <div className="font-medium text-lg text-[#1E1E1E]">{report.name}</div>
+                        <div className="text-sm text-[#222] font-normal ml-auto">
+                            {report.date ? report.date : ""}
+                            {report.time ? `, ${report.time}` : ", 8:01 AM"}
+                        </div>
                     </div>
                 </div>
-                <div className="mt-4 mb-6 text-[#222] max-w-4xl">
+                <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10" /> {/* Spacer for avatar alignment */}
+                    <div>
+                        <div className="font-medium text-sm text-[#222]">Location: {report.location || "Lorem Ipsum"}</div>
+                        <div className="font-medium text-sm text-[#222]">Email Address or Mobile No.: {report.contact || "09123456789"}</div>
+                    </div>
+                </div>
+                <div className="mt-4 mb-6 text-sm  text-[#222] max-w-5xl">
                     {/* Description, backend ready */}
                     {report.description || "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas tristique, odio ut egestas egestas, elit purus suscipit nisi, non posuere dui purus in lectus. Quisque non tellus sit amet tellus rutrum aliquet. Nam aliquet erat vel vestibulum ullamcorper. In tempor risus magna, eget faucibus leo ornare quis."}
                 </div>
                 {/* Attachments */}
                 <div className="mt-6">
-                    <div className="font-semibold mb-2">Attachments</div>
+                    <div className="font-medium mb-2">Attachments</div>
                     {report.attachments && report.attachments.length > 0 ? (
                         <div className="flex gap-4 flex-wrap">
                             {report.attachments.map((file, idx) => (
