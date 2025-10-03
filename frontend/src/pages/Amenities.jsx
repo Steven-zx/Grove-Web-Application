@@ -39,9 +39,9 @@ export default function Amenities() {
   ];
 
 return (
-  <div className="flex min-h-screen bg-[#FFFFFF]">
+  <div className="flex flex-col md:flex-row bg-white min-h-screen md:justify-start md:items-start w-full md:max-w-[1400px] md:mx-auto">
     {/* Main Content */}
-    <div className="flex-1 px-2 md:px-8 flex flex-col gap-6 md:min-w-[350px] md:max-w-[900px]">
+    <main className="flex-1 px-2 md:px-8 flex flex-col gap-6 md:min-w-[350px] md:max-w-[850px]">
       {/* Header Buttons */}
       <div className="flex justify-start gap-4 mb-8">
         <button className="bg-[#40863A] text-white px-6 py-2 rounded-lg font-medium text-sm">
@@ -80,19 +80,19 @@ return (
       <div className="mt-12">
         <GeneralConditions conditions={generalConditions} />
       </div>
-    </div>
+    </main>
 
     {/* Desktop Sidebar */}
     <aside className="hidden md:flex w-80 px-2 py-0 flex-col gap-3 min-h-screen">
-      <InfoCard title="Notice" className="h-32">
-        <p className="text-xs leading-relaxed">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut 
+      <div className="bg-white rounded-2xl border border-gray-200 p-5">
+        <h3 className="font-bold mb-2">Notice</h3>
+        <p className="text-sm text-gray-600">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
           labore et dolore magna aliqua.
         </p>
-      </InfoCard>
+      </div>
       <CalendarWidget />
     </aside>
-
     </div>
   );
 }

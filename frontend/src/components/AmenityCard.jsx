@@ -5,8 +5,8 @@ const AmenityCard = ({ amenity, onBook }) => {
   const description = 'A versatile space designed for community gatherings, celebrations, and meetings. It serves as the heart of social activities within Augustine Grove, offering a comfortable venue for residents to connect and build stronger relationships.';
 
   return (
-    <div className="bg-white rounded-2xl overflow-hidden flex flex-col" style={{ width: '350px', height: '500px', border: '1px solid #D9D9D9' }}>
-      <img src={amenity.image} alt={amenity.name} className="w-full h-48 object-cover" />
+  <div className="bg-white rounded-2xl overflow-hidden flex flex-col border border-[#D9D9D9] w-full max-w-xs md:max-w-sm lg:max-w-md h-auto min-h-[400px] md:min-h-[480px]">
+  <img src={amenity.image} alt={amenity.name} className="w-full h-40 md:h-48 object-cover" />
       <div className="p-4 flex-1 flex flex-col">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-lg font-semibold">{amenity.name}</h2>
