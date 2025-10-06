@@ -4,6 +4,7 @@ import Sidebar from "./components/layout/Sidebar";
 import Navbar from "./components/layout/Navbar";
 import Announcements from "./pages/Announcements";
 import Amenities from "./pages/Amenities";
+import Bookings from "./pages/Bookings";
 import Gallery from "./pages/Gallery";
 import Reports from "./pages/Reports";
 import Login from "./pages/Login";
@@ -47,6 +48,7 @@ export default function App() {
                     <Routes>
                       <Route path="/announcements" element={<Announcements />} />
                       <Route path="/amenities" element={<Amenities />} />
+                      <Route path="/bookings" element={<Bookings />} />
                       <Route path="/gallery" element={<Gallery />} />
                       <Route path="/reports" element={<Reports />} />
                     </Routes>

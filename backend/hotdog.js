@@ -32,6 +32,108 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 // Service role client for admin operations (bypasses RLS)
 const supabaseService = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_KEY);
 
+// Debug: Verify service key is loaded
+console.log('🔑 Service key loaded:', process.env.SUPABASE_SERVICE_KEY ? 'Yes' : 'No');
+console.log('🔑 Service key length:', process.env.SUPABASE_SERVICE_KEY?.length || 0);
+
+// Initialize amenities data
+const initializeAmenities = async () => {
+  try {
+    // Check if amenities already exist
+    const { data: existingAmenities, error: checkError } = await supabaseService
+      .from('amenities')
+      .select('*');
+
+    console.log('🔍 Existing amenities check:', { 
+      count: existingAmenities?.length || 0, 
+      data: existingAmenities?.map(a => ({ id: a.id, name: a.name })),
+      error: checkError?.message 
+    });
+
+    // Always ensure we have the correct 4 amenities
+    const correctAmenities = [
+      {
+        name: 'Swimming Pool',
+        description: 'Medium-sized pool with separate kids area. Max capacity: 25 people, ₱150 entrance fee per pax',
+        capacity: 25,
+        hourly_rate: 150,
+        available_hours: '8:00 AM - 10:00 PM',
+        image_url: '/src/assets/pool.jpg',
+        is_active: true
+      },
+      {
+        name: 'Basketball Court',
+        description: 'A standard outdoor court with a mounted hoop, ideal for casual games or tournaments. Max capacity: 20 people, ₱1,000 (half day), ₱2,000 (full day)',
+        capacity: 20,
+        hourly_rate: 1000,
+        available_hours: '8:00 AM - 10:00 PM',
+        image_url: '/src/assets/basketball.jpg',
+        is_active: true
+      },
+      {
+        name: 'Clubhouse',
+        description: 'Perfect for community events, parties, and gatherings. Max capacity: 50 people, ₱2,000 (half day), ₱3,500 (full day)',
+        capacity: 50,
+        hourly_rate: 2000,
+        available_hours: '8:00 AM - 10:00 PM',
+        image_url: '/src/assets/clubhouse.jpg',
+        is_active: true
+      },
+      {
+        name: 'Playground',
+        description: 'Coming Soon.',
+        capacity: 20,
+        hourly_rate: 0,
+        available_hours: 'Not Available',
+        image_url: null,
+        is_active: false
+      }
+    ];
+
+    if (!existingAmenities || existingAmenities.length === 0) {
+      // No amenities exist, add all
+      console.log('🏗️ Adding all amenities...');
+      const { error } = await supabaseService
+        .from('amenities')
+        .insert(correctAmenities);
+      
+      if (error) {
+        console.error('❌ Failed to add amenities:', error.message);
+      } else {
+        console.log('✅ All amenities added successfully');
+        correctAmenities.forEach(a => {
+          console.log(`  ✅ ${a.name} (${a.is_active ? 'Available' : 'Not Available'})`);
+        });
+      }
+    } else {
+      // Amenities exist, force update with new descriptions
+      console.log('🔄 Updating existing amenities with new descriptions...');
+      
+      // Delete all existing amenities
+      await supabaseService
+        .from('amenities')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000');
+      
+      // Insert updated amenities
+      const { error } = await supabaseService
+        .from('amenities')
+        .insert(correctAmenities);
+      
+      if (error) {
+        console.error('❌ Failed to update amenities:', error.message);
+      } else {
+        console.log('✅ Amenities updated successfully with new descriptions');
+        correctAmenities.forEach(a => {
+          console.log(`  ✅ ${a.name}: ${a.description.substring(0, 50)}...`);
+        });
+      }
+    }
+  } catch (error) {
+    console.error('❌ Error managing amenities:', error);
+  }
+};
+
 // Rate limiting
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
@@ -74,6 +176,9 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 // Request logging middleware for debugging
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${req.headers.origin || 'none'}`);
+  if (req.method === 'POST' && req.path === '/api/auth/register') {
+    console.log('📝 Registration request received with body:', req.body);
+  }
   next();
 });
 
@@ -149,10 +254,10 @@ function makeObjectPath(originalName) {
 
 // ===== AUTHENTICATION ROUTES =====
 
-// User Registration
+// Step 1: Initial Registration (Email & Password only)
 app.post('/api/auth/register', async (req, res) => {
   try {
-    const { email, password, firstName, lastName, phone, address } = req.body;
+    const { email, password } = req.body;
     
     // Validation
     if (!validateEmail(email)) {
@@ -161,9 +266,8 @@ app.post('/api/auth/register', async (req, res) => {
     if (!validatePassword(password)) {
       return res.status(400).json({ error: 'Password must be at least 6 characters long' });
     }
-    if (!firstName || !lastName) {
-      return res.status(400).json({ error: 'First name and last name are required' });
-    }
+
+    console.log(`🔐 Registration attempt for: ${email}`);
 
     // Create user in Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -171,52 +275,186 @@ app.post('/api/auth/register', async (req, res) => {
       password: password,
     });
 
+    console.log('Auth signup result:', { 
+      success: !authError, 
+      userId: authData?.user?.id,
+      errorMessage: authError?.message 
+    });
+
     if (authError) {
+      console.error('Auth signup error:', authError);
+      // Handle case where user already exists
+      if (authError.message.includes('already registered')) {
+        return res.status(400).json({ error: 'An account with this email already exists. Please try logging in instead.' });
+      }
       return res.status(400).json({ error: authError.message });
     }
 
-    // Create user profile
-    const { data: profileData, error: profileError } = await supabase
+    // Check if user profile already exists
+    console.log(`🔍 Checking for existing profile for email: ${email}`);
+    const { data: existingProfile, error: profileCheckError } = await supabaseService
       .from('user_profiles')
-      .insert([
-        {
-          id: authData.user.id,
-          email: email,
-          first_name: firstName,
-          last_name: lastName,
-          phone: phone,
-          address: address,
-          created_at: new Date().toISOString()
-        }
-      ])
-      .select();
+      .select('*')
+      .eq('email', email)
+      .single();
 
-    if (profileError) {
-      console.error('Profile creation error:', profileError);
+    console.log('Profile check result:', { 
+      exists: !!existingProfile, 
+      profileId: existingProfile?.id,
+      checkError: profileCheckError?.message 
+    });
+
+    let userId = authData.user?.id;
+    console.log(`📝 User ID from auth: ${userId}`);
+    
+    // If user exists but no profile, create it
+    if (!existingProfile && userId) {
+      console.log('🆕 Creating new user profile...');
+      const { data: profileData, error: profileError } = await supabaseService
+        .from('user_profiles')
+        .insert([
+          {
+            id: userId,
+            email: email,
+            first_name: '', // Temporary empty value, will be filled in step 2
+            last_name: '', // Temporary empty value, will be filled in step 2
+            phone: '', // Temporary empty value, will be filled in step 2
+            address: '', // Temporary empty value, will be filled in step 2
+            created_at: new Date().toISOString()
+          }
+        ])
+        .select();
+
+      console.log('Profile creation result:', { 
+        success: !profileError, 
+        profileData: profileData?.[0],
+        error: profileError 
+      });
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        return res.status(500).json({ error: 'Failed to create user profile: ' + profileError.message });
+      }
+    } else if (existingProfile) {
+      // Use existing profile
+      console.log('📋 Using existing profile');
+      userId = existingProfile.id;
     }
 
     const token = generateToken({ 
-      userId: authData.user.id, 
+      userId: userId, 
       email: email, 
       isAdmin: false 
     });
 
     res.json({ 
-      message: 'User created successfully', 
+      message: 'Registration successful', 
       user: {
-        id: authData.user.id,
+        id: userId,
         email: email,
-        firstName: firstName,
-        lastName: lastName,
-        phone: phone,
-        address: address
+        profileCompleted: false
       },
       token: token
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('❌ REGISTRATION ERROR:', error);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ error: 'Internal server error: ' + error.message });
+  }
+});
+
+// Step 2: Complete Profile (Name, Phone, Address)
+app.post('/api/auth/complete-profile', verifyToken, async (req, res) => {
+  try {
+    const { firstName, lastName, phone, address } = req.body;
+    const userId = req.user.userId;
+    
+    // Validation
+    if (!firstName || !lastName) {
+      return res.status(400).json({ error: 'First name and last name are required' });
+    }
+    if (!phone) {
+      return res.status(400).json({ error: 'Phone number is required' });
+    }
+    if (!address) {
+      return res.status(400).json({ error: 'Address is required' });
+    }
+
+    console.log('🔄 Completing profile for user:', userId);
+
+    // First try to update the existing profile
+    const { data: profileData, error: profileError } = await supabaseService
+      .from('user_profiles')
+      .update({
+        first_name: firstName,
+        last_name: lastName,
+        phone: phone,
+        address: address,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId)
+      .select();
+
+    console.log('Profile update result:', { success: !profileError, data: profileData, error: profileError });
+
+    if (profileError) {
+      console.error('Profile update error:', profileError);
+      return res.status(500).json({ error: 'Failed to update profile' });
+    }
+
+    // Check if any data was returned (meaning the update was successful)
+    if (!profileData || profileData.length === 0) {
+      console.log('❌ No profile found to update');
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+
+    const updatedProfile = profileData[0];
+
+    res.json({ 
+      message: 'Profile completed successfully', 
+      user: {
+        id: userId,
+        email: req.user.email,
+        firstName: updatedProfile.first_name,
+        lastName: updatedProfile.last_name,
+        phone: updatedProfile.phone,
+        address: updatedProfile.address,
+        profileCompleted: true
+      }
+    });
+  } catch (error) {
+    console.error('Profile completion error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
+});
+
+// Test endpoint for debugging registration issues
+app.post('/api/auth/test-register', async (req, res) => {
+  try {
+    console.log('🧪 Test registration endpoint hit');
+    console.log('Request body:', req.body);
+    res.json({ message: 'Test endpoint working', body: req.body });
+  } catch (error) {
+    console.error('Test endpoint error:', error);
+    res.status(500).json({ error: 'Test endpoint error' });
+  }
+});
+
+// Google OAuth Routes (Placeholder - requires Google OAuth setup)
+app.get('/api/auth/google', (req, res) => {
+  // TODO: Implement Google OAuth
+  // For now, return a message indicating this feature is coming soon
+  res.status(501).json({ 
+    error: 'Google OAuth integration coming soon',
+    message: 'Please use email/password registration for now' 
+  });
+});
+
+app.get('/api/auth/google/callback', (req, res) => {
+  // TODO: Implement Google OAuth callback
+  res.status(501).json({ 
+    error: 'Google OAuth integration coming soon' 
+  });
 });
 
 // User Login
@@ -238,7 +476,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     // Get user profile
-    const { data: profile } = await supabase
+    const { data: profile } = await supabaseService
       .from('user_profiles')
       .select('*')
       .eq('id', data.user.id)
@@ -258,7 +496,8 @@ app.post('/api/auth/login', async (req, res) => {
         firstName: profile?.first_name,
         lastName: profile?.last_name,
         phone: profile?.phone,
-        address: profile?.address
+        address: profile?.address,
+        profileCompleted: !!(profile?.first_name && profile?.last_name)
       },
       token: token
     });
@@ -306,17 +545,31 @@ app.post('/api/admin/login', async (req, res) => {
 // Get User Profile
 app.get('/api/users/profile', verifyToken, async (req, res) => {
   try {
-    const { data, error } = await supabase
+    console.log('👤 Fetching profile for user ID:', req.user.userId);
+    
+    // First, let's try to get the profile without .single() to see what we get
+    const { data, error } = await supabaseService
       .from('user_profiles')
       .select('*')
-      .eq('id', req.user.userId)
-      .single();
+      .eq('id', req.user.userId);
 
     if (error) {
+      console.error('❌ Profile fetch error:', error);
       return res.status(500).json({ error: error.message });
     }
 
-    res.json(data);
+    console.log('✅ Profile query result:', { dataLength: data?.length, data });
+
+    // Check if we have any data
+    if (!data || data.length === 0) {
+      console.log('❌ No profile found for user');
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+
+    // Return the first profile found
+    const profile = data[0];
+    console.log('✅ Profile fetched successfully:', profile);
+    res.json(profile);
   } catch (error) {
     console.error('Get profile error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -328,7 +581,7 @@ app.put('/api/users/profile', verifyToken, async (req, res) => {
   try {
     const { firstName, lastName, phone, address } = req.body;
     
-    const { data, error } = await supabase
+    const { data, error } = await supabaseService
       .from('user_profiles')
       .update({
         first_name: firstName,
@@ -347,6 +600,48 @@ app.put('/api/users/profile', verifyToken, async (req, res) => {
     res.json({ message: 'Profile updated successfully', data });
   } catch (error) {
     console.error('Update profile error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Change Password
+app.post('/api/auth/change-password', verifyToken, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Current password and new password are required' });
+    }
+
+    // Get current user from auth.users
+    const { data: userData, error: userError } = await supabaseService.auth.admin.getUserById(req.user.userId);
+    
+    if (userError) {
+      return res.status(500).json({ error: 'Failed to get user data' });
+    }
+
+    // Verify current password by attempting to sign in
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: userData.user.email,
+      password: currentPassword
+    });
+
+    if (signInError) {
+      return res.status(400).json({ error: 'Current password is incorrect' });
+    }
+
+    // Update password
+    const { error: updateError } = await supabaseService.auth.admin.updateUserById(req.user.userId, {
+      password: newPassword
+    });
+
+    if (updateError) {
+      return res.status(500).json({ error: 'Failed to update password' });
+    }
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Change password error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -527,21 +822,118 @@ app.delete('/api/admin/announcements/:id', verifyToken, verifyAdmin, async (req,
 
 // ===== AMENITIES ROUTES =====
 
-// Get Amenities
+// Setup Amenities (Manual endpoint)
+app.post('/api/setup/amenities', async (req, res) => {
+  try {
+    // Clear existing amenities
+    await supabaseService
+      .from('amenities')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000');
+
+    // Add new amenities (without Gym, Function Hall, Tennis Court)
+    const amenitiesData = [
+      {
+        name: 'Swimming Pool',
+        description: 'Medium-sized pool with separate kids area. Max capacity: 25 people, ₱150 entrance fee per pax',
+        capacity: 25,
+        hourly_rate: 150,
+        available_hours: '8:00 AM - 10:00 PM',
+        image_url: '/src/assets/pool.jpg',
+        is_active: true
+      },
+      {
+        name: 'Basketball Court',
+        description: 'A standard outdoor court with a mounted hoop, ideal for casual games or tournaments. Max capacity: 20 people, ₱1,000 (half day), ₱2,000 (full day)',
+        capacity: 20,
+        hourly_rate: 1000,
+        available_hours: '8:00 AM - 10:00 PM',
+        image_url: '/src/assets/basketball.jpg',
+        is_active: true
+      },
+      {
+        name: 'Clubhouse',
+        description: 'Perfect for community events, parties, and gatherings. Max capacity: 50 people, ₱2,000 (half day), ₱3,500 (full day)',
+        capacity: 50,
+        hourly_rate: 2000,
+        available_hours: '8:00 AM - 10:00 PM',
+        image_url: '/src/assets/clubhouse.jpg',
+        is_active: true
+      },
+      {
+        name: 'Playground',
+        description: 'Coming Soon.',
+        capacity: 20,
+        hourly_rate: 0,
+        available_hours: 'Not Available',
+        image_url: null,
+        is_active: false
+      }
+    ];
+
+    const { data, error } = await supabaseService
+      .from('amenities')
+      .insert(amenitiesData)
+      .select();
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    res.json({ 
+      message: 'Amenities setup completed successfully', 
+      count: data.length,
+      amenities: data.map(a => `${a.name} (${a.is_active ? 'Available' : 'Not Available'})`)
+    });
+  } catch (error) {
+    console.error('Setup amenities error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get All Amenities
 app.get('/api/amenities', async (req, res) => {
   try {
-    const { data, error } = await supabase
+    console.log('🏢 Fetching amenities from database...');
+    const { data, error } = await supabaseService
       .from('amenities')
       .select('*')
       .order('name');
     
+    console.log('🏢 Amenities fetch result:', { 
+      count: data?.length || 0, 
+      data: data, 
+      error: error?.message 
+    });
+    
     if (error) {
+      console.error('❌ Amenities fetch error:', error);
       return res.status(500).json({ error: error.message });
     }
     
     res.json(data);
   } catch (error) {
     console.error('Get amenities error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Debug: Check amenities in database
+app.get('/api/debug/amenities', async (req, res) => {
+  try {
+    const { data, error } = await supabaseService
+      .from('amenities')
+      .select('*');
+    
+    console.log('🔍 Amenities in database:', data);
+    
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+    
+    res.json({ amenities: data, count: data?.length || 0 });
+  } catch (error) {
+    console.error('Debug amenities error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -560,37 +952,64 @@ app.post('/api/bookings', verifyToken, async (req, res) => {
       purpose,
       guest_count
     } = req.body;
+
+    console.log('📝 Booking request data:', {
+      amenity_id,
+      amenity_name,
+      booking_date,
+      start_time,
+      end_time,
+      purpose,
+      guest_count,
+      userId: req.user.userId
+    });
     
+    console.log('🔧 Using supabaseService for user profile fetch...');
     // Get user profile for resident name
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabaseService
       .from('user_profiles')
       .select('first_name, last_name, phone')
       .eq('id', req.user.userId)
       .single();
     
+    console.log('👤 Profile fetch result:', { 
+      profile: profile, 
+      error: profileError?.message 
+    });
+    
     const resident_name = profile ? `${profile.first_name} ${profile.last_name}` : 'Unknown';
     
-    const { data, error } = await supabase
+    const bookingData = {
+      user_id: req.user.userId,
+      amenity_id: amenity_id,
+      amenity_type: amenity_name,
+      booking_date,
+      start_time,
+      end_time,
+      resident_name,
+      purpose,
+      mobile_number: profile?.phone,
+      guest_count: guest_count || 1,
+      status: 'pending',
+      created_at: new Date().toISOString()
+    };
+    
+    console.log('📋 Booking data to insert:', bookingData);
+    console.log('🔧 Using supabaseService for booking insert...');
+    
+    const { data, error } = await supabaseService
       .from('bookings')
-      .insert([
-        {
-          user_id: req.user.userId,
-          amenity_id: amenity_id,
-          amenity_type: amenity_name,
-          booking_date,
-          start_time,
-          end_time,
-          resident_name,
-          purpose,
-          mobile_number: profile?.phone,
-          guest_count: guest_count || 1,
-          status: 'pending',
-          created_at: new Date().toISOString()
-        }
-      ])
+      .insert([bookingData])
       .select();
     
+    console.log('📊 Booking insert result:', { 
+      success: !error, 
+      data: data, 
+      error: error?.message 
+    });
+    
     if (error) {
+      console.error('❌ BOOKING INSERT ERROR:', error);
       return res.status(500).json({ error: error.message });
     }
     
@@ -606,7 +1025,7 @@ app.get('/api/bookings', verifyToken, async (req, res) => {
   try {
     const { status, amenity } = req.query;
     
-    let query = supabase
+    let query = supabaseService
       .from('bookings')
       .select('*')
       .eq('user_id', req.user.userId);
@@ -662,6 +1081,100 @@ app.get('/api/bookings/calendar', async (req, res) => {
   }
 });
 
+// Get All Bookings (Admin)
+app.get('/api/admin/bookings', verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const { 
+      amenity = 'all', 
+      status = 'all', 
+      page = 1, 
+      pageSize = 10,
+      startDate,
+      endDate 
+    } = req.query;
+    
+    let query = supabase
+      .from('bookings')
+      .select(`
+        *,
+        user_profiles!bookings_user_id_fkey (
+          first_name,
+          last_name,
+          email,
+          phone,
+          address
+        )
+      `);
+    
+    // Filter by amenity
+    if (amenity !== 'all') {
+      query = query.eq('amenity_type', amenity);
+    }
+    
+    // Filter by status
+    if (status !== 'all') {
+      query = query.eq('status', status);
+    }
+    
+    // Filter by date range
+    if (startDate) {
+      query = query.gte('booking_date', startDate);
+    }
+    if (endDate) {
+      query = query.lte('booking_date', endDate);
+    }
+    
+    // Get total count first
+    const { count } = await supabase
+      .from('bookings')
+      .select('*', { count: 'exact', head: true });
+    
+    // Apply pagination and ordering
+    const offset = (page - 1) * pageSize;
+    query = query
+      .order('created_at', { ascending: false })
+      .range(offset, offset + pageSize - 1);
+    
+    const { data, error } = await query;
+    
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+    
+    // Transform data to match admin UI expectations
+    const transformedData = data.map(booking => ({
+      id: booking.id,
+      name: booking.user_profiles ? 
+        `${booking.user_profiles.first_name} ${booking.user_profiles.last_name}` : 
+        booking.resident_name,
+      amenity: booking.amenity_type,
+      date: booking.booking_date,
+      time: `${booking.start_time}-${booking.end_time}`,
+      userType: 'Resident', // All users are residents in this system
+      status: booking.status.charAt(0).toUpperCase() + booking.status.slice(1),
+      address: booking.user_profiles?.address || 'N/A',
+      contact: booking.user_profiles?.phone || booking.mobile_number || 'N/A',
+      email: booking.user_profiles?.email || 'N/A',
+      purpose: booking.purpose,
+      attendees: booking.guest_count,
+      notes: booking.notes || '--',
+      createdAt: booking.created_at,
+      updatedAt: booking.updated_at
+    }));
+    
+    res.json({
+      data: transformedData,
+      total: count || 0,
+      page: parseInt(page),
+      pageSize: parseInt(pageSize),
+      totalPages: Math.ceil((count || 0) / pageSize)
+    });
+  } catch (error) {
+    console.error('Get admin bookings error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Update Booking Status (Admin)
 app.put('/api/admin/bookings/:id', verifyToken, verifyAdmin, async (req, res) => {
   try {
@@ -693,7 +1206,7 @@ app.delete('/api/bookings/:id', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
     
-    const { data, error } = await supabase
+    const { data, error } = await supabaseService
       .from('bookings')
       .update({ 
         status: 'cancelled',
@@ -1145,8 +1658,11 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`🌳 Grove Enhanced Backend Server running on http://localhost:${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
   console.log(`🔐 Admin login: Use ${process.env.ADMIN_EMAIL} / ${process.env.ADMIN_PASSWORD}`);
+  
+  // Initialize amenities data
+  await initializeAmenities();
 });

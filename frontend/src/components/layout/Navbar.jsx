@@ -1,14 +1,33 @@
 import React from "react";
 import { Flag, Search, User, LogIn, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
+import { authService } from "../../services/authService";
 import ReportIssueModal from "../ReportIssueModal";
 
 export default function Navbar() {
-  // Placeholder for authentication state, replace with real auth logic
-  const isLoggedIn = true; // Set to false to simulate logged out
+  // Real authentication state
+  const [isLoggedIn, setIsLoggedIn] = React.useState(authService.isAuthenticated());
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const [reportOpen, setReportOpen] = React.useState(false);
   const profileBtnRef = React.useRef(null);
+
+  // Update login state when auth changes
+  React.useEffect(() => {
+    const checkAuthStatus = () => {
+      setIsLoggedIn(authService.isAuthenticated());
+    };
+    
+    // Check auth status periodically
+    const interval = setInterval(checkAuthStatus, 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleLogout = () => {
+    authService.logout();
+    setIsLoggedIn(false);
+    window.location.href = '/';
+  };
 
   // Close dropdown on outside click
   React.useEffect(() => {
@@ -69,10 +88,10 @@ export default function Navbar() {
                 </Link>
               )}
               {isLoggedIn ? (
-                <Link to="/logout" className="flex items-center gap-3 px-5 py-3 text-[#1e1e1e] hover:bg-gray-50 transition-colors">
+                <button onClick={handleLogout} className="flex items-center gap-3 px-5 py-3 text-[#1e1e1e] hover:bg-gray-50 transition-colors w-full text-left">
                   <LogOut size={20} />
                   <span className="font-medium">Logout</span>
-                </Link>
+                </button>
               ) : (
                 <Link to="/login" className="flex items-center gap-3 px-5 py-3 text-[#1e1e1e] hover:bg-gray-50 transition-colors">
                   <LogIn size={20} />
