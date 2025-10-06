@@ -2,6 +2,7 @@
 
 import React from "react";
 import ConfirmationPopUp from "../components/shared/ConfirmationPopUp";
+import { galleryService } from "../services/api";
 import entrance from "../assets/entrance.jpg";
 import gate from "../assets/gate.jpg";
 import gate2 from "../assets/gate2.jpg";
@@ -53,18 +54,19 @@ function CheckIcon({ size = 14, color = '#1e1e1e' }) {
     </svg>
   );
 }
+// Fallback initial images (local assets) used before backend list loads
 const initialImages = [
-  { id: 1, url: entrance, category: "Others" },
-  { id: 2, url: gate, category: "Others" },
-  { id: 3, url: gate2, category: "Others" },
-  { id: 4, url: gate3, category: "Others" },
-  { id: 5, url: pool, category: "Swimming pool" },
-  { id: 6, url: pool2, category: "Swimming pool" },
-  { id: 7, url: pool3, category: "Swimming pool" },
-  { id: 8, url: pool4, category: "Swimming pool" },
-  { id: 9, url: basketball, category: "Basketball court" },
-  { id: 10, url: guardhouse, category: "Others" },
-  { id: 11, url: clubhouse, category: "Clubhouse" },
+  { id: 'local-1', url: entrance, category: "Others" },
+  { id: 'local-2', url: gate, category: "Others" },
+  { id: 'local-3', url: gate2, category: "Others" },
+  { id: 'local-4', url: gate3, category: "Others" },
+  { id: 'local-5', url: pool, category: "Swimming pool" },
+  { id: 'local-6', url: pool2, category: "Swimming pool" },
+  { id: 'local-7', url: pool3, category: "Swimming pool" },
+  { id: 'local-8', url: pool4, category: "Swimming pool" },
+  { id: 'local-9', url: basketball, category: "Basketball court" },
+  { id: 'local-10', url: guardhouse, category: "Others" },
+  { id: 'local-11', url: clubhouse, category: "Clubhouse" },
 ];
 
 export default function Gallery() {
@@ -77,15 +79,30 @@ export default function Gallery() {
   const [selectedIds, setSelectedIds] = React.useState([]);
   const [hoveredId, setHoveredId] = React.useState(null);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
+  const [isDragOver, setIsDragOver] = React.useState(false);
   const fileInputRef = React.useRef();
 
-  // Simulate backend fetch
+  // Load gallery list from backend on mount
   React.useEffect(() => {
-    if (activeCategory === "All images") {
-      setImages(initialImages);
-    } else {
-      setImages(initialImages.filter(img => img.category === activeCategory));
-    }
+    let ignore = false;
+    (async () => {
+      try {
+        const items = await galleryService.list();
+        if (ignore) return;
+        // Map to UI shape (no categories from backend yet)
+        const mapped = (items || []).map(it => ({ id: it.id, url: it.url, category: 'Others' }));
+        setImages(mapped.length ? mapped : initialImages);
+      } catch (e) {
+        console.warn('Failed to load gallery, using local seed:', e);
+        setImages(initialImages);
+      }
+    })();
+    return () => { ignore = true; };
+  }, []);
+
+  // Filter by category client-side (backend does not categorize yet)
+  React.useEffect(() => {
+    // No-op: categories are static placeholders; all backend images are "Others"
   }, [activeCategory]);
 
   // Modal keyboard navigation
@@ -122,13 +139,86 @@ export default function Gallery() {
   function handleUploadClick() {
     if (fileInputRef.current) fileInputRef.current.click();
   }
-  function handleFileChange(e) {
-    // No upload logic, just placeholder for future implementation
+  async function handleFileChange(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    await uploadFile(file);
     e.target.value = "";
   }
 
+  async function uploadFile(file) {
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file.');
+      return;
+    }
+    
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB.');
+      return;
+    }
+
+    try {
+      const res = await galleryService.upload(file);
+      const newItem = res?.item;
+      if (newItem) {
+        setImages(prev => [{ id: newItem.id, url: newItem.url, category: 'Others' }, ...prev.filter(i => !String(i.id).startsWith('local-'))]);
+      }
+    } catch (err) {
+      console.error('Upload failed:', err);
+      alert('Failed to upload image: ' + (err?.message || 'Unknown error'));
+    }
+  }
+
+  // Drag and drop handlers
+  function handleDragOver(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDragOver) setIsDragOver(true);
+  }
+
+  function handleDragLeave(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set false if we're leaving the drop zone entirely
+    if (e.currentTarget && !e.currentTarget.contains(e.relatedTarget)) {
+      setIsDragOver(false);
+    }
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      uploadFile(file);
+    }
+  }
+
   return (
-  <div className="flex flex-col md:flex-row bg-white min-h-screen md:justify-start md:items-start w-full md:max-w-[1400px] md:mx-auto">
+  <div 
+    className={`flex flex-col md:flex-row bg-white min-h-screen md:justify-start md:items-start w-full md:max-w-[1400px] md:mx-auto transition-colors duration-200 ${
+      isDragOver ? 'bg-blue-50' : ''
+    }`}
+    onDragOver={handleDragOver}
+    onDragLeave={handleDragLeave}
+    onDrop={handleDrop}
+  >
+    {/* Drag overlay */}
+    {isDragOver && (
+      <div className="fixed inset-0 z-40 bg-blue-100 bg-opacity-90 flex items-center justify-center">
+        <div className="bg-white p-8 rounded-lg shadow-lg border-2 border-dashed border-blue-400 text-center">
+          <div className="text-4xl mb-4">📸</div>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">Drop your image here</h3>
+          <p className="text-gray-600">Release to upload to gallery</p>
+        </div>
+      </div>
+    )}
+    
     {/* Main content */}
     <main className="flex-1 px-2 md:px-8 flex flex-col gap-6 md:min-w-[350px] md:max-w-auto">
       {/* Category Tabs */}
@@ -248,10 +338,22 @@ export default function Gallery() {
         description="This action cannot be undone."
         confirmText="Delete"
         cancelText="Cancel"
-        onConfirm={() => {
-          setImages(prev => prev.filter(img => !selectedIds.includes(img.id)));
-          setSelectedIds([]);
-          setConfirmDeleteOpen(false);
+        onConfirm={async () => {
+          try {
+            // Delete backend items only (ignore local seed)
+            for (const id of selectedIds) {
+              if (!String(id).startsWith('local-')) {
+                await galleryService.remove(id);
+              }
+            }
+            setImages(prev => prev.filter(img => !selectedIds.includes(img.id)));
+          } catch (err) {
+            console.error('Delete failed:', err);
+            alert('Failed to delete one or more images.');
+          } finally {
+            setSelectedIds([]);
+            setConfirmDeleteOpen(false);
+          }
         }}
         onCancel={() => setConfirmDeleteOpen(false)}
       />

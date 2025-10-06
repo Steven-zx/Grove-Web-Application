@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Pencil, Trash } from "lucide-react";
 import AnnouncementCard from "../components/AnnouncementCard";
 import FiltersCard from "../components/shared/FiltersCard";
 import ConfirmationPopUp from "../components/shared/ConfirmationPopUp";
 import announcement1 from "../assets/announcement1.png";
+import { announcementService, formatAnnouncementForAdmin } from "../services/api";
 
 // Placeholder announcements data
 const announcements = [
@@ -67,9 +68,40 @@ function formatDate(dateString) {
   function handleFind(e) { e.preventDefault(); }
 
 export default function ManageAnnouncements() {
-	const [editId, setEditId] = React.useState(null);
-	const [announcementList, setAnnouncementList] = React.useState(announcements);
-	const [confirmDeleteId, setConfirmDeleteId] = React.useState(null);
+	const [editId, setEditId] = useState(null);
+	const [announcementList, setAnnouncementList] = useState([]);
+	const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState(null);
+
+
+	// Fetch announcements from backend
+	useEffect(() => {
+		fetchAnnouncements();
+	}, []);
+
+	async function fetchAnnouncements() {
+		try {
+			setLoading(true);
+			setError(null);
+			
+			console.log('📊 Fetching announcements from backend...');
+			
+			const data = await announcementService.getAll();
+			
+			// Format announcements for admin UI
+			const formattedAnnouncements = data.map(formatAnnouncementForAdmin);
+			
+			console.log('✅ Loaded announcements:', formattedAnnouncements);
+			
+			setAnnouncementList(formattedAnnouncements);
+		} catch (err) {
+			console.error('❌ Error fetching announcements:', err);
+			setError('Failed to load announcements. Please try again.');
+		} finally {
+			setLoading(false);
+		}
+	}
 
 	function handleEdit(id) {
 		setEditId(id);
@@ -79,10 +111,24 @@ export default function ManageAnnouncements() {
 		setConfirmDeleteId(id);
 	}
 
-	function confirmDelete() {
-		setAnnouncementList((list) => list.filter((a) => a.id !== confirmDeleteId));
-		setConfirmDeleteId(null);
-		// TODO: call backend API to delete
+	async function confirmDelete() {
+		try {
+			console.log('🗑️ Deleting announcement:', confirmDeleteId);
+			
+			await announcementService.delete(confirmDeleteId);
+			
+			console.log('✅ Announcement deleted successfully');
+			
+			// Remove from local list
+			setAnnouncementList((list) => list.filter((a) => a.id !== confirmDeleteId));
+			setConfirmDeleteId(null);
+			
+			// Optionally refresh from server
+			// fetchAnnouncements();
+		} catch (err) {
+			console.error('❌ Error deleting announcement:', err);
+			alert('Failed to delete announcement. Please try again.');
+		}
 	}
 
 	function cancelDelete() {
@@ -171,56 +217,87 @@ export default function ManageAnnouncements() {
         function handleFilterChange() {}
         function handleFind(e) { e.preventDefault(); }
 
+	if (loading) {
+		return (
+			<div className="flex justify-center items-center min-h-[400px]">
+				<div className="text-lg text-gray-600">Loading announcements...</div>
+			</div>
+		);
+	}
+
+	if (error) {
+		return (
+			<div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+				<div className="text-lg text-red-600">{error}</div>
+				<button 
+					onClick={fetchAnnouncements}
+					className="px-4 py-2 bg-[#40863A] text-white rounded-lg hover:bg-[#32692C]"
+				>
+					Retry
+				</button>
+			</div>
+		);
+	}
+
 	return (
 		<div className="flex flex-col md:flex-row bg-white min-h-screen md:justify-start md:items-start w-full md:max-w-[1400px] md:mx-auto">
 			<main className="flex-1 px-2 md:px-8 flex flex-col gap-6 md:min-w-[350px] md:max-w-[900px]">
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-					{announcementList.map((a) => (
-						<div
-							key={a.id}
-							className="bg-white rounded-2xl border border-gray-200 p-0 overflow-hidden flex flex-col"
-						>
-							<img
-								src={a.image}
-								alt="Announcement"
-								className="w-full h-48 object-cover"
-							/>
-							<div className="px-5 pt-4 pb-2 flex justify-between items-center">
-								<span className="font-bold">{a.author}</span>
-								<span className="text-xs text-gray-500">
-									{formatDate(a.date)}
-								</span>
-								{a.status && (
-									<span className="ml-2 px-2 py-1 rounded bg-gray-100 text-xs text-gray-500 border border-gray-300">
-										{a.status}
+				{/* Debug button removed */}
+				{announcementList.length === 0 ? (
+					<div className="text-center py-12">
+						<div className="text-lg text-gray-600 mb-4">No announcements found</div>
+						<div className="text-sm text-gray-500">Create your first announcement using the "Post Announcements" tab.</div>
+					</div>
+				) : (
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+						{announcementList.map((a) => (
+							<div
+								key={a.id}
+								className="bg-white rounded-2xl border border-gray-200 p-0 overflow-hidden flex flex-col"
+							>
+								<img
+									src={a.image_url || announcement1}
+									alt="Announcement"
+									className="w-full h-48 object-cover"
+								/>
+								<div className="px-5 pt-4 pb-2 flex justify-between items-center">
+									<span className="font-bold">{a.author}</span>
+									<span className="text-xs text-gray-500">
+										{formatDate(a.date)}
 									</span>
-								)}
+									{a.status && (
+										<span className="ml-2 px-2 py-1 rounded bg-gray-100 text-xs text-gray-500 border border-gray-300">
+											{a.status}
+										</span>
+									)}
+								</div>
+								<div className="px-5 pb-2 text-sm text-gray-700">
+									<div className="font-semibold mb-1">{a.title}</div>
+									<div>{a.details}</div>
+									<span className="text-green-700 cursor-pointer ml-1">
+										... see more
+									</span>
+								</div>
+								<div className="px-5 pb-4 flex gap-2">
+									<button
+										className="flex items-center gap-1 px-4 py-2 rounded-lg border border-green-700 text-green-700 font-semibold bg-white hover:bg-green-50"
+										onClick={() => handleEdit(a.id)}
+									>
+										<Pencil size={18} className="mr-1" />
+										Edit
+									</button>
+									<button
+										className="flex items-center gap-1 px-4 py-2 rounded-lg border border-red-500 text-red-500 font-semibold bg-white hover:bg-red-50"
+										onClick={() => handleDelete(a.id)}
+									>
+										<Trash size={18} className="mr-1" />
+										Delete
+									</button>
+								</div>
 							</div>
-							<div className="px-5 pb-2 text-sm text-gray-700">
-								{a.details}
-								<span className="text-green-700 cursor-pointer ml-1">
-									... see more
-								</span>
-							</div>
-							<div className="px-5 pb-4 flex gap-2">
-								<button
-									className="flex items-center gap-1 px-4 py-2 rounded-lg border border-green-700 text-green-700 font-semibold bg-white hover:bg-green-50"
-									onClick={() => handleEdit(a.id)}
-								>
-									<Pencil size={18} className="mr-1" />
-									Edit
-								</button>
-								<button
-									className="flex items-center gap-1 px-4 py-2 rounded-lg border border-red-500 text-red-500 font-semibold bg-white hover:bg-red-50"
-									onClick={() => handleDelete(a.id)}
-								>
-									<Trash size={18} className="mr-1" />
-									Delete
-								</button>
-							</div>
-						</div>
-					))}
-				</div>
+						))}
+					</div>
+				)}
 				<ConfirmationPopUp
 					open={!!confirmDeleteId}
 					title="Delete Announcement?"

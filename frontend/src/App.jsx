@@ -15,6 +15,7 @@ import BookingModal from "./pages/BookingModal";
 import YourBookings from "./pages/YourBookings";
 import Calendar from "./pages/Calendar";
 import Profile from "./pages/Profile";
+import Admin from "./pages/Admin";
 
 function Logout() {
   // Placeholder logout page, replace with real logic
@@ -33,6 +34,7 @@ export default function App() {
     <Route path="/signup" element={<SignUp />} />
     <Route path="/signup-details" element={<SignUpDetails />} />
     <Route path="/signup-complete" element={<SignUpComplete />} />
+    <Route path="/admin" element={<Admin />} />
         <Route
           path="*"
           element={

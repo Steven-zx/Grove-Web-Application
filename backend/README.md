@@ -73,6 +73,16 @@ The server will start on http://localhost:3000
 ### Admin Dashboard
 - `GET /api/admin/dashboard` - Get dashboard statistics (admin only)
 
+### Gallery
+- `GET /api/gallery` - List public gallery images
+- `POST /api/admin/gallery/upload` - Upload image (admin only, multipart/form-data with field `file`)
+- `DELETE /api/admin/gallery/:id` - Delete image by storage path (admin only)
+
+Notes:
+- Uses Supabase Storage bucket (default name `gallery`). Set environment variable `GALLERY_BUCKET` to override.
+- Bucket will be created automatically if missing (public=true).
+- Max upload size default 5MB. Override with `MAX_UPLOAD_BYTES` in `.env`.
+
 ### Health Check
 - `GET /api/health` - Server health check
 

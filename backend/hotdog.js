@@ -8,6 +8,8 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const validator = require('validator');
 const { createClient } = require('@supabase/supabase-js');
+const multer = require('multer');
+const crypto = require('crypto');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const app = express();
@@ -50,7 +52,8 @@ app.use(cors({
       'http://localhost:5173', 
       'http://localhost:4173',
       'http://localhost:5174',
-      'http://localhost:5175'
+      'http://localhost:5175',
+      'http://localhost:5176'
     ];
     
     if (allowedOrigins.includes(origin)) {
@@ -110,6 +113,39 @@ const verifyAdmin = (req, res, next) => {
 // Validation helpers
 const validateEmail = (email) => validator.isEmail(email);
 const validatePassword = (password) => password && password.length >= 6;
+
+// ===== FILE UPLOAD (GALLERY) HELPERS =====
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: parseInt(process.env.MAX_UPLOAD_BYTES || '', 10) || 5 * 1024 * 1024 } // 5MB default
+});
+
+const GALLERY_BUCKET = process.env.GALLERY_BUCKET || 'gallery';
+
+async function ensureGalleryBucket() {
+  try {
+    // Try to create bucket as public; ignore if already exists
+    const { error } = await supabaseService.storage.createBucket(GALLERY_BUCKET, { public: true });
+    if (error && !String(error.message || '').toLowerCase().includes('already exists')) {
+      console.warn('Could not create bucket (may already exist):', error.message);
+    }
+  } catch (e) {
+    // Non-fatal
+    console.warn('ensureGalleryBucket warning:', e.message);
+  }
+}
+
+function sanitizeFileName(name) {
+  const base = name.replace(/[^A-Za-z0-9._-]+/g, '-').toLowerCase();
+  return base.length ? base : `image-${Date.now()}.png`;
+}
+
+function makeObjectPath(originalName) {
+  const safe = sanitizeFileName(originalName || 'upload.png');
+  const rand = crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(12).toString('hex');
+  const ts = Date.now();
+  return `${ts}_${rand}_${safe}`;
+}
 
 // ===== AUTHENTICATION ROUTES =====
 
@@ -236,18 +272,24 @@ app.post('/api/auth/login', async (req, res) => {
 app.post('/api/admin/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    
-    // Check admin credentials
-    if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
+
+    // Normalize inputs and env (trim + email lowercase)
+    const inputEmail = String(email || '').trim().toLowerCase();
+    const inputPass = String(password || '').trim();
+    const adminEmail = String(process.env.ADMIN_EMAIL || '').trim().toLowerCase();
+    const adminPass = String(process.env.ADMIN_PASSWORD || '').trim();
+
+    // Check admin credentials (case-insensitive email, trimmed password)
+    if (inputEmail === adminEmail && inputPass === adminPass) {
       const token = generateToken({ 
         userId: 'admin', 
-        email: email, 
+        email: adminEmail, 
         isAdmin: true 
       });
 
       res.json({ 
         message: 'Admin login successful',
-        admin: { email: email, role: 'admin' },
+        admin: { email: adminEmail, role: 'admin' },
         token: token
       });
     } else {
@@ -977,6 +1019,108 @@ app.get('/api/health', (req, res) => {
     version: '2.0.0',
     features: ['Authentication', 'Bookings', 'Announcements', 'Visitors', 'Concerns', 'Admin Panel']
   });
+});
+
+// ===== GALLERY ROUTES =====
+
+// Public: List gallery images
+app.get('/api/gallery', async (req, res) => {
+  try {
+    await ensureGalleryBucket();
+
+    const { data, error } = await supabaseService
+      .storage
+      .from(GALLERY_BUCKET)
+      .list('', { limit: 1000, sortBy: { column: 'created_at', order: 'desc' } });
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    const items = (data || []).filter(f => f && f.name).map(f => {
+      const pub = supabaseService.storage.from(GALLERY_BUCKET).getPublicUrl(f.name);
+      return {
+        id: f.name, // use storage path as id
+        name: f.name,
+        url: pub?.data?.publicUrl,
+        created_at: f.created_at,
+        updated_at: f.updated_at,
+        metadata: f.metadata || null
+      };
+    });
+
+    res.json(items);
+  } catch (error) {
+    console.error('List gallery error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Admin: Upload image to gallery (multipart/form-data; field: file)
+app.post('/api/admin/gallery/upload', verifyToken, verifyAdmin, upload.single('file'), async (req, res) => {
+  try {
+    await ensureGalleryBucket();
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'file is required' });
+    }
+
+    if (!req.file.mimetype || !req.file.mimetype.startsWith('image/')) {
+      return res.status(400).json({ error: 'Only image uploads are allowed' });
+    }
+
+    const objectPath = makeObjectPath(req.file.originalname);
+
+    const { data, error } = await supabaseService
+      .storage
+      .from(GALLERY_BUCKET)
+      .upload(objectPath, req.file.buffer, {
+        contentType: req.file.mimetype,
+        upsert: false
+      });
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    const pub = supabaseService.storage.from(GALLERY_BUCKET).getPublicUrl(data.path);
+
+    return res.json({
+      message: 'Image uploaded successfully',
+      item: {
+        id: data.path,
+        name: path.basename(data.path),
+        url: pub?.data?.publicUrl
+      }
+    });
+  } catch (error) {
+    console.error('Upload gallery image error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Admin: Delete image by id (id is the storage path; URL-encode when calling)
+app.delete('/api/admin/gallery/:id', verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const id = decodeURIComponent(req.params.id || '');
+    if (!id) {
+      return res.status(400).json({ error: 'id (storage path) is required' });
+    }
+
+    const { data, error } = await supabaseService
+      .storage
+      .from(GALLERY_BUCKET)
+      .remove([id]);
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    res.json({ message: 'Image deleted successfully', data });
+  } catch (error) {
+    console.error('Delete gallery image error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // Serve the frontend for non-API routes only

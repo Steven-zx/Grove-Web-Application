@@ -1,5 +1,8 @@
 const http = require('http');
 const path = require('path');
+const url = require('url');
+const querystring = require('querystring');
+const jwt = require('jsonwebtoken');
 const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
@@ -14,6 +17,42 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 console.log('✅ Supabase connected');
+
+// Admin credentials
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@augustinegrove.com';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+const JWT_SECRET = process.env.JWT_SECRET || 'grove_jwt_secret_key_2025';
+
+// Helper function to parse request body
+function parseBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    req.on('end', () => {
+      try {
+        resolve(JSON.parse(body));
+      } catch (err) {
+        reject(err);
+      }
+    });
+  });
+}
+
+// Helper function to verify JWT token
+function verifyToken(authHeader) {
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return null;
+  }
+  
+  const token = authHeader.substring(7);
+  try {
+    return jwt.verify(token, JWT_SECRET);
+  } catch (err) {
+    return null;
+  }
+}
 
 const server = http.createServer(async (req, res) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
@@ -32,9 +71,44 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   
   try {
-    if (req.url === '/api/health') {
+    const parsedUrl = url.parse(req.url, true);
+    const pathname = parsedUrl.pathname;
+    
+    if (pathname === '/api/health') {
       res.writeHead(200);
       res.end(JSON.stringify({ status: 'OK', message: 'Server is working' }));
+      
+    } else if (pathname === '/api/admin/login' && req.method === 'POST') {
+      try {
+        const { email, password } = await parseBody(req);
+        
+        console.log('🔐 Admin login attempt:', email);
+        
+        if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+          const token = jwt.sign(
+            { email: ADMIN_EMAIL, role: 'admin' },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+          );
+          
+          console.log('✅ Admin login successful');
+          res.writeHead(200);
+          res.end(JSON.stringify({ 
+            success: true, 
+            token, 
+            message: 'Login successful',
+            user: { email: ADMIN_EMAIL, role: 'admin' }
+          }));
+        } else {
+          console.log('❌ Admin login failed: Invalid credentials');
+          res.writeHead(401);
+          res.end(JSON.stringify({ error: 'Invalid credentials' }));
+        }
+      } catch (err) {
+        console.error('❌ Admin login error:', err);
+        res.writeHead(400);
+        res.end(JSON.stringify({ error: 'Invalid request body' }));
+      }
     } else if (req.url.startsWith('/api/announcements')) {
       try {
         console.log('🔍 Fetching announcements from Supabase...');
@@ -57,9 +131,9 @@ const server = http.createServer(async (req, res) => {
         const formattedAnnouncements = (data || []).map(announcement => ({
           id: announcement.id,
           title: announcement.title,
-          description: announcement.content || announcement.description,
+          description: announcement.description,
           category: announcement.category || 'General',
-          importance: announcement.priority || announcement.importance || 'medium',
+          importance: announcement.importance || 'Medium',
           image_url: announcement.image_url,
           created_at: announcement.created_at
         }));
@@ -72,6 +146,89 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(500);
         res.end(JSON.stringify({ error: 'Database connection failed' }));
       }
+      
+    } else if (pathname === '/api/admin/announcements' && req.method === 'POST') {
+      try {
+        const decoded = verifyToken(req.headers.authorization);
+        if (!decoded) {
+          res.writeHead(401);
+          res.end(JSON.stringify({ error: 'Unauthorized' }));
+          return;
+        }
+
+        const { title, description, category = 'General', importance = 'Medium', image_url } = await parseBody(req);
+        
+        if (!title || !description) {
+          res.writeHead(400);
+          res.end(JSON.stringify({ error: 'Title and description are required' }));
+          return;
+        }
+
+        console.log('📝 Creating new announcement:', title);
+
+        const { data, error } = await supabase
+          .from('announcements')
+          .insert([{
+            title,
+            description,
+            category,
+            importance,
+            image_url: image_url || null
+          }])
+          .select();
+
+        if (error) {
+          console.error('❌ Error creating announcement:', error);
+          res.writeHead(500);
+          res.end(JSON.stringify({ error: 'Failed to create announcement' }));
+          return;
+        }
+
+        console.log('✅ Announcement created successfully');
+        res.writeHead(201);
+        res.end(JSON.stringify({ success: true, data: data[0] }));
+
+      } catch (err) {
+        console.error('❌ Create announcement error:', err);
+        res.writeHead(500);
+        res.end(JSON.stringify({ error: 'Internal server error' }));
+      }
+      
+    } else if (pathname.startsWith('/api/admin/announcements/') && req.method === 'DELETE') {
+      try {
+        const decoded = verifyToken(req.headers.authorization);
+        if (!decoded) {
+          res.writeHead(401);
+          res.end(JSON.stringify({ error: 'Unauthorized' }));
+          return;
+        }
+
+        const announcementId = pathname.split('/').pop();
+        
+        console.log('🗑️ Deleting announcement:', announcementId);
+
+        const { error } = await supabase
+          .from('announcements')
+          .delete()
+          .eq('id', announcementId);
+
+        if (error) {
+          console.error('❌ Error deleting announcement:', error);
+          res.writeHead(500);
+          res.end(JSON.stringify({ error: 'Failed to delete announcement' }));
+          return;
+        }
+
+        console.log('✅ Announcement deleted successfully');
+        res.writeHead(200);
+        res.end(JSON.stringify({ success: true, message: 'Announcement deleted' }));
+
+      } catch (err) {
+        console.error('❌ Delete announcement error:', err);
+        res.writeHead(500);
+        res.end(JSON.stringify({ error: 'Internal server error' }));
+      }
+      
     } else {
       res.writeHead(404);
       res.end(JSON.stringify({ error: 'Not found' }));

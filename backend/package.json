@@ -2,11 +2,13 @@
   "name": "grove-backend",
   "version": "1.0.0",
   "description": "Enhanced Backend server for Augustine Grove Web Application with booking system",
-  "main": "server.js",
+  "main": "hotdog.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
+    "start": "node hotdog.js",
+    "dev": "nodemon hotdog.js",
+    "test:smoke": "node --experimental-fetch ./tests/smoke.backend.mjs",
+    "test:gallery": "node --experimental-fetch ./tests/smoke.gallery.mjs",
     "dev:frontend": "cd ../frontend && npm run dev",
     "dev:full": "concurrently \"npm run dev\" \"npm run dev:frontend\""
   },

@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.svg";
 import bgImg from "../assets/login-bg.png";
+import { authService } from "../services/api";
 
 export default function Login() {
 	const navigate = useNavigate();
@@ -24,28 +25,24 @@ export default function Login() {
 		e.preventDefault();
 		setIsLoading(true);
 
-		// Admin login API call
 		try {
-			const response = await fetch('/api/admin/login', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify(formData),
+			console.log('🔐 Attempting admin login with:', formData.email);
+			const response = await authService.login({
+				email: formData.email,
+				password: formData.password
 			});
-			if (response.ok) {
-				const data = await response.json();
-				localStorage.setItem('adminToken', data.token);
-				localStorage.setItem('adminData', JSON.stringify(data.admin));
-				navigate('/announcements');
-			} else {
-				// Handle error (show error message)
-				// Optionally show error to user
+			// Persist any returned admin info (optional)
+			if (response?.admin) {
+				localStorage.setItem('adminData', JSON.stringify(response.admin));
 			}
+			console.log('✅ Login successful');
+			navigate('/announcements');
 		} catch (error) {
-			console.error('Admin login error:', error);
+			console.error('❌ Login error:', error);
+			alert('Login failed. Please check your credentials.');
+		} finally {
+			setIsLoading(false);
 		}
-		setIsLoading(false);
 	};
 
 	const handleGoogleLogin = async () => {
