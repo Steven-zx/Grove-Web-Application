@@ -1,0 +1,628 @@
+{\rtf1\ansi\deff0 {\fonttbl {\f0 Times New Roman;}}
+\f0\fs24
+
+{\b Grove Web Application - Test Cases Documentation}
+\par
+\par
+
+{\b Test Case ID:} TC01 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} High \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} User Authentication \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Verify user registration with valid inputs \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test user registration form with valid email and password.
+\par
+{\b Precondition/s:} User is on registration page.
+\par
+\par
+
+{\b Test Case ID:} TC02 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} Medium \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} User Authentication \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Verify user registration with invalid email \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test user registration form with invalid email format.
+\par
+{\b Precondition/s:} User is on registration page.
+\par
+\par
+
+{\b Test Case ID:} TC03 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} High \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} User Authentication \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Verify user login with valid credentials \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test user login form with valid email and password.
+\par
+{\b Precondition/s:} User is registered. User is on login page.
+\par
+\par
+
+{\b Test Case ID:} TC04 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} Medium \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} User Authentication \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Verify user login with invalid password \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test user login form with valid email and invalid password.
+\par
+{\b Precondition/s:} User is registered. User is on login page.
+\par
+\par
+
+{\b Feature Name:} User Authentication / Registration
+\par
+\par
+
+{\b\border\brdrs\brdrw10\brsp20 
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC01 \cell Test user registration with valid inputs \cell Navigate to signup, enter valid email and password, click register \cell Email: "user@test.com" Password: "password123" \cell Successful registration \cell User registered successfully \cell Pass \cell 09/10/2025 \cell\row
+
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC02 \cell Test user registration with invalid email \cell Navigate to signup, enter invalid email format \cell Email: "invalidemail" Password: "password123" \cell Error message displayed \cell Registration successful \cell Fail \cell 09/10/2025 \cell\row
+
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC03 \cell Test user login with valid credentials \cell Load login page, enter valid credentials, click login \cell Email: "user@test.com" Password: "password123" \cell Successful login \cell User logged in successfully \cell Pass \cell 09/10/2025 \cell\row
+
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC04 \cell Test user login with invalid password \cell Load login page, enter valid email but wrong password \cell Email: "user@test.com" Password: "wrongpass" \cell Login failed with error \cell Error message displayed \cell Pass \cell 09/10/2025 \cell\row
+}
+\par
+\par
+
+{\b Test Case ID:} TC05 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} High \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} Resident View \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Display announcements on home page \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test announcement display functionality on user home page.
+\par
+{\b Precondition/s:} User is logged in. Announcements exist in database.
+\par
+\par
+
+{\b Test Case ID:} TC06 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} Medium \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} Resident View \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Test "See More" button functionality \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test "See More" button to load additional announcements.
+\par
+{\b Precondition/s:} User is on announcements page. More than 5 announcements exist.
+\par
+\par
+
+{\b Test Case ID:} TC07 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} Low \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} Resident View \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Test announcement filtering \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test filtering announcements by category or date.
+\par
+{\b Precondition/s:} User is on announcements page. Multiple announcements available.
+\par
+\par
+
+{\b Feature Name:} Resident View / Announcements
+\par
+\par
+
+{\b\border\brdrs\brdrw10\brsp20 
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC05 \cell Display announcements on home page \cell Navigate to announcements section \cell Valid user session \cell Announcements displayed \cell Announcements loaded \cell Pass \cell 09/10/2025 \cell\row
+
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC06 \cell Test "See More" button functionality \cell Click "See More" button on announcements \cell Announcements with See More button \cell More announcements loaded \cell Button not responsive \cell Fail \cell 09/10/2025 \cell\row
+
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC07 \cell Test announcement filtering \cell Apply filter to announcements \cell Multiple announcements available \cell Filtered results shown \cell Correct announcements displayed \cell Pass \cell 09/10/2025 \cell\row
+}
+\par
+\par
+
+{\b Test Case ID:} TC08 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} High \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} Navigation Control \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Test navigation menu accessibility \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test navigation menu functionality and page accessibility.
+\par
+{\b Precondition/s:} User is logged in. User is on any page of the application.
+\par
+\par
+
+{\b Test Case ID:} TC09 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} High \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} Access Control \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Test admin access control \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test unauthorized access prevention to admin panel.
+\par
+{\b Precondition/s:} Regular user is logged in. Admin panel URL is known.
+\par
+\par
+
+{\b Test Case ID:} TC10 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} Medium \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} Navigation Control \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Test sidebar functionality \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test sidebar menu open and close functionality.
+\par
+{\b Precondition/s:} User is on any page. Sidebar menu is available.
+\par
+\par
+
+{\b Test Case ID:} TC11 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} High \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} User Authentication \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Test logout functionality \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test user logout and session termination.
+\par
+{\b Precondition/s:} User is logged in. Logout button is visible.
+\par
+\par
+
+{\b Feature Name:} Navigation & Access Control
+\par
+\par
+
+{\b\border\brdrs\brdrw10\brsp20 
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC08 \cell Test navigation menu accessibility \cell Click on navigation menu items \cell User logged in \cell Navigation works correctly \cell All pages accessible \cell Pass \cell 09/10/2025 \cell\row
+
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC09 \cell Test admin access control \cell Try to access admin panel as regular user \cell Regular user credentials \cell Access denied \cell Access granted \cell Fail \cell 09/10/2025 \cell\row
+
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC10 \cell Test sidebar functionality \cell Open and close sidebar menu \cell User on any page \cell Sidebar opens/closes \cell Sidebar responsive \cell Pass \cell 09/10/2025 \cell\row
+
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC11 \cell Test logout functionality \cell Click logout button \cell User logged in \cell User logged out \cell Session terminated \cell Pass \cell 09/10/2025 \cell\row
+}
+\par
+\par
+
+{\b Test Case ID:} TC12 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} Medium \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} Gallery \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Test gallery image display \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test gallery page image loading and display functionality.
+\par
+{\b Precondition/s:} User is logged in. Images exist in gallery database.
+\par
+\par
+
+{\b Test Case ID:} TC13 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} High \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} Amenities \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Test amenity booking \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test amenity booking functionality for users.
+\par
+{\b Precondition/s:} User is logged in. Amenity is available for booking.
+\par
+\par
+
+{\b Test Case ID:} TC14 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} Medium \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} Amenities \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Test amenity availability check \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test checking available time slots for amenities.
+\par
+{\b Precondition/s:} User is on amenities page. Valid booking date is selected.
+\par
+\par
+
+{\b Test Case ID:} TC15 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} High \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} Amenities \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Test booking confirmation \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test booking confirmation and admin notification process.
+\par
+{\b Precondition/s:} User has filled booking form with valid details.
+\par
+\par
+
+{\b Feature Name:} Gallery & Amenities
+\par
+\par
+
+{\b\border\brdrs\brdrw10\brsp20 
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC12 \cell Test gallery image display \cell Navigate to gallery page \cell Valid user session \cell Images displayed correctly \cell Gallery loaded successfully \cell Pass \cell 09/10/2025 \cell\row
+
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC13 \cell Test amenity booking \cell Select amenity and book \cell User logged in, amenity available \cell Booking successful \cell Confirmation message shown \cell Pass \cell 09/10/2025 \cell\row
+
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC14 \cell Test amenity availability check \cell Check available time slots \cell Valid booking date selected \cell Available slots shown \cell No slots displayed \cell Fail \cell 09/10/2025 \cell\row
+
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC15 \cell Test booking confirmation \cell Complete booking process \cell Valid booking details \cell Booking confirmed \cell Admin notified \cell Pass \cell 09/10/2025 \cell\row
+}
+\par
+\par
+
+{\b Test Case ID:} TC16 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} Medium \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} Home Page \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Test QR code generation \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test QR code generation functionality on home page.
+\par
+{\b Precondition/s:} User is logged in. User is on home page.
+\par
+\par
+
+{\b Test Case ID:} TC17 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} Low \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} Home Page \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Test QR code functionality when failed \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test QR code error handling with invalid data.
+\par
+{\b Precondition/s:} User is on home page. Invalid user data is available.
+\par
+\par
+
+{\b Feature Name:} Home Page / QR Code
+\par
+\par
+
+{\b\border\brdrs\brdrw10\brsp20 
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC16 \cell Test QR code generation \cell Navigate to QR code section \cell User logged in \cell QR code generated \cell QR code displayed \cell Pass \cell 09/10/2025 \cell\row
+
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC17 \cell Test QR code functionality when failed \cell Try to generate QR with invalid data \cell Invalid user data \cell Error handling \cell QR code generated \cell Fail \cell 09/10/2025 \cell\row
+}
+\par
+\par
+
+{\b Test Case ID:} TC18 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} High \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} Report Issue \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Test issue reporting (user side) \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test user issue reporting functionality.
+\par
+{\b Precondition/s:} User is logged in. Report form is accessible.
+\par
+\par
+
+{\b Test Case ID:} TC19 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} Medium \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} Report Issue \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Test report validation \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test form validation for issue reporting.
+\par
+{\b Precondition/s:} User is on report form. Form has required fields.
+\par
+\par
+
+{\b Test Case ID:} TC20 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} High \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} Admin Reports \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Test admin report viewing \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test admin viewing submitted user reports.
+\par
+{\b Precondition/s:} Admin is logged in. Reports exist in system.
+\par
+\par
+
+{\b Test Case ID:} TC21 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} Medium \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} Admin Reports \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Test admin report status update \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test admin updating report status (pending/resolved).
+\par
+{\b Precondition/s:} Admin has access. Pending report exists.
+\par
+\par
+
+{\b Feature Name:} Reporting System
+\par
+\par
+
+{\b\border\brdrs\brdrw10\brsp20 
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC18 \cell Test issue reporting (user side) \cell Submit issue report \cell User logged in \cell Report submitted \cell Confirmation received \cell Pass \cell 09/10/2025 \cell\row
+
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC19 \cell Test report validation \cell Submit report with missing fields \cell Incomplete form data \cell Validation error \cell Required fields highlighted \cell Pass \cell 09/10/2025 \cell\row
+
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC20 \cell Test admin report viewing \cell View submitted reports in admin \cell Admin logged in, reports exist \cell Reports displayed \cell All reports visible \cell Pass \cell 09/10/2025 \cell\row
+
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC21 \cell Test admin report status update \cell Update report status \cell Admin access, pending report \cell Status updated \cell Status change reflected \cell Pass \cell 09/10/2025 \cell\row
+}
+\par
+\par
+
+{\b Feature Name:} Authentication (Admin)
+\par
+\par
+
+{\b Test Case ID:} TC22 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} High \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} Admin Authentication \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Verify admin login with valid credentials \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test admin login with valid email and password.
+\par
+{\b Precondition/s:} Admin is on login page.
+\par
+\par
+
+{\b\border\brdrs\brdrw10\brsp20 
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC22 \cell Test admin login with valid credentials \cell Navigate to admin login, enter valid credentials \cell Email: "admin@augustinegrove.com" Password: "admin123" \cell Successful admin login \cell Admin dashboard accessible \cell Pass \cell 09/10/2025 \cell\row
+
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC23 \cell Test admin login with invalid credentials \cell Enter wrong admin credentials \cell Email: "admin@wrong.com" Password: "wrong123" \cell Login failed with error \cell Login successful \cell Fail \cell 09/10/2025 \cell\row
+
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC24 \cell Test admin session timeout \cell Leave admin panel idle for extended time \cell Admin logged in, session timeout enabled \cell Session expired \cell Redirected to login \cell Pass \cell 09/10/2025 \cell\row
+}
+\par
+\par
+
+{\b Test Case ID:} TC23 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} Medium \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} Admin Authentication \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Verify admin login with invalid credentials \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test admin login with wrong email and password.
+\par
+{\b Precondition/s:} Admin is on login page.
+\par
+\par
+
+{\b Test Case ID:} TC24 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} Low \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} Admin Authentication \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Verify admin session timeout \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test admin session management and timeout functionality.
+\par
+{\b Precondition/s:} Admin is logged in. Session timeout is enabled.
+\par
+\par
+
+{\b Feature Name:} Announcements (Admin CRUD)
+\par
+\par
+
+{\b Test Case ID:} TC25 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} High \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} Admin Announcements \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Create new announcement \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test creating new announcement with valid data.
+\par
+{\b Precondition/s:} Admin is logged in. Admin is on announcements page.
+\par
+\par
+
+{\b\border\brdrs\brdrw10\brsp20 
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC25 \cell Create new announcement \cell Fill announcement form with valid data, click save \cell Title: "New Event" Content: "Event details" \cell Announcement created \cell Announcement published \cell Pass \cell 09/10/2025 \cell\row
+
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC26 \cell Read/View announcements \cell Navigate to announcements list \cell Admin logged in, announcements exist \cell Announcements displayed \cell All announcements visible \cell Pass \cell 09/10/2025 \cell\row
+
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC27 \cell Update existing announcement \cell Edit announcement and save changes \cell Existing announcement, valid updates \cell Announcement updated \cell Changes not saved \cell Fail \cell 09/10/2025 \cell\row
+
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC28 \cell Delete announcement \cell Select announcement and delete \cell Announcement exists, admin access \cell Announcement deleted \cell Announcement removed \cell Pass \cell 09/10/2025 \cell\row
+
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC29 \cell Validate announcement form \cell Submit form with missing required fields \cell Empty title or content \cell Validation error \cell Required fields highlighted \cell Pass \cell 09/10/2025 \cell\row
+}
+\par
+\par
+
+{\b Test Case ID:} TC26 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} Medium \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} Admin Announcements \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Read and view announcements list \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test viewing all announcements in admin panel.
+\par
+{\b Precondition/s:} Admin is logged in. Announcements exist in database.
+\par
+\par
+
+{\b Test Case ID:} TC27 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} High \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} Admin Announcements \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Update existing announcement \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test editing and updating announcement content.
+\par
+{\b Precondition/s:} Admin is logged in. Announcement exists to edit.
+\par
+\par
+
+{\b Test Case ID:} TC28 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} Medium \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} Admin Announcements \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Delete announcement \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test deleting announcement from system.
+\par
+{\b Precondition/s:} Admin is logged in. Announcement exists to delete.
+\par
+\par
+
+{\b Test Case ID:} TC29 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} Low \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} Admin Announcements \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Validate announcement form fields \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test form validation for announcement creation.
+\par
+{\b Precondition/s:} Admin is on create announcement page.
+\par
+\par
+
+{\b Feature Name:} Admin Functions
+\par
+\par
+
+{\b Test Case ID:} TC30 \tab\tab\tab {\b Test Designed by:} Juan Dela Cruz
+\par
+{\b Test Priority:} High \tab\tab\tab {\b Test Designed date:} 09/01/2025
+\par
+{\b Module Name:} Admin Dashboard \tab\tab {\b Test Executed by:} John Smith
+\par
+{\b Test Title:} Test booking management \tab {\b Test Executed date:} 09/10/2025
+\par
+{\b Description:} Test viewing and managing user bookings.
+\par
+{\b Precondition/s:} Admin is logged in. Bookings exist in system.
+\par
+\par
+
+{\b\border\brdrs\brdrw10\brsp20 
+\trowd\cellx1500\cellx3000\cellx4000\cellx5500\cellx7000\cellx8500\cellx9500\cellx11000
+\intbl TC30 \cell Test booking management \cell View and manage user bookings \cell Admin logged in, bookings exist \cell Bookings displayed \cell All bookings visible \cell Pass \cell 09/10/2025 \cell\row
+}
+\par
+\par
+
+{\b Summary:}
+\par
+Total Test Cases: 30
+\par
+- User Authentication: 4 cases
+\par
+- Announcements (User): 3 cases
+\par
+- Navigation & Access: 4 cases
+\par
+- Gallery & Amenities: 4 cases
+\par
+- Home Page/QR Code: 2 cases
+\par
+- Reporting System: 4 cases
+\par
+- Authentication (Admin): 3 cases
+\par
+- Announcements (Admin CRUD): 5 cases
+\par
+- Admin Functions: 1 case
+\par
+\par
+
+{\b Test Environment:}
+\par
+- Frontend: React (localhost:5173)
+\par
+- Admin Panel: React (localhost:5175)
+\par
+- Backend: Node.js (localhost:3000)
+\par
+- Database: Supabase
+\par
+\par
+
+{\b Last Updated:} October 7, 2025
+\par
+}
