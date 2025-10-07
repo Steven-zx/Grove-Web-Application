@@ -1,9 +1,6 @@
 import React from 'react';
 
 const AmenityCard = ({ amenity, onBook }) => {
-  // PLACEHOLDER: Description - This will be fetched from backend API based on amenity ID
-  const description = 'A versatile space designed for community gatherings, celebrations, and meetings. It serves as the heart of social activities within Augustine Grove, offering a comfortable venue for residents to connect and build stronger relationships.';
-
   return (
   <div className="bg-white rounded-2xl overflow-hidden flex flex-col border border-[#D9D9D9] w-full max-w-xs md:max-w-sm lg:max-w-md h-auto min-h-[400px] md:min-h-[480px]">
   <img src={amenity.image} alt={amenity.name} className="w-full h-40 md:h-48 object-cover" />
@@ -22,7 +19,7 @@ const AmenityCard = ({ amenity, onBook }) => {
             {amenity.status}
           </span>
         </div>
-        <p className="text-gray-600 mb-4 text-sm leading-relaxed flex-1">{description}</p>
+        <p className="text-gray-600 mb-4 text-sm leading-relaxed flex-1">{amenity.description}</p>
         <button
           onClick={() => onBook(amenity)}
           disabled={amenity.status === 'Not Available'}

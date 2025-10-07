@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.svg";
-import bgImg from "../assets/login-bg.png"; 
+import bgImg from "../assets/login-bg.png";
+import authService from "../services/authService"; 
 
 export default function SignUp() {
 	const navigate = useNavigate();
@@ -54,50 +55,32 @@ export default function SignUp() {
 
 		setIsLoading(true);
 
-		// Backend-ready: Replace with actual API call
-		// try {
-		//   const response = await fetch('/api/auth/register', {
-		//     method: 'POST',
-		//     headers: {
-		//       'Content-Type': 'application/json',
-		//     },
-		//     body: JSON.stringify({
-		//       email: formData.email,
-		//       password: formData.password
-		//     }),
-		//   });
-		//   
-		//   if (response.ok) {
-		//     // Store temporary registration data for next step
-		//     localStorage.setItem('tempRegistration', JSON.stringify({
-		//       email: formData.email,
-		//       registrationId: data.registrationId
-		//     }));
-		//     navigate('/signup-details');
-		//   } else {
-		//     const error = await response.json();
-		//     setErrors({ general: error.message });
-		//   }
-		// } catch (error) {
-		//   console.error('Registration error:', error);
-		//   setErrors({ general: 'Registration failed. Please try again.' });
-		// }
-
-		// Placeholder - simulate registration
-		setTimeout(() => {
-			setIsLoading(false);
-			localStorage.setItem('tempRegistration', JSON.stringify({
+		try {
+			const result = await authService.register({
 				email: formData.email,
-				step: 'details'
-			}));
-			navigate("/signup-details");
-		}, 1000);
+				password: formData.password
+			});
+
+			console.log('Registration successful:', result);
+			
+			// Navigate to details page to complete profile
+			navigate('/signup-details');
+		} catch (error) {
+			console.error('Registration error:', error);
+			setErrors({ general: error.message || 'Registration failed. Please try again.' });
+		} finally {
+			setIsLoading(false);
+		}
 	};
 
 	const handleGoogleSignUp = async () => {
-		// Backend-ready: Replace with actual Google OAuth
-		// window.location.href = '/api/auth/google?mode=signup';
-		console.log('Google signup initiated');
+		try {
+			// For now, show a placeholder message
+			alert('Google OAuth integration coming soon! Please use email/password registration for now.');
+		} catch (error) {
+			console.error('Google signup error:', error);
+			alert('Google signup is not available yet. Please use email/password registration.');
+		}
 	};
 		return (
 		<div className="min-h-screen flex flex-col bg-white">
@@ -135,12 +118,53 @@ export default function SignUp() {
 							<div className="flex-1 h-px bg-gray-200" />
 						</div>
 						{/* Form */}
-									<form className="w-full flex flex-col gap-4" onSubmit={handleContinue}>
-										<input type="email" placeholder="Email Address" className="w-full rounded-xl border border-[#D9D9D9] p-4 text-base bg-white" />
-										<input type="password" placeholder="Create a password" className="w-full rounded-xl border border-[#D9D9D9] p-4 text-base bg-white" />
-										<input type="password" placeholder="Confirm password" className="w-full rounded-xl border border-[#D9D9D9] p-4 text-base bg-white" />
-										<button type="submit" className="w-full rounded-full bg-[#40863A] text-white font-semibold py-3 mt-2 text-base hover:bg-[#35702c] transition-colors">Continue</button>
-									</form>
+						<form className="w-full flex flex-col gap-4" onSubmit={handleContinue}>
+							{errors.general && (
+								<div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+									{errors.general}
+								</div>
+							)}
+							<div>
+								<input 
+									type="email" 
+									name="email"
+									value={formData.email}
+									onChange={handleInputChange}
+									placeholder="Email Address" 
+									className={`w-full rounded-xl border p-4 text-base bg-white ${errors.email ? 'border-red-300' : 'border-[#D9D9D9]'}`}
+								/>
+								{errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
+							</div>
+							<div>
+								<input 
+									type="password" 
+									name="password"
+									value={formData.password}
+									onChange={handleInputChange}
+									placeholder="Create a password" 
+									className={`w-full rounded-xl border p-4 text-base bg-white ${errors.password ? 'border-red-300' : 'border-[#D9D9D9]'}`}
+								/>
+								{errors.password && <p className="text-red-600 text-sm mt-1">{errors.password}</p>}
+							</div>
+							<div>
+								<input 
+									type="password" 
+									name="confirmPassword"
+									value={formData.confirmPassword}
+									onChange={handleInputChange}
+									placeholder="Confirm password" 
+									className={`w-full rounded-xl border p-4 text-base bg-white ${errors.confirmPassword ? 'border-red-300' : 'border-[#D9D9D9]'}`}
+								/>
+								{errors.confirmPassword && <p className="text-red-600 text-sm mt-1">{errors.confirmPassword}</p>}
+							</div>
+							<button 
+								type="submit" 
+								disabled={isLoading}
+								className="w-full rounded-full bg-[#40863A] text-white font-semibold py-3 mt-2 text-base hover:bg-[#35702c] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+							>
+								{isLoading ? 'Creating Account...' : 'Continue'}
+							</button>
+						</form>
 						<div className="w-full flex flex-col items-center mt-6 text-sm">
 							<span className="text-gray-400">Already have an account? <Link to="/login" className="text-green-600 font-medium hover:underline">Sign in</Link></span>
 						</div>

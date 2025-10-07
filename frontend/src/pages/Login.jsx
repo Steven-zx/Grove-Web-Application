@@ -1,6 +1,7 @@
 // User Login Page
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { authService } from "../services/authService";
 import logo from "../assets/logo.svg";
 import bgImg from "../assets/login-bg.png";
 
@@ -11,6 +12,7 @@ export default function Login() {
 		password: ''
 	});
 	const [isLoading, setIsLoading] = useState(false);
+	const [errors, setErrors] = useState({});
 
 	const handleInputChange = (e) => {
 		const { name, value } = e.target;
@@ -18,39 +20,55 @@ export default function Login() {
 			...prev,
 			[name]: value
 		}));
+		// Clear errors when user starts typing
+		if (errors[name]) {
+			setErrors(prev => ({
+				...prev,
+				[name]: ''
+			}));
+		}
+		if (errors.general) {
+			setErrors(prev => ({
+				...prev,
+				general: ''
+			}));
+		}
+	};
+
+	const validateForm = () => {
+		const newErrors = {};
+		
+		if (!formData.email.trim()) {
+			newErrors.email = 'Email is required';
+		} else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+			newErrors.email = 'Please enter a valid email address';
+		}
+		
+		if (!formData.password.trim()) {
+			newErrors.password = 'Password is required';
+		}
+
+		setErrors(newErrors);
+		return Object.keys(newErrors).length === 0;
 	};
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+		
+		if (!validateForm()) return;
+
 		setIsLoading(true);
 
-		// Backend-ready: Replace with actual API call
-		// try {
-		//   const response = await fetch('/api/auth/login', {
-		//     method: 'POST',
-		//     headers: {
-		//       'Content-Type': 'application/json',
-		//     },
-		//     body: JSON.stringify(formData),
-		//   });
-		//   
-		//   if (response.ok) {
-		//     const data = await response.json();
-		//     localStorage.setItem('userToken', data.token);
-		//     localStorage.setItem('userData', JSON.stringify(data.user));
-		//     navigate('/');
-		//   } else {
-		//     // Handle error (show error message)
-		//   }
-		// } catch (error) {
-		//   console.error('Login error:', error);
-		// }
-
-		// Placeholder - simulate login
-		setTimeout(() => {
-			setIsLoading(false);
+		try {
+			const result = await authService.login(formData);
+			console.log('✅ Login successful:', result);
 			navigate('/');
-		}, 1000);
+		} catch (error) {
+			console.error('❌ Login error:', error);
+			setErrors({ general: error.message || 'Login failed. Please try again.' });
+		} finally {
+			setIsLoading(false);
+		}
 	};
 
 	const handleGoogleLogin = async () => {
@@ -95,24 +113,36 @@ export default function Login() {
 						</div>
 						{/* Form */}
 						<form className="w-full flex flex-col gap-4" onSubmit={handleSubmit}>
-							<input 
-								type="email" 
-								name="email"
-								placeholder="Email Address" 
-								value={formData.email}
-								onChange={handleInputChange}
-								required
-								className="w-full rounded-xl border border-[#D9D9D9] p-4 text-base bg-white" 
-							/>
-							<input 
-								type="password" 
-								name="password"
-								placeholder="Password" 
-								value={formData.password}
-								onChange={handleInputChange}
-								required
-								className="w-full rounded-xl border border-[#D9D9D9] p-4 text-base bg-white" 
-							/>
+							{errors.general && (
+								<div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+									{errors.general}
+								</div>
+							)}
+							
+							<div>
+								<input 
+									type="email" 
+									name="email"
+									placeholder="Email Address" 
+									value={formData.email}
+									onChange={handleInputChange}
+									className={`w-full rounded-xl border p-4 text-base bg-white ${errors.email ? 'border-red-300' : 'border-[#D9D9D9]'}`}
+								/>
+								{errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
+							</div>
+							
+							<div>
+								<input 
+									type="password" 
+									name="password"
+									placeholder="Password" 
+									value={formData.password}
+									onChange={handleInputChange}
+									className={`w-full rounded-xl border p-4 text-base bg-white ${errors.password ? 'border-red-300' : 'border-[#D9D9D9]'}`}
+								/>
+								{errors.password && <p className="text-red-600 text-sm mt-1">{errors.password}</p>}
+							</div>
+							
 							<button 
 								type="submit" 
 								disabled={isLoading}

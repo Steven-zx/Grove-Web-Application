@@ -2,28 +2,36 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import GeneralConditions from "../components/GeneralConditions";
+import { bookingService } from "../services/bookingService";
+import { authService } from "../services/authService";
 
 export default function BookingModal() {
   const location = useLocation();
   const navigate = useNavigate();
   const amenity = location.state?.amenity;
 
-  // TODO: Replace this with actual user data from your authentication context/backend
+  // Check authentication on component mount
+  useEffect(() => {
+    if (!authService.isAuthenticated()) {
+      alert('Please log in to make a booking');
+      navigate('/login');
+      return;
+    }
+  }, [navigate]);
+
+  // Get user data from auth service to auto-fill form
   const getUserData = () => {
-    // This is placeholder - replace with actual backend call later
-    // Example: const user = useAuth(); or const user = useContext(AuthContext);
-    // For now, return null to simulate no logged-in user data
-    
-    // When backend is ready, this should return something like:
-    // return {
-    //   firstName: user.firstName,
-    //   lastName: user.lastName, 
-    //   address: user.address,
-    //   email: user.email,
-    //   contactNumber: user.phone
-    // };
-    
-    return null; // Will auto-fill when backend is connected
+    const user = authService.getUser();
+    if (user) {
+      return {
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        address: user.address || '',
+        email: user.email || '',
+        contactNumber: user.phone || ''
+      };
+    }
+    return null;
   };
 
   const [formData, setFormData] = useState({
@@ -65,7 +73,9 @@ export default function BookingModal() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.agreeToTerms) {
       alert('Please agree to the general booking conditions');
@@ -91,23 +101,26 @@ export default function BookingModal() {
       return;
     }
     
-    // Create booking object
-    const booking = {
-      id: Date.now(),
-      amenityId: amenity?.id,
-      amenityName: amenity?.name,
-      ...formData,
-      status: 'Pending',
-      createdAt: new Date().toISOString()
-    };
+    setIsSubmitting(true);
     
-    // Save to localStorage
-    const existingBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-    localStorage.setItem('bookings', JSON.stringify([...existingBookings, booking]));
-    
-    // Navigate to success page or back to amenities
-    alert('Booking submitted successfully!');
-    navigate('/your-bookings');
+    try {
+      // Create booking via API
+      const bookingData = {
+        amenityId: amenity?.id,
+        amenityName: amenity?.name,
+        ...formData
+      };
+      
+      await bookingService.createBooking(bookingData);
+      
+      alert('Booking submitted successfully! Please wait for admin approval.');
+      navigate('/your-bookings');
+    } catch (error) {
+      console.error('Booking submission error:', error);
+      alert(`Failed to submit booking: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleBack = () => {
@@ -394,9 +407,10 @@ export default function BookingModal() {
           <div className="flex justify-end">
             <button
               type="submit"
-              className="bg-[#40863A] text-white px-8 py-3 rounded-lg font-medium hover:bg-green-700 focus:ring-1 focus:ring-green-500 focus:ring-offset-2"
+              disabled={isSubmitting}
+              className="bg-[#40863A] text-white px-8 py-3 rounded-lg font-medium hover:bg-green-700 focus:ring-1 focus:ring-green-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              Book Now
+              {isSubmitting ? 'Submitting...' : 'Book Now'}
             </button>
           </div>
         </div>

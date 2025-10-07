@@ -5,6 +5,7 @@ import AnnouncementPreview from "./AnnouncementPreview";
 import ManageAnnouncements from "./ManageAnnouncements";
 import FiltersCard from "../components/shared/FiltersCard";
 import { Image } from "lucide-react";
+import { announcementService, formatAnnouncementForBackend } from "../services/api";
 
 const categories = ["General", "Facilities", "Upgrade"];
 const filterCategories = ["All categories", "General", "Facilities", "Upgrade"];
@@ -60,10 +61,40 @@ export default function Announcements() {
         fileInputRef.current.click();
     }
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
-        // TODO: Submit to backend
-        alert("Announcement posted!");
+        
+        try {
+            console.log('📝 Submitting announcement:', form);
+            
+            // Format the form data for backend
+            const announcementData = formatAnnouncementForBackend(form);
+            
+            // Submit to backend
+            const response = await announcementService.create(announcementData);
+            
+            console.log('✅ Announcement created successfully:', response);
+            
+            // Reset form
+            setForm({
+                title: "",
+                category: "",
+                details: "",
+                file: null,
+                date: "",
+                visibility: "Public",
+            });
+            
+            // Show success message
+            alert("Announcement posted successfully!");
+            
+            // Switch to manage tab to see the new announcement
+            setActiveTab("manage");
+            
+        } catch (error) {
+            console.error('❌ Error creating announcement:', error);
+            alert('Failed to create announcement. Please check your connection and try again.');
+        }
     }
 
         if (previewMode) {

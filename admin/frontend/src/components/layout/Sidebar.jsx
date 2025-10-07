@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { Home as Bell, Image, Flag, List } from "lucide-react";
+import { Home as Bell, Image, Flag, List, Calendar } from "lucide-react";
 import logo from "../../assets/logo.svg";
 
 const nav = [

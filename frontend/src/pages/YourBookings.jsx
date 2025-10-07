@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import InfoCard from '../components/shared/InfoCard';
 import CalendarWidget from '../components/CalendarWidget';
 import GeneralConditions from '../components/GeneralConditions';
+import { bookingService } from '../services/bookingService';
 import clubhouseImg from '../assets/clubhouse.png';
 import poolImg from '../assets/pool.png';
 import courtImg from '../assets/court.png';
@@ -23,43 +24,58 @@ const amenityImages = {
 export default function YourBookings() {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Backend-ready: Replace with API call
-    // const fetchBookings = async () => {
-    //   try {
-    //     const response = await fetch('/api/user/bookings', {
-    //       headers: { 'Authorization': `Bearer ${userToken}` }
-    //     });
-    //     const data = await response.json();
-    //     setBookings(data);
-    //   } catch (error) {
-    //     console.error('Error fetching bookings:', error);
-    //   }
-    // };
-    // fetchBookings();
-
-    const storedBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-    setBookings(storedBookings);
+    loadBookings();
   }, []);
 
-  const handleCancelBooking = async (bookingId) => {
-    // Backend-ready: Replace with API call
-    // try {
-    //   const response = await fetch(`/api/bookings/${bookingId}`, {
-    //     method: 'DELETE',
-    //     headers: { 'Authorization': `Bearer ${userToken}` }
-    //   });
-    //   if (response.ok) {
-    //     setBookings(bookings.filter(booking => booking.id !== bookingId));
-    //   }
-    // } catch (error) {
-    //   console.error('Error cancelling booking:', error);
-    // }
+  const loadBookings = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const userBookings = await bookingService.getUserBookings();
+      
+      // Transform API data to match UI expectations
+      const transformedBookings = userBookings.map(booking => ({
+        id: booking.id,
+        amenityId: booking.amenity_id,
+        amenityName: booking.amenity_type,
+        firstName: booking.resident_name?.split(' ')[0] || '',
+        lastName: booking.resident_name?.split(' ').slice(1).join(' ') || '',
+        selectDate: booking.booking_date,
+        startTime: booking.start_time,
+        endTime: booking.end_time,
+        purpose: booking.purpose,
+        attendees: booking.guest_count,
+        status: booking.status.charAt(0).toUpperCase() + booking.status.slice(1),
+        createdAt: booking.created_at
+      }));
+      
+      setBookings(transformedBookings);
+    } catch (err) {
+      console.error('Error fetching bookings:', err);
+      setError('Failed to load bookings: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const updatedBookings = bookings.filter(booking => booking.id !== bookingId);
-    setBookings(updatedBookings);
-    localStorage.setItem('bookings', JSON.stringify(updatedBookings));
+  const handleCancelBooking = async (bookingId) => {
+    if (!confirm('Are you sure you want to cancel this booking?')) {
+      return;
+    }
+
+    try {
+      await bookingService.cancelBooking(bookingId);
+      alert('Booking cancelled successfully');
+      // Refresh the bookings list
+      await loadBookings();
+    } catch (err) {
+      console.error('Error cancelling booking:', err);
+      alert('Failed to cancel booking: ' + err.message);
+    }
   };
 
   const formatDate = (dateString) => {
@@ -142,7 +158,23 @@ export default function YourBookings() {
 
         {/* Bookings Content */}
         <div className="max-w-[720px]">
-          {bookings.length === 0 ? (
+          {loading ? (
+            <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading your bookings...</p>
+            </div>
+          ) : error ? (
+            <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center">
+              <h3 className="text-xl font-semibold text-red-600 mb-3">Error Loading Bookings</h3>
+              <p className="text-gray-600 mb-6">{error}</p>
+              <button
+                onClick={loadBookings}
+                className="bg-[#40863A] text-white px-6 py-2 rounded-xl font-medium text-sm"
+              >
+                Try Again
+              </button>
+            </div>
+          ) : bookings.length === 0 ? (
             <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center">
               <h3 className="text-xl font-semibold text-gray-900 mb-3">No bookings yet!</h3>
               <p className="text-gray-600 mb-8 max-w-sm mx-auto leading-relaxed">

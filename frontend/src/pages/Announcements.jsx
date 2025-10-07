@@ -2,41 +2,78 @@
 import React from "react";
 import AnnouncementCard from "../components/AnnouncementCard";
 import FiltersCard from "../components/shared/FiltersCard";
-import announcement1 from "../assets/announcement1.png";
-import announcement2 from "../assets/announcement2.png";
 
-// Dummy data for now, replace with backend fetch later
-const initialAnnouncements = [
-  {
-    id: 1,
-    author: "Admin",
-    date: "August 21 at 8:49 PM",
-    content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In placerat dui vitae ex blandit mattis. Curabitur purus felis, scelerisque in ...",
-    image: announcement1,
-  },
-  {
-    id: 2,
-    author: "Admin",
-    date: "August 21 at 1:49 PM",
-    content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In placerat dui vitae ex blandit mattis. Curabitur purus felis, scelerisque in ...",
-    image: announcement2,
-  },
-];
-
-const categories = ["All categories", "General", "Facilities", "Upgrade"];
+const categories = ["All categories", "General", "Maintenance", "Sports", "Security", "Facilities"];
 
 export default function Announcements() {
-  const [announcements, setAnnouncements] = React.useState(initialAnnouncements);
+  const [announcements, setAnnouncements] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
   const [filters, setFilters] = React.useState({
     category: "All categories",
     date: "",
     sort: "Newest First",
   });
 
-  // Placeholder for backend fetch
-  // React.useEffect(() => {
-  //   fetchAnnouncements(filters).then(setAnnouncements);
-  // }, [filters]);
+  // Fetch announcements from backend
+  const fetchAnnouncements = async () => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams();
+      
+      if (filters.category && filters.category !== "All categories") {
+        params.append('category', filters.category);
+      }
+      if (filters.sort === "Oldest First") {
+        params.append('sort', 'asc');
+      }
+      
+      console.log('Fetching announcements from:', `http://localhost:3000/api/announcements?${params}`);
+      
+      const response = await fetch(`http://localhost:3000/api/announcements?${params}`);
+      
+      console.log('Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Response error:', errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+      
+      const data = await response.json();
+      console.log('Fetched announcements:', data);
+      
+      // Format the data for display
+      const formattedAnnouncements = data.map(announcement => ({
+        id: announcement.id,
+        author: "Admin",
+        date: new Date(announcement.created_at).toLocaleDateString('en-US', {
+          month: 'long',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        }),
+        content: announcement.description,
+        title: announcement.title,
+        category: announcement.category,
+        importance: announcement.importance,
+        image: announcement.image_url,
+      }));
+      
+      setAnnouncements(formattedAnnouncements);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching announcements:', err);
+      setError(`Failed to load announcements: ${err.message}. Please check if the backend server is running on localhost:3000.`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchAnnouncements();
+  }, [filters]);
 
   function handleFilterChange(e) {
     const { name, value } = e.target;
@@ -45,7 +82,7 @@ export default function Announcements() {
 
   function handleFind(e) {
     e.preventDefault();
-    // Future: fetch filtered announcements from backend
+    fetchAnnouncements();
   }
 
   return (
@@ -56,9 +93,23 @@ export default function Announcements() {
           <h2 className="text-2xl font-bold">Community Updates</h2>
         </div>
         <div className="flex flex-col gap-8">
-          {announcements.map(a => (
-            <AnnouncementCard key={a.id} {...a} />
-          ))}
+          {loading ? (
+            <div className="flex justify-center items-center py-8">
+              <div className="text-gray-500">Loading announcements...</div>
+            </div>
+          ) : error ? (
+            <div className="flex justify-center items-center py-8">
+              <div className="text-red-500">{error}</div>
+            </div>
+          ) : announcements.length === 0 ? (
+            <div className="flex justify-center items-center py-8">
+              <div className="text-gray-500">No announcements found.</div>
+            </div>
+          ) : (
+            announcements.map(a => (
+              <AnnouncementCard key={a.id} {...a} />
+            ))
+          )}
         </div>
       </main>
 
