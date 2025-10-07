@@ -6,7 +6,6 @@ import logo from "../../assets/logo.svg";
 const nav = [
   { to: "/announcements", label: "Announcements", icon: <Bell size={24} /> },
   { to: "/amenities", label: "Amenities", icon: <List size={24} /> },
-  { to: "/bookings", label: "Bookings", icon: <Calendar size={24} /> },
   { to: "/gallery", label: "Gallery", icon: <Image size={24} /> },
   { to: "/reports", label: "Reports", icon: <Flag size={24} /> },
 ];

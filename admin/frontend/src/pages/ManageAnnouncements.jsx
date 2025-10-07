@@ -127,7 +127,14 @@ export default function ManageAnnouncements() {
 			// fetchAnnouncements();
 		} catch (err) {
 			console.error('❌ Error deleting announcement:', err);
-			alert('Failed to delete announcement. Please try again.');
+			
+			if (err.message.includes('403') || err.message.includes('401') || err.message.includes('Invalid or expired token')) {
+				alert('Your session has expired. Please log in again.');
+				// Redirect to login
+				window.location.href = '/login';
+			} else {
+				alert('Failed to delete announcement. Please try again.');
+			}
 		}
 	}
 

@@ -16,6 +16,19 @@ function initializeAuth() {
 // Initialize on module load
 initializeAuth();
 
+// Utility function to clear expired tokens on app load
+export function clearExpiredTokens() {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('adminToken');
+    if (token && authService.isTokenExpired(token)) {
+      console.warn('🧹 Clearing expired admin token');
+      authService.logout();
+      return true; // Token was expired and cleared
+    }
+  }
+  return false; // Token was valid or not present
+}
+
 // API request wrapper
 async function apiRequest(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
@@ -28,8 +41,8 @@ async function apiRequest(endpoint, options = {}) {
     ...options,
   };
 
-  // Refresh token before each request
-  if (!authToken && typeof window !== 'undefined') {
+  // Always refresh token from localStorage before each request
+  if (typeof window !== 'undefined') {
     authToken = localStorage.getItem('adminToken');
   }
   
@@ -39,11 +52,21 @@ async function apiRequest(endpoint, options = {}) {
 
   try {
     console.log(`🔗 API Request: ${config.method || 'GET'} ${url}`);
+    console.log(`🔐 Using token: ${authToken ? 'Present' : 'Missing'}`);
+    console.log(`📋 Headers:`, config.headers);
     
     const response = await fetch(url, config);
     
     if (!response.ok) {
       const errorText = await response.text();
+      console.error(`❌ API Error Response: ${response.status} - ${errorText}`);
+      
+      // If we get 401 or 403, the token might be invalid
+      if (response.status === 401 || response.status === 403) {
+        console.warn('🔒 Authentication failed, clearing stored token');
+        authService.logout();
+      }
+      
       throw new Error(`HTTP ${response.status}: ${errorText}`);
     }
 
@@ -85,6 +108,14 @@ export const authService = {
     }
     const present = !!authToken;
     console.log('🔍 Checking auth status, token present:', present);
+    
+    // Simple token expiry check - if token looks invalid, clear it
+    if (authToken && this.isTokenExpired(authToken)) {
+      console.warn('🕒 Token appears to be expired, clearing');
+      this.logout();
+      return false;
+    }
+    
     return present;
   },
   getToken() {
@@ -92,6 +123,22 @@ export const authService = {
       authToken = localStorage.getItem('adminToken');
     }
     return authToken;
+  },
+  
+  isTokenExpired(token) {
+    try {
+      if (!token) return true;
+      
+      // Decode JWT payload (simple base64 decode, no verification)
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Math.floor(Date.now() / 1000);
+      
+      // Check if token is expired (with 5 minute buffer)
+      return payload.exp && payload.exp < (currentTime + 300);
+    } catch (error) {
+      console.error('❌ Error checking token expiry:', error);
+      return true; // If we can't parse it, consider it invalid
+    }
   }
 };
 
@@ -125,9 +172,14 @@ export const announcementService = {
   async delete(id) {
     // Admin-only: must be authenticated
     initializeAuth();
+    console.log('🗑️ Attempting to delete announcement:', id);
+    
     if (!authService.isAuthenticated()) {
-      throw new Error('User not authenticated');
+      console.error('❌ Not authenticated for delete operation');
+      throw new Error('User not authenticated - please log in again');
     }
+    
+    console.log('✅ Authentication check passed, proceeding with delete');
     return await apiRequest(`/admin/announcements/${id}`, {
       method: 'DELETE',
     });

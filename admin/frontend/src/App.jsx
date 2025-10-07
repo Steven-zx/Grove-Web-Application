@@ -1,14 +1,13 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Sidebar from "./components/layout/Sidebar";
 import Navbar from "./components/layout/Navbar";
 import Announcements from "./pages/Announcements";
 import Amenities from "./pages/Amenities";
-import Bookings from "./pages/Bookings";
 import Gallery from "./pages/Gallery";
 import Reports from "./pages/Reports";
 import Login from "./pages/Login";
-import { authService } from "./services/api";
+import { authService, clearExpiredTokens } from "./services/api";
 
 // Simple auth guard for protected routes
 function RequireAuth({ children }) {
@@ -20,6 +19,14 @@ function RequireAuth({ children }) {
 }
 
 export default function App() {
+  // Clear any expired tokens on app load
+  useEffect(() => {
+    const wasExpired = clearExpiredTokens();
+    if (wasExpired) {
+      console.log('🔄 Expired token cleared, redirecting to login');
+    }
+  }, []);
+
   return (
     <Router>
       <Routes>
@@ -48,7 +55,6 @@ export default function App() {
                     <Routes>
                       <Route path="/announcements" element={<Announcements />} />
                       <Route path="/amenities" element={<Amenities />} />
-                      <Route path="/bookings" element={<Bookings />} />
                       <Route path="/gallery" element={<Gallery />} />
                       <Route path="/reports" element={<Reports />} />
                     </Routes>

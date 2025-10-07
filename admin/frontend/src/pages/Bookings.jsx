@@ -87,7 +87,7 @@ export default function Bookings() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Bookings Management</h1>
+        <h1 className="text-2xl font-bold text-gray-900">BBookings Management</h1>
         <div className="text-sm text-gray-600">
           Total Bookings: {total}
         </div>
