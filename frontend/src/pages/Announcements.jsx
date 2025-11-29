@@ -1,11 +1,14 @@
 // Announcements Page
 import React from "react";
+import { useLocation } from "react-router-dom";
 import AnnouncementCard from "../components/AnnouncementCard";
 import FiltersCard from "../components/shared/FiltersCard";
 
 const categories = ["All categories", "General", "Maintenance", "Sports", "Security", "Facilities"];
 
 export default function Announcements() {
+  const location = useLocation();
+  const query = new URLSearchParams(location.search).get("q") || "";
   const [announcements, setAnnouncements] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
@@ -75,6 +78,13 @@ export default function Announcements() {
     fetchAnnouncements();
   }, [filters]);
 
+  // Filter announcements based on query
+  const filteredAnnouncements = announcements.filter(a =>
+    !query ||
+    a.title.toLowerCase().includes(query.toLowerCase()) ||
+    a.content.toLowerCase().includes(query.toLowerCase())
+  );
+
   function handleFilterChange(e) {
     const { name, value } = e.target;
     setFilters(f => ({ ...f, [name]: value }));
@@ -101,12 +111,12 @@ export default function Announcements() {
             <div className="flex justify-center items-center py-8">
               <div className="text-red-500">{error}</div>
             </div>
-          ) : announcements.length === 0 ? (
+          ) : filteredAnnouncements.length === 0 ? (
             <div className="flex justify-center items-center py-8">
               <div className="text-gray-500">No announcements found.</div>
             </div>
           ) : (
-            announcements.map(a => (
+            filteredAnnouncements.map(a => (
               <AnnouncementCard key={a.id} {...a} />
             ))
           )}

@@ -1,15 +1,58 @@
 import React from "react";
 import { Flag, Search, User, LogIn, LogOut } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { authService } from "../../services/authService";
 import ReportIssueModal from "../ReportIssueModal";
 
 export default function Navbar() {
+    // Suggested search terms
+    const SUGGESTED_TERMS = [
+      "Pool",
+      "Clubhouse",
+      "Basketball Court",
+      "Playground",
+      "Maintenance",
+      "Booking",
+      "Announcement",
+      "Reservation",
+      "Security",
+      "Sports"
+    ];
+    const [showSuggestions, setShowSuggestions] = React.useState(false);
   // Real authentication state
   const [isLoggedIn, setIsLoggedIn] = React.useState(authService.isAuthenticated());
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const [reportOpen, setReportOpen] = React.useState(false);
+  const [searchQuery, setSearchQuery] = React.useState("");
   const profileBtnRef = React.useRef(null);
+  const navigate = useNavigate();
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    setShowSuggestions(true);
+  };
+
+  // Handle search submit (on Enter) - disabled since no search results page
+  const handleSearchKeyDown = (e) => {
+    if (e.key === "Escape") {
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleSuggestionClick = (term) => {
+    setSearchQuery(term);
+    setShowSuggestions(false);
+    // Navigate based on suggestion type
+    const amenityTerms = ["Pool", "Clubhouse", "Basketball Court", "Playground"];
+    const bookingTerms = ["Booking", "Reservation"];
+    if (amenityTerms.includes(term)) {
+      navigate(`/amenities?q=${encodeURIComponent(term)}`);
+    } else if (bookingTerms.includes(term)) {
+      navigate(`/your-bookings?q=${encodeURIComponent(term)}`);
+    } else {
+      navigate(`/announcements?q=${encodeURIComponent(term)}`);
+    }
+  };
 
   // Update login state when auth changes
   React.useEffect(() => {
@@ -53,8 +96,35 @@ export default function Navbar() {
           <input
             type="text"
             placeholder="Search…"
+            value={searchQuery}
+            onChange={handleSearchChange}
+            onKeyDown={handleSearchKeyDown}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
             className="w-full rounded-full border border-[#D9D9D9] pl-9 pr-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#E5EBE0]"
+            autoComplete="off"
           />
+          {showSuggestions && searchQuery.trim() && (
+            <div className="absolute left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-56 overflow-y-auto">
+              {SUGGESTED_TERMS.filter(term =>
+                term.toLowerCase().includes(searchQuery.toLowerCase()) && term.toLowerCase() !== searchQuery.toLowerCase()
+              ).slice(0, 5).map(term => (
+                <div
+                  key={term}
+                  className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+                  onMouseDown={() => handleSuggestionClick(term)}
+                >
+                  {term}
+                </div>
+              ))}
+              {/* Show a message if no suggestions */}
+              {SUGGESTED_TERMS.filter(term =>
+                term.toLowerCase().includes(searchQuery.toLowerCase()) && term.toLowerCase() !== searchQuery.toLowerCase()
+              ).length === 0 && (
+                <div className="px-4 py-2 text-gray-400">No suggestions</div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

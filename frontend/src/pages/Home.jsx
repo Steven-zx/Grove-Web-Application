@@ -79,7 +79,6 @@ export default function Home() {
     },
   ];
 
-  // Calculate real text index (since heroIndex includes clones)
   const textIndex =
     heroIndex <= 0
       ? heroTexts.length - 1
