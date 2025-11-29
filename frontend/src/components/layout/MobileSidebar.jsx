@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { authService } from "../../services/authService";
+import { profileService } from "../../services/profileService";
 import {
   Home,
   Bell,
@@ -12,10 +13,39 @@ import {
 
 export default function MobileSidebar({ open, onClose }) {
   const navigate = useNavigate();
-  const handleLogout = () => {
-    authService.logout();
-    navigate('/login');
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadUserProfile();
+  }, []);
+
+  const loadUserProfile = async () => {
+    try {
+      setLoading(true);
+      const profileData = await profileService.getProfile();
+      setUser(profileData);
+    } catch (err) {
+      console.error('Profile load error:', err);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleAuth = () => {
+    if (user) {
+      authService.logout();
+      navigate('/login');
+    } else {
+      navigate('/login');
+    }
+  };
+
+  const fullName = user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : '';
+  const avatarLetter = fullName ? fullName.charAt(0).toUpperCase() : 'U';
+  const displayName = user ? (loading ? 'Loading...' : fullName || 'No name set') : 'Guest Mode';
+  const displayLetter = user ? avatarLetter : 'G';
+  const showViewProfile = user;
   return (
     <>
       {/* Overlay */}
@@ -36,10 +66,10 @@ export default function MobileSidebar({ open, onClose }) {
 
           {/* Profile */}
           <div className="flex items-center gap-4">
-            <div className="bg-gray-200 h-14 w-14 rounded-full flex items-center justify-center">J</div>
+            <div className="bg-gray-200 h-14 w-14 rounded-full flex items-center justify-center">{displayLetter}</div>
             <div>
-              <p className="font-semibold text-lg" style={{ color: '#40863A' }}>John Smith</p>
-              <p className="text-xs text-gray-500">View Profile</p>
+              <p className="font-semibold text-lg" style={{ color: '#40863A' }}>{displayName}</p>
+              {showViewProfile && <p className="text-xs text-gray-500">View Profile</p>}
             </div>
           </div>
 
@@ -115,9 +145,9 @@ export default function MobileSidebar({ open, onClose }) {
           <button
             className="mt-4 text-white py-3 rounded-full w-full"
             style={{ backgroundColor: '#40863A' }}
-            onClick={handleLogout}
+            onClick={handleAuth}
           >
-            Log out
+            {user ? 'Log out' : 'Log in'}
           </button>
 
           <div className="text-xs text-center mt-auto"
