@@ -40,7 +40,9 @@ export default function Sidebar() {
           ))}
         </div>
       </div>
-      <div className="mt-auto text-xs text-gray-400 text-center">
+      <div className="mt-auto text-xs text-center"
+      style={{color: '#1E1E1E'}}
+      >
         © 2025 Augustine Grove by Aser’s Angels
       </div>
     </aside>
