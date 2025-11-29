@@ -1,5 +1,6 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { authService } from "../../services/authService";
 import {
   Home,
   Bell,
@@ -10,6 +11,11 @@ import {
 } from "lucide-react";
 
 export default function MobileSidebar({ open, onClose }) {
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    authService.logout();
+    navigate('/login');
+  };
   return (
     <>
       {/* Overlay */}
@@ -109,6 +115,7 @@ export default function MobileSidebar({ open, onClose }) {
           <button
             className="mt-4 text-white py-3 rounded-full w-full"
             style={{ backgroundColor: '#40863A' }}
+            onClick={handleLogout}
           >
             Log out
           </button>
