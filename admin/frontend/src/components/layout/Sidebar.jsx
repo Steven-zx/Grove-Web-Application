@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { Home as Bell, Image, Flag, List, Calendar } from "lucide-react";
+import { Home as Bell, Image, Flag, List, Calendar, ScanLine } from "lucide-react";
 import logo from "../../assets/logo.svg";
 
 const nav = [
@@ -8,6 +8,7 @@ const nav = [
   { to: "/amenities", label: "Amenities", icon: <List size={24} /> },
   { to: "/gallery", label: "Gallery", icon: <Image size={24} /> },
   { to: "/reports", label: "Reports", icon: <Flag size={24} /> },
+  { to: "/visitor-scanner", label: "Visitor Scanner", icon: <ScanLine size={24} /> },
 ];
 
 export default function Sidebar() {
