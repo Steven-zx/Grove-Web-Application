@@ -994,80 +994,80 @@ app.get('/api/debug/amenities', async (req, res) => {
 // Create Booking
 app.post('/api/bookings', verifyToken, async (req, res) => {
   try {
-    const { 
+    console.log('📥 Received booking request body:', JSON.stringify(req.body, null, 2));
+    console.log('📥 User from token:', req.user);
+    
+    const {
       amenity_id,
-      amenity_name,
-      booking_date, 
-      start_time, 
-      end_time, 
-      purpose,
-      guest_count
+      booking_date,
+      start_time,
+      end_time,
+      number_of_guests,
+      notes,
+      payment_status = 'pending',
+      status = 'pending'
     } = req.body;
 
-    console.log('📝 Booking request data:', {
+    console.log('📋 Extracted fields:', {
       amenity_id,
-      amenity_name,
       booking_date,
       start_time,
       end_time,
-      purpose,
-      guest_count,
-      userId: req.user.userId
+      number_of_guests,
+      notes,
+      payment_status,
+      status,
+      user_id: req.user.id
     });
-    
-    console.log('🔧 Using supabaseService for user profile fetch...');
-    // Get user profile for resident name
-    const { data: profile, error: profileError } = await supabaseService
-      .from('user_profiles')
-      .select('first_name, last_name, phone')
-      .eq('id', req.user.userId)
-      .single();
-    
-    console.log('👤 Profile fetch result:', { 
-      profile: profile, 
-      error: profileError?.message 
-    });
-    
-    const resident_name = profile ? `${profile.first_name} ${profile.last_name}` : 'Unknown';
-    
-    const bookingData = {
-      user_id: req.user.userId,
-      amenity_id: amenity_id,
-      amenity_type: amenity_name,
-      booking_date,
-      start_time,
-      end_time,
-      resident_name,
-      purpose,
-      mobile_number: profile?.phone,
-      guest_count: guest_count || 1,
-      status: 'pending',
-      created_at: new Date().toISOString()
-    };
-    
-    console.log('📋 Booking data to insert:', bookingData);
-    console.log('🔧 Using supabaseService for booking insert...');
-    
-    const { data, error } = await supabaseService
-      .from('bookings')
-      .insert([bookingData])
-      .select();
-    
-    console.log('📊 Booking insert result:', { 
-      success: !error, 
-      data: data, 
-      error: error?.message 
-    });
-    
-    if (error) {
-      console.error('❌ BOOKING INSERT ERROR:', error);
-      return res.status(500).json({ error: error.message });
+
+    // Check each field individually
+    if (!amenity_id) {
+      console.log('❌ Missing: amenity_id');
+      return res.status(400).json({ error: 'Missing amenity_id' });
     }
-    
-    res.json({ message: 'Booking created successfully', data });
+    if (!booking_date) {
+      console.log('❌ Missing: booking_date');
+      return res.status(400).json({ error: 'Missing booking_date' });
+    }
+    if (!start_time) {
+      console.log('❌ Missing: start_time');
+      return res.status(400).json({ error: 'Missing start_time' });
+    }
+    if (!end_time) {
+      console.log('❌ Missing: end_time');
+      return res.status(400).json({ error: 'Missing end_time' });
+    }
+    if (!number_of_guests) {
+      console.log('❌ Missing: number_of_guests');
+      return res.status(400).json({ error: 'Missing number_of_guests' });
+    }
+
+    const { data: booking, error } = await supabaseService
+      .from('bookings')
+      .insert({
+        user_id: req.user.id,
+        amenity_id,
+        booking_date,
+        start_time,
+        end_time,
+        number_of_guests,
+        notes,
+        payment_status,
+        status
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Database error:', error);
+      throw error;
+    }
+
+    console.log('✅ Booking created successfully:', booking);
+    res.status(201).json(booking);
   } catch (error) {
-    console.error('Create booking error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('❌ Create booking error:', error);
+    res.status(500).json({ error: error.message || 'Failed to create booking' });
   }
 });
 

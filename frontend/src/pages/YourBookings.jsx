@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import InfoCard from '../components/shared/InfoCard';
 import CalendarWidget from '../components/CalendarWidget';
 import GeneralConditions from '../components/GeneralConditions';
-import { bookingService } from '../services/bookingService';
+import bookingService from "../services/bookingService";
 import clubhouseImg from '../assets/clubhouse.png';
 import poolImg from '../assets/pool.png';
 import courtImg from '../assets/court.png';

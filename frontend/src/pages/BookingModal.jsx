@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import GeneralConditions from "../components/GeneralConditions";
-import { bookingService } from "../services/bookingService";
+import bookingService from "../services/bookingService.js";
+import PaymentService from "../services/paymentService.js";
 import { authService } from "../services/authService";
 
 export default function BookingModal() {
@@ -50,6 +51,8 @@ export default function BookingModal() {
     agreeToTerms: false
   });
 
+  const [paymentMethod, setPaymentMethod] = useState('gcash');
+
   // Auto-fill user data when component mounts
   useEffect(() => {
     const userData = getUserData();
@@ -75,10 +78,34 @@ export default function BookingModal() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Calculate booking amount based on amenity
+  const calculateBookingAmount = () => {
+    const description = amenity?.description || '';
+    
+    if (description.includes('₱1,000') && description.includes('₱2,000')) {
+      return 1000;
+    }
+    if (description.includes('₱2,000') && description.includes('₱3,500')) {
+      return 2000;
+    }
+    if (description.includes('₱150')) {
+      const guests = parseInt(formData.attendees) || 1;
+      return 150 * guests;
+    }
+    
+    return 1000; // Default amount
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.agreeToTerms) {
       alert('Please agree to the general booking conditions');
+      return;
+    }
+    
+    // Check if amenity exists
+    if (!amenity || !amenity.id) {
+      alert('No amenity selected. Please go back and select an amenity.');
       return;
     }
     
@@ -104,21 +131,52 @@ export default function BookingModal() {
     setIsSubmitting(true);
     
     try {
-      // Create booking via API
+      // Create booking data
       const bookingData = {
-        amenityId: amenity?.id,
-        amenityName: amenity?.name,
-        ...formData
+        amenity_id: amenity.id,  // Remove the ?. since we checked above
+        booking_date: formData.selectDate,
+        start_time: formData.startTime,
+        end_time: formData.endTime,
+        number_of_guests: parseInt(formData.attendees),
+        notes: `Purpose: ${formData.purpose}\n${formData.additionalNotes}`,
+        payment_status: 'pending',
+        status: 'pending'
       };
+
+      console.log('📤 Sending booking data:', JSON.stringify(bookingData, null, 2));
+      console.log('Amenity object:', amenity);
+
+      const booking = await bookingService.createBooking(bookingData);
+
+      console.log('✅ Booking created:', booking);
+
+      const amount = calculateBookingAmount();
+
+      // Process payment
+      if (paymentMethod === 'gcash') {
+        const payment = await PaymentService.createGCashPayment(
+          amount,
+          `Booking for ${amenity.name} on ${formData.selectDate}`,
+          booking.id
+        );
+
+        localStorage.setItem('pending_payment_id', payment.paymentId);
+        window.location.href = payment.checkoutUrl;
+      } else {
+        alert('Other payment methods coming soon! Please use GCash.');
+        setIsSubmitting(false);
+      }
       
-      await bookingService.createBooking(bookingData);
-      
-      alert('Booking submitted successfully! Please wait for admin approval.');
-      navigate('/your-bookings');
     } catch (error) {
       console.error('Booking submission error:', error);
-      alert(`Failed to submit booking: ${error.message}`);
-    } finally {
+      
+      if (error.message.includes('token') || error.message.includes('Invalid') || error.message.includes('expired')) {
+        alert('Your session has expired. Please log in again.');
+        authService.logout();
+        navigate('/login');
+      } else {
+        alert(`Failed to submit booking: ${error.message}`);
+      }
       setIsSubmitting(false);
     }
   };
@@ -182,7 +240,7 @@ export default function BookingModal() {
                 value={formData.firstName}
                 onChange={handleInputChange}
                 placeholder="John"
-                className="w-full px-4 py-3 border border-[#D9D9D9] rounded-lg focus:outline-none focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 bg-gray-50"
+                className="w-full px-4 py-3 border border-[#D9D9D9] rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 bg-gray-50"
                 required
               />
               {formData.firstName && (
@@ -201,7 +259,7 @@ export default function BookingModal() {
                 value={formData.lastName}
                 onChange={handleInputChange}
                 placeholder="Smith"
-                className="w-full px-4 py-3 border border-[#D9D9D9] rounded-lg focus:outline-none focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 bg-gray-50"
+                className="w-full px-4 py-3 border border-[#D9D9D9] rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 bg-gray-50"
                 required
               />
               {formData.lastName && (
@@ -294,6 +352,7 @@ export default function BookingModal() {
                 name="selectDate"
                 value={formData.selectDate}
                 onChange={handleInputChange}
+                min={new Date().toISOString().split('T')[0]}
                 className="w-full px-4 py-3 border border-[#D9D9D9] rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
                 required
               />
@@ -371,6 +430,31 @@ export default function BookingModal() {
             </div>
           </div>
 
+          {/* Payment Method - NEW FIELD */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Payment Method
+            </label>
+            <select
+              name="paymentMethod"
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+              className="w-full px-4 py-3 border border-[#D9D9D9] rounded-lg focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+              required
+            >
+              <option value="gcash">GCash</option>
+              <option value="card" disabled>Credit/Debit Card (Coming Soon)</option>
+              <option value="paymaya" disabled>PayMaya (Coming Soon)</option>
+            </select>
+          </div>
+
+          {/* Booking Amount Display - NEW */}
+          <div className="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <p className="text-sm font-medium text-gray-700 mb-1">Booking Amount:</p>
+            <p className="text-2xl font-bold text-[#40863A]">₱{calculateBookingAmount().toLocaleString()}</p>
+            <p className="text-xs text-gray-500 mt-1">* You will be redirected to GCash for payment</p>
+          </div>
+
           {/* Additional Notes */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -410,7 +494,7 @@ export default function BookingModal() {
               disabled={isSubmitting}
               className="bg-[#40863A] text-white px-8 py-3 rounded-lg font-medium hover:bg-green-700 focus:ring-1 focus:ring-green-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? 'Submitting...' : 'Book Now'}
+              {isSubmitting ? 'Processing Payment...' : 'Proceed to Payment'}
             </button>
           </div>
         </div>
