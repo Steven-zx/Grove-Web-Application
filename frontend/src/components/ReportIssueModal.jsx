@@ -28,7 +28,7 @@ export default function ReportIssueModal({ open, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.25)" }}>
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-3xl w-full relative">
+      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-3xl w-full relative mx-4 sm:mx-8">
         <button
           className="absolute top-4 right-4 text-2xl text-[#1e1e1e] hover:text-[#1e1e1e] cursor-pointer"
           onClick={onClose}
