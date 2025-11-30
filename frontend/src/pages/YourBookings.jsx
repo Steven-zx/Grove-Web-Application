@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import InfoCard from '../components/shared/InfoCard';
 import CalendarWidget from '../components/CalendarWidget';
 import GeneralConditions from '../components/GeneralConditions';
@@ -23,6 +23,8 @@ const amenityImages = {
 
 export default function YourBookings() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const query = new URLSearchParams(location.search).get("q") || "";
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -61,6 +63,13 @@ export default function YourBookings() {
       setLoading(false);
     }
   };
+
+  // Filter bookings based on query
+  const filteredBookings = bookings.filter(b =>
+    !query ||
+    (b.amenityName || "").toLowerCase().includes(query.toLowerCase()) ||
+    (b.purpose || "").toLowerCase().includes(query.toLowerCase())
+  );
 
   const handleCancelBooking = async (bookingId) => {
     if (!confirm('Are you sure you want to cancel this booking?')) {
@@ -174,7 +183,7 @@ export default function YourBookings() {
                 Try Again
               </button>
             </div>
-          ) : bookings.length === 0 ? (
+          ) : filteredBookings.length === 0 ? (
             <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center">
               <h3 className="text-xl font-semibold text-gray-900 mb-3">No bookings yet!</h3>
               <p className="text-gray-600 mb-8 max-w-sm mx-auto leading-relaxed">
@@ -189,7 +198,7 @@ export default function YourBookings() {
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-8">
-              {bookings.map((booking) => (
+              {filteredBookings.map((booking) => (
                 <div key={booking.id} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all">
                   <div className="w-full h-40 rounded-xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 mb-4">
                     <img 

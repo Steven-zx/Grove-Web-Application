@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../services/authService';
 import InfoCard from '../components/shared/InfoCard';
 import CalendarWidget from '../components/CalendarWidget';
@@ -24,6 +24,8 @@ const amenityImages = {
 
 export default function Amenities() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const query = new URLSearchParams(location.search).get("q") || "";
   const [amenities, setAmenities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -66,6 +68,13 @@ export default function Amenities() {
 
     fetchAmenities();
   }, []);
+
+  // Filter amenities based on query
+  const filteredAmenities = amenities.filter(a =>
+    !query ||
+    a.name.toLowerCase().includes(query.toLowerCase()) ||
+    a.description.toLowerCase().includes(query.toLowerCase())
+  );
 
   const handleBook = (amenity) => {
     if (amenity.status === 'Not Available') return;
@@ -127,7 +136,7 @@ return (
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
-            {amenities.map((amenity) => (
+            {filteredAmenities.map((amenity) => (
               <AmenityCard key={amenity.id} amenity={amenity} onBook={handleBook} />
             ))}
           </div>

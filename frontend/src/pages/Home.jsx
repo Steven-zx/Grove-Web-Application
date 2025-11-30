@@ -79,7 +79,6 @@ export default function Home() {
     },
   ];
 
-  // Calculate real text index (since heroIndex includes clones)
   const textIndex =
     heroIndex <= 0
       ? heroTexts.length - 1
@@ -282,7 +281,7 @@ export default function Home() {
 
         {/* Right: Map (spans 2 columns) */}
         <div className="lg:col-span-2 flex items-center justify-center h-full">
-          <div className="rounded-2xl p-2 w-full flex items-center justify-center bg-[#EFEFEF] h-80 md:h-[400px] lg:h-[500px] xl:h-[645px]">
+          <div className="rounded-2xl p-2 w-full flex items-center justify-center bg-[#EFEFEF] h-80 md:h-[400px] lg:h-[500px] xl:h-[690px]">
             <Map />
           </div>
         </div>
