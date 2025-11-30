@@ -29,6 +29,7 @@ import GalleryMobile from "./pages/GalleryMobile";
 import AboutMobile from "./pages/AboutMobile";
 import LoginMobile from "./pages/LoginMobile";
 import SignUpMobile from "./pages/SignUpMobile";
+import SignUpDetailsMobile from "./pages/SignUpDetailsMobile";
 
 // Hooks
 import useIsMobile from "./hooks/useIsMobile";
@@ -49,7 +50,7 @@ export default function App() {
         {/* Common Routes */}
         <Route path="/logout" element={<Logout />} />
         <Route path="/signup" element={isMobile ? <SignUpMobile /> : <SignUp />} />
-        <Route path="/signup-details" element={<SignUpDetails />} />
+        <Route path="/signup-details" element={isMobile ? <SignUpDetailsMobile /> : <SignUpDetails />} />
         <Route path="/signup-complete" element={<SignUpComplete />} />
         <Route path="/admin" element={<Admin />} />
 
