@@ -1,4 +1,6 @@
+
 import React from "react";
+import "./ReportIssueModal.css";
 
 const ISSUE_TYPES = [
   "Noise", "Maintenance", "Safety", "Other"
@@ -29,7 +31,7 @@ export default function ReportIssueModal({ open, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.25)" }}>
       <div
-        className="relative bg-white rounded-2xl shadow-xl p-4 sm:p-8 w-[90vw] md:w-[55vw] max-w-xs sm:max-w-sm md:max-w-xs min-h-[40vh] max-h-[90vh] mx-2 flex flex-col"
+        className="report-issue-modal relative bg-white rounded-2xl shadow-xl p-4 sm:p-8 w-[90vw] md:w-[55vw] max-w-xs sm:max-w-sm md:max-w-xs min-h-[40vh] max-h-[90vh] mx-2 flex flex-col"
         style={{ minWidth: '0', maxWidth: '100%', boxSizing: 'border-box', minHeight: '40vh', maxHeight: '90vh' }}
       >
         <button
