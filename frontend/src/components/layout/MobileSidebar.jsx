@@ -59,13 +59,22 @@ export default function MobileSidebar({ open, onClose }) {
       >
         <div className="p-6 flex flex-col gap-6">
           {/* Profile */}
-          <div className="flex items-center gap-4">
-            <div className="bg-gray-200 h-14 w-14 rounded-full flex items-center justify-center">{displayLetter}</div>
-            <div>
-              <p className="font-semibold text-lg" style={{ color: '#40863A' }}>{displayName}</p>
-              {showViewProfile && <p className="text-xs text-gray-500">View Profile</p>}
+          {showViewProfile ? (
+            <NavLink to="/profile" className="flex items-center gap-4">
+              <div className="bg-gray-200 h-14 w-14 rounded-full flex items-center justify-center">{displayLetter}</div>
+              <div>
+                <p className="font-semibold text-lg" style={{ color: '#40863A' }}>{displayName}</p>
+                <p className="text-xs text-gray-500">View Profile</p>
+              </div>
+            </NavLink>
+          ) : (
+            <div className="flex items-center gap-4">
+              <div className="bg-gray-200 h-14 w-14 rounded-full flex items-center justify-center">{displayLetter}</div>
+              <div>
+                <p className="font-semibold text-lg" style={{ color: '#40863A' }}>{displayName}</p>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="flex flex-col gap-4">
             <NavLink

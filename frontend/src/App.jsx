@@ -30,6 +30,7 @@ import AboutMobile from "./pages/AboutMobile";
 import LoginMobile from "./pages/LoginMobile";
 import SignUpMobile from "./pages/SignUpMobile";
 import SignUpDetailsMobile from "./pages/SignUpDetailsMobile";
+import ProfileMobile from "./pages/ProfileMobile";
 
 // Hooks
 import useIsMobile from "./hooks/useIsMobile";
@@ -59,6 +60,7 @@ export default function App() {
           <>
             <Route path="/" element={<HomeMobile />} />
             <Route path="/login" element={<LoginMobile />} />
+            <Route path="/profile" element={<ProfileMobile />} />
             <Route path="/announcements" element={<AnnouncementsMobile />} />
             <Route path="/amenities" element={<AmenitiesMobile />} />
             <Route path="/gallery" element={<GalleryMobile />} />
