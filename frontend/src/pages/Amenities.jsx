@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../services/authService';
 import InfoCard from '../components/shared/InfoCard';
+import NoticeCard from '../components/shared/NoticeCard';
 import CalendarWidget from '../components/CalendarWidget';
 import AmenityCard from '../components/AmenityCard';
 import GeneralConditions from '../components/GeneralConditions';
@@ -48,8 +49,15 @@ export default function Amenities() {
           image: amenityImages[amenity.name] || clubhouseImg, // Default image
           description: amenity.description
         }));
-        
-        setAmenities(mappedAmenities);
+
+        // Desktop grid (2 cols): swap Swimming Pool and Playground positions so Playground is last (bottom-right).
+        // Order cards so Playground is last without altering others unnecessarily.
+        const desktopOrdered = mappedAmenities.slice().sort((a, b) => {
+          if (a.name === 'Playground' && b.name !== 'Playground') return 1;
+          if (b.name === 'Playground' && a.name !== 'Playground') return -1;
+          return 0;
+        });
+        setAmenities(desktopOrdered);
         console.log('🏢 Loaded amenities from database:', mappedAmenities);
       } catch (error) {
         console.error('Failed to fetch amenities:', error);
@@ -153,12 +161,7 @@ return (
     {/* Desktop Sidebar: sticky */}
     <aside className="hidden md:flex w-80 px-2 py-0 flex-col gap-3 min-h-screen">
       <div className="sticky top-20 flex flex-col gap-3">
-        <div className="bg-white rounded-2xl border border-gray-200 p-5">
-          <h3 className="font-bold mb-2">Notice</h3>
-          <p className="text-sm text-gray-600">
-            Amenities are available all-week long!
-          </p>
-        </div>
+        <NoticeCard />
         <CalendarWidget />
       </div>
     </aside>
