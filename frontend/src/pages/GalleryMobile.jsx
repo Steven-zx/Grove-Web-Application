@@ -68,7 +68,7 @@ export default function GalleryMobile() {
       <MobileNavbar onMenuClick={() => setSidebarOpen(true)} />
       <MobileSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         {/* Category Tabs */}
-        <nav className="fixed top-[7.5rem] z-50 bg-white flex flex-wrap justify-center gap-x-3 gap-y-1 mb-4 text-sm py-2">
+        <nav className="fixed top-[7.5rem] z-30 bg-white flex flex-wrap justify-center gap-x-3 gap-y-1 mb-4 text-sm py-2">
           {categories.map(cat => (
             <button
               key={cat}
