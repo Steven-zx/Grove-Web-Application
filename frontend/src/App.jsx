@@ -25,6 +25,7 @@ import Admin from "./pages/Admin";
 import HomeMobile from "./pages/HomeMobile";
 import AnnouncementsMobile from "./pages/AnnouncementsMobile";
 import AmenitiesMobile from "./pages/AmenitiesMobile";
+import YourBookingsMobile from "./pages/YourBookingsMobile";
 import GalleryMobile from "./pages/GalleryMobile";
 import AboutMobile from "./pages/AboutMobile";
 import LoginMobile from "./pages/LoginMobile";
@@ -63,6 +64,7 @@ export default function App() {
             <Route path="/profile" element={<ProfileMobile />} />
             <Route path="/announcements" element={<AnnouncementsMobile />} />
             <Route path="/amenities" element={<AmenitiesMobile />} />
+            <Route path="/your-bookings" element={<YourBookingsMobile />} />
             <Route path="/gallery" element={<GalleryMobile />} />
             <Route path="/about" element={<AboutMobile />} />
           </>
