@@ -91,7 +91,7 @@ export default function Login() {
 
 			{/* Main content */}
 			<main className="flex-1 flex items-center justify-center">
-				<div className="relative w-full h-[700px] max-w-4xl flex items-center justify-center">
+				<div className="relative w-full h-[700px] md:max-w-4xl flex items-center justify-center">
 					{/* Background image */}
 					<img src={bgImg} alt="Background" className="absolute inset-0 w-full h-full object-cover rounded-3xl" style={{ zIndex: 0 }} />
 					{/* Card */}
@@ -106,7 +106,7 @@ export default function Login() {
 							<img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="h-5 w-5" />
 							Continue with Google
 						</button>
-						<div className="w-full flex items-center my-4">
+						<div className="w-full flex items-center my-4 mb-6">
 							<div className="flex-1 h-px bg-gray-200" />
 							<span className="mx-3 text-gray-400 text-sm">or</span>
 							<div className="flex-1 h-px bg-gray-200" />
@@ -146,14 +146,14 @@ export default function Login() {
 							<button 
 								type="submit" 
 								disabled={isLoading}
-								className="w-full rounded-full bg-[#40863A] text-white font-semibold py-3 mt-2 text-base hover:bg-[#35702c] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+								className="w-full rounded-full bg-[#40863A] text-white font-semibold py-3 mt-4 text-base hover:bg-[#35702c] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 							>
 								{isLoading ? 'Logging in...' : 'Log in'}
 							</button>
 						</form>
 						<div className="w-full flex flex-col items-center mt-6 text-sm">
-							<Link to="/forgot-password" className="text-gray-400 mb-2 hover:underline">Forgot password?</Link>
-							<span className="text-gray-400">Don’t have an account? <Link to="/signup" className="text-green-600 font-medium hover:underline">Sign up</Link></span>
+							<Link to="/forgot-password" className="mb-2 hover:underline" style={{color: '#1E1E1E'}}>Forgot password?</Link>
+							<span style={{color: '#1E1E1E'}}>Don’t have an account? <Link to="/signup" className="text-green-600 font-medium hover:underline">Sign up</Link></span>
 						</div>
 					</div>
 				</div>

@@ -1,0 +1,20 @@
+@media (max-height: 667px) {
+  .report-issue-modal {
+    font-size: 0.92rem;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .report-issue-modal input,
+  .report-issue-modal textarea,
+  .report-issue-modal select {
+    font-size: 0.92rem;
+    padding: 0.6rem;
+  }
+  .report-issue-modal button[type="submit"] {
+    font-size: 0.95rem;
+    padding: 0.7rem 1.5rem;
+  }
+  .report-issue-modal h2 {
+    font-size: 1.2rem;
+  }
+}

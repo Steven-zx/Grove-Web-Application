@@ -174,7 +174,7 @@ export default function About() {
     {/* Main content */}
     <main className="flex-1 px-2 md:px-8 flex flex-col gap-6 md:min-w-[350px] md:max-w-auto">
       {/* Header */}
-      <div className="pt-1 pb-5">
+      <div className="pt-1 pb-1">
         <div className="inline-flex items-center gap-2 text-sm text-[#1E1E1E] bg-white px-4 py-2 rounded-lg border border-[#D9D9D9]">
           <span>Augustine Grove Residential Village</span>
         </div>
@@ -182,7 +182,7 @@ export default function About() {
 
       {/* Hero */}
       <div className="flex justify-start">
-        <div className="max-w-7xl w-full pt-1 pb-3 mb-1 min-h-[220px] md:min-h-[300px] lg:min-h-[450px]">
+        <div className="max-w-7xl w-full pt-1 pb-1 min-h-[220px] md:min-h-[300px] lg:min-h-[450px]">
           <div className="grid grid-cols-1 lg:grid-cols-2 rounded-lg bg-[#E5EBE0] gap-8 items-center">
             <div className="p-6">
               <h1 className="text-4xl font-medium text-gray-900 mb-6">About us</h1>
@@ -209,7 +209,7 @@ export default function About() {
 
       {/* Features + What we offer */}
       <div className="flex justify-start">
-        <div className="max-w-7xl w-full pt-1 pb-3 min-h-[220px] md:min-h-[300px] lg:min-h-[450px]">
+        <div className="max-w-7xl w-full pt-1 pb-1 min-h-[220px] md:min-h-[300px] lg:min-h-[450px]">
           <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-x-5 items-start">
             {/* Features */}
             <div className="space-y-4">
@@ -286,7 +286,7 @@ export default function About() {
 
       {/* House Rules */}
       <div className="flex justify-start">
-        <div className="bg-white rounded-lg mb-1 max-w-7xl w-full pb-3 min-h-[220px] md:min-h-[300px] lg:min-h-[450px]">
+        <div className="bg-white rounded-lg max-w-7xl w-full pt-1 pb-1 min-h-[220px] md:min-h-[300px] lg:min-h-[450px]">
           <div className="grid grid-cols-1 lg:grid-cols-2 items-stretch rounded-lg border border-[#D9D9D9]">
             <div className="bg-[#E5EBE0] rounded-tl-lg rounded-bl-lg p-10 flex flex-col h-full">
               {rules[activeRule]}
@@ -332,7 +332,7 @@ export default function About() {
 
       {/* Get in touch + Services */}
     <div className="flex justify-start">
-      <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1.2fr_0.6fr] gap-5 mb-2 max-w-7xl w-full pt-1 pb-3 min-h-[220px] md:min-h-[300px] lg:min-h-[450px]">
+      <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1.2fr_0.6fr] gap-5 max-w-7xl w-full pt-1 pb-1 min-h-[220px] md:min-h-[300px] lg:min-h-[450px]">
           {/* Get in touch */}
           <div className="h-full flex flex-col justify-between gap-4">
             <div className="bg-white rounded-lg border border-[#D9D9D9] p-10">
@@ -444,7 +444,7 @@ export default function About() {
 
       {/* FAQ */}
     <div className="flex justify-start">
-      <div className="bg-white rounded-lg p-2 mb-1 max-w-7xl w-full pb-3 min-h-[220px] md:min-h-[300px] lg:min-h-[450px]">
+      <div className="bg-white rounded-lg p-2 max-w-7xl w-full pb-1 min-h-[220px] md:min-h-[300px] lg:min-h-[450px]">
           <div className="inline-flex items-center gap-2 text-sm font-normal text-[#1E1E1E] bg-white px-4 py-2 rounded-lg border border-[#D9D9D9] mb-4">
             <span>Frequently Asked Questions</span>
           </div>

@@ -54,7 +54,9 @@ export default function FiltersCard({
           )}
         </div>
       ))}
-      <button type="submit" className="rounded-full bg-[#40863A] text-white font-semibold px-6 py-2 mt-2 hover:bg-[#35702c] transition-colors">{submitText}</button>
+      <div className="flex justify-end mt-2">
+        <button type="submit" className="rounded-full bg-[#40863A] text-white font-semibold px-4 py-2 text-sm hover:bg-[#35702c] transition-colors min-w-[80px]">{submitText}</button>
+      </div>
     </form>
   );
 }

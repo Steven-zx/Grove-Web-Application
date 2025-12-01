@@ -97,7 +97,7 @@ export default function SignUp() {
 
 			{/* Main content */}
 			<main className="flex-1 flex items-center justify-center">
-				<div className="relative w-full h-[700px] max-w-4xl flex items-center justify-center">
+				<div className="relative w-full h-[700px] md:max-w-4xl flex items-center justify-center">
 					{/* Background image */}
 					<img src={bgImg} alt="Background" className="absolute inset-0 w-full h-full object-cover rounded-3xl" style={{ zIndex: 0 }} />
 					{/* Card */}
@@ -112,7 +112,7 @@ export default function SignUp() {
 							<img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="h-5 w-5" />
 							Continue with Google
 						</button>
-						<div className="w-full flex items-center my-4">
+						<div className="w-full flex items-center my-4 mb-6">
 							<div className="flex-1 h-px bg-gray-200" />
 							<span className="mx-3 text-gray-400 text-sm">or</span>
 							<div className="flex-1 h-px bg-gray-200" />
@@ -166,7 +166,7 @@ export default function SignUp() {
 							</button>
 						</form>
 						<div className="w-full flex flex-col items-center mt-6 text-sm">
-							<span className="text-gray-400">Already have an account? <Link to="/login" className="text-green-600 font-medium hover:underline">Sign in</Link></span>
+							<span style={{color: '#1E1E1E'}}>Already have an account? <Link to="/login" className="text-green-600 font-medium hover:underline">Sign in</Link></span>
 						</div>
 					</div>
 				</div>
