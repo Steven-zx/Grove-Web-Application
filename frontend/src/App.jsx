@@ -27,6 +27,7 @@ import AnnouncementsMobile from "./pages/AnnouncementsMobile";
 import AmenitiesMobile from "./pages/AmenitiesMobile";
 import YourBookingsMobile from "./pages/YourBookingsMobile";
 import BookingModalMobile from "./pages/BookingModalMobile";
+import CalendarMobile from "./pages/CalendarMobile";
 import GalleryMobile from "./pages/GalleryMobile";
 import AboutMobile from "./pages/AboutMobile";
 import LoginMobile from "./pages/LoginMobile";
@@ -67,6 +68,7 @@ export default function App() {
             <Route path="/amenities" element={<AmenitiesMobile />} />
             <Route path="/your-bookings" element={<YourBookingsMobile />} />
             <Route path="/booking-modal" element={<BookingModalMobile />} />
+            <Route path="/calendar" element={<CalendarMobile />} />
             <Route path="/gallery" element={<GalleryMobile />} />
             <Route path="/about" element={<AboutMobile />} />
           </>
