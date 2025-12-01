@@ -21,12 +21,14 @@ export default function Calendar() {
   ];
   const years = Array.from({ length: 10 }, (_, i) => 2024 + i); // 2024-2033
   
-  // PLACEHOLDER: Sample booking conditions - replace with data from backend API
+  // PLACEHOLDER: General conditions - Backend-ready for API integration
   const bookingConditions = [
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+    'Eligibility: Only residents with good standing (no outstanding HOA dues) may book amenities',
+    'Booking Limits: Each household may book the clubhouse a maximum of twice per month and reserve the pool for exclusive use once per month.',
+    'Cancellation Policy: Cancellations must be made at least 48 hours in advance for a full refund. Later cancellations forfeit 50% of the booking fee.',
+    'Damages: The booking resident is responsible for any damages incurred during their reservation period.',
+    'Noise Restrictions: All events must observe quiet hours from 10PM to 6AM.',
+    'Cleaning: Facilities must be cleaned and returned to their original condition after use.'
   ];
   
   // Calculate current week days
@@ -140,7 +142,7 @@ export default function Calendar() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50" style={{ marginLeft: '3rem', padding: '2rem' }}>
+    <div className="min-h-screen bg-white" style={{ marginLeft: '3rem', padding: '2rem' }}>
       {/* Header */}
       <div className="flex items-center mb-8">
         <button 
@@ -395,7 +397,9 @@ export default function Calendar() {
           </div>
 
           {/* General Conditions - Inherits same width as calendar */}
-          <GeneralConditions conditions={bookingConditions} />
+          <div className="mt-8">
+            <GeneralConditions conditions={bookingConditions} />
+          </div>
         </div>
 
         {/* Right Sidebar */}
