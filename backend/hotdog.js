@@ -7,6 +7,7 @@ const rateLimit = require('express-rate-limit');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const validator = require('validator');
+const axios = require('axios');
 const { createClient } = require('@supabase/supabase-js');
 const multer = require('multer');
 const crypto = require('crypto');
@@ -254,6 +255,85 @@ const verifyAdmin = (req, res, next) => {
   }
   next();
 };
+
+// ===== PAYMONGO HELPERS =====
+const PAYMONGO_SECRET_KEY = process.env.PAYMONGO_SECRET_KEY;
+const PAYMONGO_MODE = (process.env.PAYMONGO_MODE || 'test').toLowerCase();
+const PAYMONGO_API_BASE = 'https://api.paymongo.com/v1';
+
+function basicAuthHeader(secretKey) {
+  const token = Buffer.from(`${secretKey}:`).toString('base64');
+  return `Basic ${token}`;
+}
+
+function cents(amount) {
+  // PayMongo expects the smallest currency unit (centavos)
+  if (typeof amount === 'string') amount = parseFloat(amount);
+  return Math.round((amount || 0) * 100);
+}
+
+function getRedirectUrls() {
+  const success = process.env.PAYMONGO_SUCCESS_URL || 'http://localhost:5173/payment/success';
+  const failed = process.env.PAYMONGO_FAILED_URL || 'http://localhost:5173/payment/failed';
+  return { success, failed };
+}
+
+async function paymongoCreateGCashSource({ amount, description, bookingId, userId }) {
+  if (!PAYMONGO_SECRET_KEY) {
+    throw new Error('PAYMONGO_SECRET_KEY is not configured');
+  }
+  const { success, failed } = getRedirectUrls();
+  const payload = {
+    data: {
+      attributes: {
+        amount: cents(amount),
+        currency: 'PHP',
+        type: 'gcash',
+        redirect: { success, failed },
+        metadata: {
+          bookingId: String(bookingId || ''),
+          userId: String(userId || ''),
+          description: String(description || '')
+        }
+      }
+    }
+  };
+
+  const res = await axios.post(`${PAYMONGO_API_BASE}/sources`, payload, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': basicAuthHeader(PAYMONGO_SECRET_KEY)
+    }
+  });
+  return res.data;
+}
+
+async function paymongoGetSource(sourceId) {
+  const res = await axios.get(`${PAYMONGO_API_BASE}/sources/${sourceId}`, {
+    headers: { 'Authorization': basicAuthHeader(PAYMONGO_SECRET_KEY) }
+  });
+  return res.data;
+}
+
+async function paymongoCreatePaymentFromSource({ amount, sourceId, description }) {
+  const payload = {
+    data: {
+      attributes: {
+        amount: cents(amount),
+        currency: 'PHP',
+        source: { id: sourceId, type: 'source' },
+        description: description || 'GCash Payment'
+      }
+    }
+  };
+  const res = await axios.post(`${PAYMONGO_API_BASE}/payments`, payload, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': basicAuthHeader(PAYMONGO_SECRET_KEY)
+    }
+  });
+  return res.data;
+}
 
 // Validation helpers
 const validateEmail = (email) => validator.isEmail(email);
@@ -996,15 +1076,20 @@ app.post('/api/bookings', verifyToken, async (req, res) => {
   try {
     console.log('📥 Received booking request body:', JSON.stringify(req.body, null, 2));
     console.log('📥 User from token:', req.user);
+    // Sanitize incoming body to avoid passing unsupported columns downstream
+    try {
+      delete req.body.number_of_guests;
+      delete req.body.payment_status;
+    } catch {}
     
     const {
       amenity_id,
       booking_date,
       start_time,
       end_time,
-      number_of_guests,
+      // Accept legacy field name if present on the wire
+      number_of_guests: legacy_guest_count,
       notes,
-      payment_status = 'pending',
       status = 'pending'
     } = req.body;
 
@@ -1013,11 +1098,10 @@ app.post('/api/bookings', verifyToken, async (req, res) => {
       booking_date,
       start_time,
       end_time,
-      number_of_guests,
+      number_of_guests: legacy_guest_count,
       notes,
-      payment_status,
       status,
-      user_id: req.user.id
+      user_id: req.user.userId
     });
 
     // Check each field individually
@@ -1037,24 +1121,49 @@ app.post('/api/bookings', verifyToken, async (req, res) => {
       console.log('❌ Missing: end_time');
       return res.status(400).json({ error: 'Missing end_time' });
     }
-    if (!number_of_guests) {
-      console.log('❌ Missing: number_of_guests');
-      return res.status(400).json({ error: 'Missing number_of_guests' });
-    }
+    // Derive amenity_type (name) from amenities table
+    let amenity_type = 'Amenity';
+    try {
+      const { data: amenityData } = await supabaseService
+        .from('amenities')
+        .select('name')
+        .eq('id', amenity_id)
+        .single();
+      if (amenityData?.name) amenity_type = amenityData.name;
+    } catch {}
+
+    // Derive resident name from user profile
+    let resident_name = 'Resident';
+    try {
+      const { data: profile } = await supabaseService
+        .from('user_profiles')
+        .select('first_name,last_name,email')
+        .eq('id', req.user.userId)
+        .single();
+      if (profile) {
+        const fn = profile.first_name || '';
+        const ln = profile.last_name || '';
+        resident_name = (fn || ln) ? `${fn} ${ln}`.trim() : (profile.email || 'Resident');
+      }
+    } catch {}
+
+    const insertPayload = {
+      user_id: req.user.userId,
+      amenity_id,
+      amenity_type,
+      booking_date,
+      start_time,
+      end_time,
+      resident_name,
+      purpose: notes?.slice(0, 255) || null,
+      guest_count: Number(legacy_guest_count) || 1,
+      status
+    };
+    console.log('🧾 Insert payload for bookings:', insertPayload);
 
     const { data: booking, error } = await supabaseService
       .from('bookings')
-      .insert({
-        user_id: req.user.id,
-        amenity_id,
-        booking_date,
-        start_time,
-        end_time,
-        number_of_guests,
-        notes,
-        payment_status,
-        status
-      })
+      .insert(insertPayload)
       .select()
       .single();
 
@@ -1068,6 +1177,67 @@ app.post('/api/bookings', verifyToken, async (req, res) => {
   } catch (error) {
     console.error('❌ Create booking error:', error);
     res.status(500).json({ error: error.message || 'Failed to create booking' });
+  }
+});
+
+// Create Booking (new, strict payload) — avoids legacy fields entirely
+app.post('/api/bookings/create', verifyToken, async (req, res) => {
+  try {
+    const { amenity_id, booking_date, start_time, end_time, guest_count = 1, purpose } = req.body || {};
+    if (!amenity_id || !booking_date || !start_time || !end_time) {
+      return res.status(400).json({ error: 'amenity_id, booking_date, start_time, end_time are required' });
+    }
+
+    // Resolve amenity name
+    let amenity_type = 'Amenity';
+    try {
+      const { data: a } = await supabaseService.from('amenities').select('name').eq('id', amenity_id).single();
+      if (a?.name) amenity_type = a.name;
+    } catch {}
+
+    // Resolve resident name
+    let resident_name = 'Resident';
+    try {
+      const { data: p } = await supabaseService
+        .from('user_profiles')
+        .select('first_name,last_name,email')
+        .eq('id', req.user.userId)
+        .single();
+      if (p) {
+        const fn = p.first_name || '';
+        const ln = p.last_name || '';
+        resident_name = (fn || ln) ? `${fn} ${ln}`.trim() : (p.email || 'Resident');
+      }
+    } catch {}
+
+    const payload = {
+      user_id: req.user.userId,
+      amenity_id,
+      amenity_type,
+      booking_date,
+      start_time,
+      end_time,
+      resident_name,
+      purpose: purpose || null,
+      guest_count: Number(guest_count) || 1,
+      status: 'pending'
+    };
+
+    console.log('🧾 [create] Insert payload:', payload);
+
+    const { data, error } = await supabaseService
+      .from('bookings')
+      .insert(payload)
+      .select()
+      .single();
+    if (error) {
+      console.error('❌ [create] DB error:', error);
+      return res.status(500).json({ error: error.message });
+    }
+    res.status(201).json(data);
+  } catch (e) {
+    console.error('❌ [create] exception:', e);
+    res.status(500).json({ error: e.message || 'Failed to create booking' });
   }
 });
 
@@ -1129,6 +1299,214 @@ app.get('/api/bookings/calendar', async (req, res) => {
   } catch (error) {
     console.error('Get calendar bookings error:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ===== PAYMENTS (GCash via PayMongo) =====
+// Create GCash payment source and return checkout URL
+app.post('/api/payments/gcash/create', verifyToken, async (req, res) => {
+  try {
+    const { amount, description, bookingId } = req.body || {};
+    if (!amount || !bookingId) {
+      return res.status(400).json({ error: 'amount and bookingId are required' });
+    }
+
+    const source = await paymongoCreateGCashSource({
+      amount,
+      description,
+      bookingId,
+      userId: req.user.userId
+    });
+
+    const sourceId = source?.data?.id;
+    const checkoutUrl = source?.data?.attributes?.redirect?.checkout_url;
+    const status = source?.data?.attributes?.status;
+
+    return res.json({
+      provider: 'paymongo',
+      mode: PAYMONGO_MODE,
+      sourceId,
+      status,
+      checkoutUrl
+    });
+  } catch (error) {
+    console.error('Create GCash source error:', error?.response?.data || error.message);
+    return res.status(500).json({ error: error?.response?.data?.errors?.[0]?.detail || 'Failed to create GCash payment' });
+  }
+});
+
+// Verify payment status. If source is chargeable, attempt to create payment and mark booking paid
+app.get('/api/payments/verify/:sourceId', verifyToken, async (req, res) => {
+  try {
+    const { sourceId } = req.params;
+    if (!sourceId) return res.status(400).json({ error: 'sourceId is required' });
+
+    const src = await paymongoGetSource(sourceId);
+    const attr = src?.data?.attributes || {};
+    const meta = attr?.metadata || {};
+    const bookingId = meta.bookingId;
+    const amount = attr.amount ? attr.amount / 100 : undefined;
+    const description = meta.description || 'GCash Payment';
+
+    // If chargeable, create a payment
+    let paymentData = null;
+    if (attr.status === 'chargeable') {
+      try {
+        paymentData = await paymongoCreatePaymentFromSource({ amount, sourceId, description });
+      } catch (e) {
+        // If already used/paid, ignore and proceed
+        console.warn('Create payment warning:', e?.response?.data || e.message);
+      }
+    }
+
+    // If we have bookingId and payment is successful (or already paid), update booking status
+    const paidStatuses = ['paid', 'succeeded'];
+    const paymentStatus = paymentData?.data?.attributes?.status || attr.status;
+    if (bookingId && paidStatuses.includes(paymentStatus)) {
+      try {
+        await supabaseService
+          .from('bookings')
+          .update({ status: 'confirmed', updated_at: new Date().toISOString() })
+          .eq('id', bookingId);
+      } catch (dbErr) {
+        console.warn('Booking payment_status update failed:', dbErr?.message || dbErr);
+      }
+    }
+
+    return res.json({
+      source: src?.data,
+      payment: paymentData?.data || null,
+      bookingId: bookingId || null,
+      status: paymentStatus || attr.status
+    });
+  } catch (error) {
+    console.error('Verify payment error:', error?.response?.data || error.message);
+    return res.status(500).json({ error: error?.response?.data?.errors?.[0]?.detail || 'Failed to verify payment' });
+  }
+});
+
+// ===== MANUAL GCASH PAYMENT =====
+// Get GCash account details for manual payment
+app.get('/api/payments/manual/gcash-info', verifyToken, async (req, res) => {
+  try {
+    const enabled = process.env.MANUAL_GCASH_ENABLED === 'true';
+    if (!enabled) {
+      return res.status(404).json({ error: 'Manual GCash payment not enabled' });
+    }
+    
+    return res.json({
+      accountName: process.env.GCASH_ACCOUNT_NAME || 'Grove Management',
+      accountNumber: process.env.GCASH_ACCOUNT_NUMBER || '09123456789',
+      instructions: [
+        'Open your GCash app',
+        'Select "Send Money"',
+        'Enter the account number above',
+        'Enter the payment amount',
+        'Take a screenshot of the successful transaction',
+        'Upload the screenshot below'
+      ]
+    });
+  } catch (error) {
+    console.error('Get GCash info error:', error);
+    return res.status(500).json({ error: 'Failed to get GCash information' });
+  }
+});
+
+// Upload proof of payment
+app.post('/api/payments/manual/upload-proof', verifyToken, upload.single('proof'), async (req, res) => {
+  try {
+    const { bookingId, amount } = req.body;
+    const file = req.file;
+    
+    if (!bookingId || !amount || !file) {
+      return res.status(400).json({ error: 'bookingId, amount, and proof image are required' });
+    }
+
+    // Upload to Supabase Storage
+    const fileName = `payment-proofs/${bookingId}-${Date.now()}-${file.originalname}`;
+    const { data: uploadData, error: uploadError } = await supabaseService.storage
+      .from('gallery')
+      .upload(fileName, file.buffer, {
+        contentType: file.mimetype,
+        upsert: false
+      });
+
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      return res.status(500).json({ error: 'Failed to upload proof of payment' });
+    }
+
+    // Get public URL
+    const { data: { publicUrl } } = supabaseService.storage
+      .from('gallery')
+      .getPublicUrl(fileName);
+
+    // Update booking with proof of payment
+    const { data: booking, error: updateError } = await supabaseService
+      .from('bookings')
+      .update({ 
+        payment_proof_url: publicUrl,
+        payment_amount: Number(amount),
+        status: 'pending_approval',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', bookingId)
+      .eq('user_id', req.user.userId)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error('Update booking error:', updateError);
+      return res.status(500).json({ error: 'Failed to update booking with proof' });
+    }
+
+    return res.json({
+      success: true,
+      booking,
+      proofUrl: publicUrl,
+      message: 'Proof of payment uploaded successfully. Waiting for admin approval.'
+    });
+  } catch (error) {
+    console.error('Upload proof error:', error);
+    return res.status(500).json({ error: 'Failed to process payment proof' });
+  }
+});
+
+// Admin: Approve/Reject manual payment
+app.post('/api/admin/payments/manual/review', verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const { bookingId, action, adminNotes } = req.body;
+    
+    if (!bookingId || !action || !['approve', 'reject'].includes(action)) {
+      return res.status(400).json({ error: 'bookingId and valid action (approve/reject) are required' });
+    }
+
+    const newStatus = action === 'approve' ? 'confirmed' : 'rejected';
+    
+    const { data, error } = await supabaseService
+      .from('bookings')
+      .update({ 
+        status: newStatus,
+        admin_notes: adminNotes || null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', bookingId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Review payment error:', error);
+      return res.status(500).json({ error: 'Failed to review payment' });
+    }
+
+    return res.json({
+      success: true,
+      booking: data,
+      message: `Payment ${action}d successfully`
+    });
+  } catch (error) {
+    console.error('Review payment error:', error);
+    return res.status(500).json({ error: 'Failed to review payment' });
   }
 });
 

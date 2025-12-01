@@ -16,6 +16,9 @@ import YourBookings from "./pages/YourBookings";
 import Calendar from "./pages/Calendar";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentFailed from "./pages/PaymentFailed";
+import ManualGCashPayment from "./pages/ManualGCashPayment";
 
 function Logout() {
   // Placeholder logout page, replace with real logic
@@ -35,6 +38,9 @@ export default function App() {
     <Route path="/signup-details" element={<SignUpDetails />} />
     <Route path="/signup-complete" element={<SignUpComplete />} />
     <Route path="/admin" element={<Admin />} />
+    <Route path="/payment/success" element={<PaymentSuccess />} />
+    <Route path="/payment/failed" element={<PaymentFailed />} />
+    <Route path="/payment/manual-gcash" element={<ManualGCashPayment />} />
         <Route
           path="*"
           element={

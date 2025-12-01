@@ -131,6 +131,29 @@ The backend serves the frontend build files and provides API endpoints for:
 - Issue/concern reporting
 - Admin dashboard with statistics
 
+## Payments (GCash via PayMongo)
+Prerequisites:
+- Create a PayMongo account and obtain API keys
+- Add the following to `backend/.env`:
+```
+PAYMONGO_MODE=test           # or 'live'
+PAYMONGO_SECRET_KEY=sk_test_...
+PAYMONGO_PUBLIC_KEY=pk_test_...
+PAYMONGO_SUCCESS_URL=http://localhost:5173/payment/success
+PAYMONGO_FAILED_URL=http://localhost:5173/payment/failed
+```
+
+Endpoints:
+- `POST /api/payments/gcash/create` (auth required)
+   - Body: `{ amount: 1500, description: 'Amenity Booking', bookingId: '<uuid>' }`
+   - Returns: `{ sourceId, checkoutUrl, status }` (open `checkoutUrl` to pay)
+- `GET /api/payments/verify/:sourceId` (auth required)
+   - Returns payment/source status. If paid, the related booking's `payment_status` is updated to `paid`.
+
+Notes:
+- Amount is in pesos on the API input; the server converts to centavos for PayMongo.
+- The server stores `bookingId` and `userId` in PayMongo metadata; no extra table is required.
+
 ## Support
 For issues or questions, check the server logs and ensure:
 1. Supabase credentials are correct

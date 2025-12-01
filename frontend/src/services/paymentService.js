@@ -26,13 +26,19 @@ const PaymentService = {
       throw new Error(error.error || 'Failed to create payment');
     }
 
-    return response.json();
+    const data = await response.json();
+    // Normalize keys so callers can rely on sourceId/checkoutUrl
+    return {
+      sourceId: data.sourceId || data.source_id || data.id,
+      checkoutUrl: data.checkoutUrl || data.checkout_url || data?.data?.attributes?.redirect?.checkout_url,
+      raw: data
+    };
   },
 
-  async verifyPayment(paymentId) {
+  async verifyPayment(sourceId) {
     const token = localStorage.getItem('token');
     
-    const response = await fetch(`${API_URL}/payments/verify/${paymentId}`, {
+    const response = await fetch(`${API_URL}/payments/verify/${sourceId}`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }

@@ -66,15 +66,24 @@ const bookingService = {
       console.error('❌ amenity_id is missing from booking data!');
       throw new Error('Amenity ID is required');
     }
+    // Normalize to backend's strict create endpoint payload
+    const payload = {
+      amenity_id: data.amenity_id,
+      booking_date: data.booking_date,
+      start_time: data.start_time,
+      end_time: data.end_time,
+      guest_count: data.number_of_guests || data.guest_count || 1,
+      purpose: data.notes || data.purpose || null
+    };
     
-    return apiRequest('/api/bookings', {
+    return apiRequest('/api/bookings/create', {
       method: 'POST',
-      body: JSON.stringify(data)
+      body: JSON.stringify(payload)
     });
   },
   
   async getUserBookings() {
-    return apiRequest('/api/bookings/user');
+    return apiRequest('/api/bookings');
   },
   
   async cancelBooking(bookingId) {

@@ -131,7 +131,7 @@ export default function BookingModal() {
     setIsSubmitting(true);
     
     try {
-      // Create booking data
+      // Create booking data (bookingService will normalize to guest_count)
       const bookingData = {
         amenity_id: amenity.id,  // Remove the ?. since we checked above
         booking_date: formData.selectDate,
@@ -154,16 +154,14 @@ export default function BookingModal() {
 
       // Process payment
       if (paymentMethod === 'gcash') {
-        const payment = await PaymentService.createGCashPayment(
-          amount,
-          `Booking for ${amenity.name} on ${formData.selectDate}`,
-          booking.id
-        );
-
-        localStorage.setItem('pending_payment_id', payment.paymentId);
-        window.location.href = payment.checkoutUrl;
+        // Redirect to manual GCash payment page
+        navigate(`/payment/manual-gcash?bookingId=${booking.id}&amount=${amount}`);
+      } else if (paymentMethod === 'in-person') {
+        // In-person payment - booking created successfully
+        alert('Booking created successfully! Please pay at the Augustine Grove office upon arrival.');
+        navigate('/your-bookings');
       } else {
-        alert('Other payment methods coming soon! Please use GCash.');
+        alert('Please select a valid payment method.');
         setIsSubmitting(false);
       }
       
@@ -443,16 +441,31 @@ export default function BookingModal() {
               required
             >
               <option value="gcash">GCash</option>
-              <option value="card" disabled>Credit/Debit Card (Coming Soon)</option>
-              <option value="paymaya" disabled>PayMaya (Coming Soon)</option>
+              <option value="in-person">In-Person Payment</option>
             </select>
+            {paymentMethod === 'gcash' && (
+              <p className="text-sm text-blue-600 mt-2">
+                ℹ️ You will transfer to our GCash account and upload proof of payment
+              </p>
+            )}
+            {paymentMethod === 'in-person' && (
+              <p className="text-sm text-blue-600 mt-2">
+                ℹ️ Pay at the Augustine Grove office upon arrival
+              </p>
+            )}
           </div>
 
           {/* Booking Amount Display - NEW */}
           <div className="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
             <p className="text-sm font-medium text-gray-700 mb-1">Booking Amount:</p>
             <p className="text-2xl font-bold text-[#40863A]">₱{calculateBookingAmount().toLocaleString()}</p>
-            <p className="text-xs text-gray-500 mt-1">* You will be redirected to GCash for payment</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {paymentMethod === 'gcash' 
+                ? '* Pay via GCash transfer and upload proof of payment'
+                : paymentMethod === 'in-person'
+                ? '* Payment due upon arrival at the Augustine Grove office' 
+                : '* You will be redirected to payment gateway'}
+            </p>
           </div>
 
           {/* Additional Notes */}

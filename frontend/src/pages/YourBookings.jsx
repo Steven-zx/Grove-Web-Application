@@ -4,6 +4,7 @@ import InfoCard from '../components/shared/InfoCard';
 import CalendarWidget from '../components/CalendarWidget';
 import GeneralConditions from '../components/GeneralConditions';
 import bookingService from "../services/bookingService";
+import PaymentService from "../services/paymentService";
 import clubhouseImg from '../assets/clubhouse.png';
 import poolImg from '../assets/pool.png';
 import courtImg from '../assets/court.png';
@@ -71,6 +72,19 @@ export default function YourBookings() {
     (b.purpose || "").toLowerCase().includes(query.toLowerCase())
   );
 
+  const handlePayNow = async (booking) => {
+    try {
+      // Calculate amount based on amenity (you can improve this logic)
+      const amount = booking.payment_amount || 1000;
+      
+      // Redirect to manual GCash payment page
+      navigate(`/payment/manual-gcash?bookingId=${booking.id}&amount=${amount}`);
+    } catch (err) {
+      console.error('Payment error:', err);
+      alert('Failed to initiate payment: ' + err.message);
+    }
+  };
+
   const handleCancelBooking = async (bookingId) => {
     if (!confirm('Are you sure you want to cancel this booking?')) {
       return;
@@ -112,32 +126,37 @@ export default function YourBookings() {
 
   const getStatusMessage = (status) => {
     const messages = {
-      'Pending': 'Waiting for admin approval',
-      'Confirmed': 'Booking confirmed! You\'re all set ✨',
-      'Rejected': 'Booking was not approved 😔',
-      'Cancelled': 'Booking cancelled'
+      'pending': 'Waiting for payment',
+      'pending_approval': 'Payment submitted - Awaiting admin approval',
+      'confirmed': 'Booking confirmed! You\'re all set ✨',
+      'rejected': 'Payment was not approved 😔',
+      'cancelled': 'Booking cancelled'
     };
-    return messages[status] || 'Status unknown';
+    return messages[status?.toLowerCase()] || 'Status unknown';
   };
 
   const getStatusColor = (status) => {
+    const statusLower = status?.toLowerCase();
     const colors = {
-      'Confirmed': 'bg-emerald-50 border-emerald-200 text-emerald-700',
-      'Pending': 'bg-gray-50 border-gray-200 text-gray-700',
-      'Rejected': 'bg-rose-50 border-rose-200 text-rose-700',
-      'Cancelled': 'bg-gray-50 border-gray-200 text-gray-700'
+      'confirmed': 'bg-emerald-50 border-emerald-200 text-emerald-700',
+      'pending': 'bg-amber-50 border-amber-200 text-amber-700',
+      'pending_approval': 'bg-blue-50 border-blue-200 text-blue-700',
+      'rejected': 'bg-rose-50 border-rose-200 text-rose-700',
+      'cancelled': 'bg-gray-50 border-gray-200 text-gray-700'
     };
-    return colors[status] || 'bg-gray-50 border-gray-200 text-gray-700';
+    return colors[statusLower] || 'bg-gray-50 border-gray-200 text-gray-700';
   };
 
   const getStatusDot = (status) => {
+    const statusLower = status?.toLowerCase();
     const dots = {
-      'Confirmed': 'bg-emerald-500',
-      'Pending': 'bg-gray-400',
-      'Rejected': 'bg-rose-500',
-      'Cancelled': 'bg-gray-500'
+      'confirmed': 'bg-emerald-500',
+      'pending': 'bg-amber-400',
+      'pending_approval': 'bg-blue-500',
+      'rejected': 'bg-rose-500',
+      'cancelled': 'bg-gray-500'
     };
-    return dots[status] || 'bg-gray-500';
+    return dots[statusLower] || 'bg-gray-500';
   };
 
   // PLACEHOLDER: General conditions - Backend-ready for API integration
@@ -212,10 +231,10 @@ export default function YourBookings() {
 
                   <div className={`px-3 py-2 rounded-full border ${getStatusColor(booking.status)} mb-4 text-center`}>
                     <div className="flex items-center justify-center space-x-2">
-                      {booking.status !== 'Pending' && (
-                        <div className={`w-2 h-2 rounded-full ${getStatusDot(booking.status)}`}></div>
-                      )}
-                      <span className="text-xs font-medium">{booking.status}</span>
+                      <div className={`w-2 h-2 rounded-full ${getStatusDot(booking.status)}`}></div>
+                      <span className="text-xs font-medium capitalize">
+                        {booking.status === 'pending_approval' ? 'Pending Approval' : booking.status}
+                      </span>
                     </div>
                   </div>
 
@@ -232,13 +251,35 @@ export default function YourBookings() {
                     </div>
                   </div>
 
-                  {(booking.status === 'Pending' || booking.status === 'Confirmed') && (
+                  {booking.status.toLowerCase() === 'pending' && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handlePayNow(booking)}
+                        className="flex-1 bg-[#40863A] text-white text-sm font-medium py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                        <span>Pay Now</span>
+                      </button>
+                      <button
+                        onClick={() => handleCancelBooking(booking.id)}
+                        className="flex-1 text-rose-600 hover:text-rose-700 text-sm font-medium hover:bg-gray-50 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        <span>Cancel</span>
+                      </button>
+                    </div>
+                  )}
+                  {booking.status === 'Confirmed' && (
                     <button
                       onClick={() => handleCancelBooking(booking.id)}
                       className="w-full text-rose-600 hover:text-rose-700 text-sm font-medium hover:bg-gray-50 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                       <span>Cancel Booking</span>
                     </button>
@@ -258,8 +299,7 @@ export default function YourBookings() {
         <div className="mb-6 w-full max-w-xs">
           <InfoCard title="Notice" className="h-32">
             <p className="text-xs leading-relaxed">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut 
-              labore et dolore magna aliqua.
+              Amenities are available all-week long!
             </p>
           </InfoCard>
         </div>
