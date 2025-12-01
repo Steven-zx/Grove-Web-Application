@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import GeneralConditions from '../components/GeneralConditions';
+import GeneralBookingConditions from '../components/GeneralBookingConditions';
 
 export default function Calendar() {
   const navigate = useNavigate();
@@ -21,15 +21,7 @@ export default function Calendar() {
   ];
   const years = Array.from({ length: 10 }, (_, i) => 2024 + i); // 2024-2033
   
-  // PLACEHOLDER: General conditions - Backend-ready for API integration
-  const bookingConditions = [
-    'Eligibility: Only residents with good standing (no outstanding HOA dues) may book amenities',
-    'Booking Limits: Each household may book the clubhouse a maximum of twice per month and reserve the pool for exclusive use once per month.',
-    'Cancellation Policy: Cancellations must be made at least 48 hours in advance for a full refund. Later cancellations forfeit 50% of the booking fee.',
-    'Damages: The booking resident is responsible for any damages incurred during their reservation period.',
-    'Noise Restrictions: All events must observe quiet hours from 10PM to 6AM.',
-    'Cleaning: Facilities must be cleaned and returned to their original condition after use.'
-  ];
+  // General booking conditions are now imported from the reusable component
   
   // Calculate current week days
   const startOfWeek = new Date(currentDate);
@@ -396,9 +388,9 @@ export default function Calendar() {
             </div>
           </div>
 
-          {/* General Conditions - Inherits same width as calendar */}
+          {/* General Booking Conditions - Reusable component */}
           <div className="mt-8">
-            <GeneralConditions conditions={bookingConditions} />
+            <GeneralBookingConditions />
           </div>
         </div>
 

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import MobileNavbar from "../components/layout/MobileNavbar";
 import MobileSidebar from "../components/layout/MobileSidebar";
 import NoticeCard from '../components/shared/NoticeCard';
-import GeneralConditions from '../components/GeneralConditions';
+import GeneralBookingConditions from '../components/GeneralBookingConditions';
 
 export default function CalendarMobile() {
   const navigate = useNavigate();
@@ -34,14 +34,7 @@ export default function CalendarMobile() {
   ];
   const years = Array.from({ length: 10 }, (_, i) => 2024 + i);
   
-  const bookingConditions = [
-    'Eligibility: Only residents with good standing (no outstanding HOA dues) may book amenities',
-    'Booking Limits: Each household may book the clubhouse a maximum of twice per month and reserve the pool for exclusive use once per month.',
-    'Cancellation Policy: Cancellations must be made at least 48 hours in advance for a full refund. Later cancellations forfeit 50% of the booking fee.',
-    'Damages: The booking resident is responsible for any damages incurred during their reservation period.',
-    'Noise Restrictions: All events must observe quiet hours from 10PM to 6AM.',
-    'Cleaning: Facilities must be cleaned and returned to their original condition after use.'
-  ];
+  // General booking conditions are now imported from the reusable component
   
   // TODO: Replace with real bookings from backend/API
   const bookings = [];
@@ -119,6 +112,19 @@ export default function CalendarMobile() {
 
       {/* Scrollable Content */}
       <div className="pt-36 pb-6 px-4">
+        {/* Back Navigation */}
+        <div className="flex items-center mb-4">
+          <button 
+            onClick={() => navigate('/amenities')}
+            className="p-2 hover:bg-gray-100 rounded-full -ml-2"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          <h1 className="text-xl font-semibold text-gray-900 ml-2">Calendar</h1>
+        </div>
+
         {/* Notice Card */}
         <div className="mb-4">
           <NoticeCard />
@@ -284,8 +290,8 @@ export default function CalendarMobile() {
           </div>
         </div>
 
-        {/* General Booking Conditions */}
-        <GeneralConditions conditions={bookingConditions} />
+        {/* General Booking Conditions - Reusable component */}
+        <GeneralBookingConditions />
       </div>
     </div>
   );
