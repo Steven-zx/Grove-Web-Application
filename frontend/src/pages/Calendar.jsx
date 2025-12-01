@@ -42,41 +42,10 @@ export default function Calendar() {
   }
   
   // PLACEHOLDER: Dynamic bookings - Backend-ready for API integration
-  const bookings = [
-    { 
-      id: 1,
-      date: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 1), // Yesterday
-      startTime: '8:00 AM', 
-      endTime: '12:00 PM',
-      timeRange: '8:00 AM - 12:00 PM',
-      status: 'confirmed', 
-      amenity: 'Clubhouse',
-      userId: 'user123',
-      userName: 'John Doe'
-    },
-    { 
-      id: 2,
-      date: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 2), // Day after tomorrow
-      startTime: '1:00 PM', 
-      endTime: '6:00 PM',
-      timeRange: '1:00 PM - 6:00 PM',
-      status: 'confirmed', 
-      amenity: 'Swimming Pool',
-      userId: 'user456',
-      userName: 'Jane Smith'
-    },
-    { 
-      id: 3,
-      date: new Date(2025, 11, 2), // December 2, 2025
-      startTime: '8:00 AM', 
-      endTime: '12:00 PM',
-      timeRange: '8:00 AM - 12:00 PM',
-      status: 'confirmed', 
-      amenity: 'Swimming Pool',
-      userId: 'user789',
-      userName: 'Test User'
-    }
-  ];
+  // PLACEHOLDER: Dynamic bookings - Backend-ready for API integration
+  const bookings = [];
+  // TODO: Replace with API call to fetch confirmed bookings
+  // const bookings = await fetchBookings(startDate, endDate, selectedAmenity);
 
   // Backend-ready: Replace with actual API call
   // const fetchBookings = async (startDate, endDate) => {
@@ -398,8 +367,6 @@ export default function Calendar() {
                 if (startIndex === -1) return null;
                 
                 // Height calculation: each slot is 64px (h-16)
-                // We want to extend from the start of startIndex to the bottom line of endIndex
-                // That's (endIndex - startIndex + 1) slots if endIndex exists in our slots
                 const slotHeight = 64;
                 const numSlots = endIndex !== -1 ? (endIndex - startIndex + 1) : Math.ceil((endHour - startHour));
                 const overlayHeight = numSlots * slotHeight;
