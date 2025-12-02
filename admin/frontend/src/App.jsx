@@ -6,6 +6,7 @@ import Announcements from "./pages/Announcements";
 import Amenities from "./pages/Amenities";
 import Gallery from "./pages/Gallery";
 import Reports from "./pages/Reports";
+import VisitorScanner from "./pages/VisitorScanner";
 import PaymentReview from "./pages/PaymentReview";
 import Login from "./pages/Login";
 import { authService, clearExpiredTokens } from "./services/api";
@@ -58,7 +59,7 @@ export default function App() {
                       <Route path="/amenities" element={<Amenities />} />
                       <Route path="/gallery" element={<Gallery />} />
                       <Route path="/reports" element={<Reports />} />
-                      <Route path="/payments" element={<PaymentReview />} />
+                      <Route path="/visitor-scanner" element={<VisitorScanner />} />
                     </Routes>
                   </main>
                 </div>
