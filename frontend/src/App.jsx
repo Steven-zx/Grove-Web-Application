@@ -20,6 +20,9 @@ import YourBookings from "./pages/YourBookings";
 import Calendar from "./pages/Calendar";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentFailed from "./pages/PaymentFailed";
+import ManualGCashPayment from "./pages/ManualGCashPayment";
 
 // Mobile Pages
 import HomeMobile from "./pages/HomeMobile";
@@ -35,8 +38,17 @@ import SignUpMobile from "./pages/SignUpMobile";
 import SignUpDetailsMobile from "./pages/SignUpDetailsMobile";
 import ProfileMobile from "./pages/ProfileMobile";
 
-// Hooks
-import useIsMobile from "./hooks/useIsMobile";
+function useIsMobile() {
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
+
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return isMobile;
+}
 
 function Logout() {
   React.useEffect(() => {
@@ -52,18 +64,20 @@ export default function App() {
     <Router>
       <Routes>
         {/* Common Routes */}
+        <Route path="/login" element={isMobile ? <LoginMobile /> : <Login />} />
         <Route path="/logout" element={<Logout />} />
         <Route path="/signup" element={isMobile ? <SignUpMobile /> : <SignUp />} />
         <Route path="/signup-details" element={isMobile ? <SignUpDetailsMobile /> : <SignUpDetails />} />
         <Route path="/signup-complete" element={<SignUpComplete />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/payment/success" element={<PaymentSuccess />} />
+        <Route path="/payment/failed" element={<PaymentFailed />} />
+        <Route path="/payment/manual-gcash" element={<ManualGCashPayment />} />
 
         {/* Mobile Routes */}
         {isMobile && (
           <>
             <Route path="/" element={<HomeMobile />} />
-            <Route path="/login" element={<LoginMobile />} />
-            <Route path="/profile" element={<ProfileMobile />} />
             <Route path="/announcements" element={<AnnouncementsMobile />} />
             <Route path="/amenities" element={<AmenitiesMobile />} />
             <Route path="/your-bookings" element={<YourBookingsMobile />} />
@@ -71,41 +85,37 @@ export default function App() {
             <Route path="/calendar" element={<CalendarMobile />} />
             <Route path="/gallery" element={<GalleryMobile />} />
             <Route path="/about" element={<AboutMobile />} />
+            <Route path="/profile" element={<ProfileMobile />} />
           </>
         )}
 
         {/* Desktop Routes */}
-        {!isMobile && (
-          <>
-            <Route path="/login" element={<Login />} />
-            <Route
-              path="*"
-              element={
-                <div className="flex">
-                  <Sidebar />
-                  <div className="min-h-screen bg-white text-gray-900 flex-1 flex flex-col ml-64">
-                    <header className="fixed top-0 left-64 right-0 z-40">
-                      <Navbar />
-                    </header>
-                    <main className="p-6 pt-20">
-                      <Routes>
-                        <Route path="/" element={<Home />} />
-                        <Route path="/announcements" element={<Announcements />} />
-                        <Route path="/amenities" element={<Amenities />} />
-                        <Route path="/booking-modal" element={<BookingModal />} />
-                        <Route path="/your-bookings" element={<YourBookings />} />
-                        <Route path="/calendar" element={<Calendar />} />
-                        <Route path="/gallery" element={<Gallery />} />
-                        <Route path="/about" element={<About />} />
-                        <Route path="/profile" element={<Profile />} />
-                      </Routes>
-                    </main>
-                  </div>
-                </div>
-              }
-            />
-          </>
-        )}
+        <Route
+          path="*"
+          element={
+            <>
+              <Sidebar />
+              <div className="min-h-screen bg-white text-gray-900 flex flex-col flex-1 ml-64">
+                <header className="fixed top-0 left-64 right-0 z-40">
+                  <Navbar />
+                </header>
+                <main className="p-6 pt-20">
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/announcements" element={<Announcements />} />
+                    <Route path="/amenities" element={<Amenities />} />
+                    <Route path="/booking-modal" element={<BookingModal />} />
+                    <Route path="/your-bookings" element={<YourBookings />} />
+                    <Route path="/calendar" element={<Calendar />} />
+                    <Route path="/gallery" element={<Gallery />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/profile" element={<Profile />} />
+                  </Routes>
+                </main>
+              </div>
+            </>
+          }
+        />
       </Routes>
     </Router>
   );

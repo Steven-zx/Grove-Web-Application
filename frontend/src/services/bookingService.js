@@ -1,101 +1,93 @@
 // services/bookingService.js
-const API_BASE_URL = 'http://localhost:3000';
+const API_URL = 'http://localhost:3000';
 
-// Get auth token from localStorage
-const getAuthToken = () => {
+function getAuthToken() {
   const token = localStorage.getItem('token');
   console.log('🔑 Getting auth token:', token ? 'Found' : 'Not found');
   return token;
-};
+}
 
-// API request helper
-const apiRequest = async (endpoint, options = {}) => {
+async function apiRequest(endpoint, options = {}) {
   const token = getAuthToken();
-  const url = `${API_BASE_URL}${endpoint}`;
   
+  if (!token) {
+    throw new Error('No authentication token found. Please log in.');
+  }
+
   console.log('🌐 API Request:', endpoint, 'Token:', token ? 'Present' : 'Missing');
-  
-  const config = {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
-      ...options.headers,
-    },
-    ...options,
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
   };
 
-  try {
-    const response = await fetch(url, config);
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-    }
-    
-    return await response.json();
-  } catch (error) {
-    console.error('API request failed:', error);
-    throw error;
-  }
-};
-
-// Booking service functions
-export const bookingService = {
-  // Create a new booking
-  async createBooking(bookingData) {
-    return await apiRequest('/api/bookings', {
-      method: 'POST',
-      body: JSON.stringify({
-        amenity_id: bookingData.amenityId,
-        amenity_name: bookingData.amenityName,
-        booking_date: bookingData.selectDate,
-        start_time: bookingData.startTime,
-        end_time: bookingData.endTime,
-        purpose: bookingData.purpose,
-        guest_count: parseInt(bookingData.attendees) || 1,
-        notes: bookingData.additionalNotes || null
-      }),
-    });
-  },
-
-  // Get user's bookings
-  async getUserBookings(filters = {}) {
-    const params = new URLSearchParams();
-    
-    if (filters.status) params.append('status', filters.status);
-    if (filters.amenity) params.append('amenity', filters.amenity);
-    
-    const endpoint = `/api/bookings${params.toString() ? `?${params.toString()}` : ''}`;
-    return await apiRequest(endpoint);
-  },
-
-  // Cancel a booking
-  async cancelBooking(bookingId) {
-    return await apiRequest(`/api/bookings/${bookingId}`, {
-      method: 'DELETE',
-    });
-  },
-
-  // Get calendar bookings (public - no auth needed)
-  async getCalendarBookings(filters = {}) {
-    const params = new URLSearchParams();
-    
-    if (filters.startDate) params.append('start_date', filters.startDate);
-    if (filters.endDate) params.append('end_date', filters.endDate);
-    if (filters.amenity) params.append('amenity', filters.amenity);
-    
-    const endpoint = `/api/bookings/calendar${params.toString() ? `?${params.toString()}` : ''}`;
-    
+  // Parse the body if it's a string to log it
+  if (options.body) {
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Calendar bookings request failed:', error);
-      throw error;
+      const bodyData = JSON.parse(options.body);
+      console.log('📦 Request body being sent:', bodyData);
+    } catch (e) {
+      console.log('📦 Request body (raw):', options.body);
     }
+  }
+
+  const res = await fetch(`${API_URL}${endpoint}`, {
+    ...options,
+    headers: { ...headers, ...(options.headers || {}) }
+  });
+
+  if (res.status === 401 || res.status === 403) {
+    throw new Error('Invalid or expired token');
+  }
+
+  if (!res.ok) {
+    let msg = 'Request failed';
+    try { 
+      const errorData = await res.json();
+      console.error('❌ API Error:', errorData);
+      msg = errorData.error || msg; 
+    } catch {}
+    throw new Error(msg);
+  }
+  
+  return res.json();
+}
+
+const bookingService = {
+  async getAmenities() {
+    return apiRequest('/api/amenities');
+  },
+  
+  async createBooking(data) {
+    console.log('🎯 bookingService.createBooking called with:', data);
+    
+    // Ensure amenity_id is included
+    if (!data.amenity_id) {
+      console.error('❌ amenity_id is missing from booking data!');
+      throw new Error('Amenity ID is required');
+    }
+    // Normalize to backend's strict create endpoint payload
+    const payload = {
+      amenity_id: data.amenity_id,
+      booking_date: data.booking_date,
+      start_time: data.start_time,
+      end_time: data.end_time,
+      guest_count: data.number_of_guests || data.guest_count || 1,
+      purpose: data.notes || data.purpose || null
+    };
+    
+    return apiRequest('/api/bookings/create', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  },
+  
+  async getUserBookings() {
+    return apiRequest('/api/bookings');
+  },
+  
+  async cancelBooking(bookingId) {
+    return apiRequest(`/api/bookings/${bookingId}/cancel`, { method: 'PUT' });
   }
 };
 
