@@ -183,16 +183,7 @@ export default function BookingModal() {
     navigate('/amenities');
   };
 
-  const generalConditions = [
-    'Booking requests must be submitted at least 24 hours in advance.',
-    'All bookings are subject to availability and approval by the management.',
-    'A maximum booking duration of 6 hours per session is allowed.',
-    'The amenity must be left clean and in the same condition as found.',
-    'Cancellations must be made at least 12 hours before the scheduled time.',
-    'Users are responsible for any damages incurred during their booking period.',
-    'Loud music or disruptive activities are not permitted after 8:00 PM.',
-    'Maximum capacity limits must be strictly observed for safety reasons.'
-  ];
+
 
   if (!amenity) {
     return (
@@ -516,19 +507,7 @@ export default function BookingModal() {
       {/* General Conditions - Same width as booking form */}
       <div className="max-w-4xl">
         <div className="mt-12">
-          <div className="bg-white rounded-2xl border border-gray-200 p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">General Booking Conditions</h2>
-            <div className="space-y-0">
-              {generalConditions.map((condition, index) => (
-                <div key={index}>
-                  <p className="text-gray-600 text-sm py-4 px-2">{condition}</p>
-                  {index < generalConditions.length - 1 && (
-                    <hr className="border-gray-200" />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
+          <GeneralBookingConditions />
         </div>
       </div>
     </div>

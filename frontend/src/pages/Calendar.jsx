@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import GeneralConditions from '../components/GeneralConditions';
+import GeneralBookingConditions from '../components/GeneralBookingConditions';
 
 export default function Calendar() {
   const navigate = useNavigate();
@@ -21,13 +21,7 @@ export default function Calendar() {
   ];
   const years = Array.from({ length: 10 }, (_, i) => 2024 + i); // 2024-2033
   
-  // PLACEHOLDER: Sample booking conditions - replace with data from backend API
-  const bookingConditions = [
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-  ];
+  // General booking conditions are now imported from the reusable component
   
   // Calculate current week days
   const startOfWeek = new Date(currentDate);
@@ -42,30 +36,10 @@ export default function Calendar() {
   }
   
   // PLACEHOLDER: Dynamic bookings - Backend-ready for API integration
-  const bookings = [
-    { 
-      id: 1,
-      date: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 1), // Yesterday
-      startTime: '8:00 AM', 
-      endTime: '12:00 PM',
-      timeRange: '8:00 AM - 12:00 PM',
-      status: 'confirmed', 
-      amenity: 'Clubhouse',
-      userId: 'user123',
-      userName: 'John Doe'
-    },
-    { 
-      id: 2,
-      date: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 2), // Day after tomorrow
-      startTime: '1:00 PM', 
-      endTime: '6:00 PM',
-      timeRange: '1:00 PM - 6:00 PM',
-      status: 'confirmed', 
-      amenity: 'Swimming Pool',
-      userId: 'user456',
-      userName: 'Jane Smith'
-    }
-  ];
+  // PLACEHOLDER: Dynamic bookings - Backend-ready for API integration
+  const bookings = [];
+  // TODO: Replace with API call to fetch confirmed bookings
+  // const bookings = await fetchBookings(startDate, endDate, selectedAmenity);
 
   // Backend-ready: Replace with actual API call
   // const fetchBookings = async (startDate, endDate) => {
@@ -117,11 +91,13 @@ export default function Calendar() {
   };
   
   const getBookingForDay = (date, amenity) => {
-    return bookings.find(booking => 
-      booking.date.getTime() === date.getTime() && 
-      booking.amenity === amenity &&
-      booking.status === 'confirmed' // Only show confirmed bookings
-    );
+    return bookings.find(booking => {
+      const bookingDate = new Date(booking.date.getFullYear(), booking.date.getMonth(), booking.date.getDate());
+      const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      return bookingDate.getTime() === checkDate.getTime() && 
+        booking.amenity === amenity &&
+        booking.status === 'confirmed'; // Only show confirmed bookings
+    });
   };
 
   const isTimeSlotAvailable = (date, time, amenity) => {
@@ -160,12 +136,12 @@ export default function Calendar() {
   return (
     <div className="min-h-screen bg-white" style={{ marginLeft: '3rem', padding: '2rem' }}>
       {/* Header */}
-      <div className="flex items-center mb-6">
+      <div className="flex items-center mb-8">
         <button 
           onClick={() => navigate('/amenities')}
-          className="mr-4 p-2 hover:bg-gray-100 rounded-full"
+          className="mr-3 p-2 hover:bg-gray-100 rounded-full"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
@@ -175,20 +151,19 @@ export default function Calendar() {
       <div className="flex gap-8">
         {/* Main Calendar */}
         <div className="flex-1">
-          {/* Calendar Header with Month/Year and Week Navigation */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-            {/* Month/Year Header */}
-            <div className="flex items-center justify-between mb-6">
-              <div className="relative flex items-center gap-3">
-                <button
-                  onClick={() => setShowMonthDropdown(!showMonthDropdown)}
-                  className="flex items-center gap-2 hover:bg-gray-50 px-2 py-1 rounded-lg"
-                >
-                  <h2 className="text-xl font-semibold text-gray-900">{monthName} {year}</h2>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-gray-500">
-                    <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
+          {/* Month/Year Dropdown and Amenity Filter Header */}
+          <div className="flex items-center justify-between mb-6">
+            {/* Month/Year Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setShowMonthDropdown(!showMonthDropdown)}
+                className="flex items-center gap-2 text-lg font-semibold text-gray-900 hover:text-gray-700"
+              >
+                <span>{monthName} {year}</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-gray-900">
+                  <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
                 
                 {/* Month Dropdown */}
                 {showMonthDropdown && (
@@ -244,58 +219,54 @@ export default function Calendar() {
                     </div>
                   </div>
                 )}
-              </div>
-              
-              {/* Amenity Filter */}
-              <div className="flex gap-2">
-                {amenities.map((amenity) => (
-                  <button
-                    key={amenity}
-                    onClick={() => setSelectedAmenity(amenity)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      selectedAmenity === amenity
-                        ? 'bg-[#4CAF50] text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {amenity}
-                  </button>
-                ))}
-              </div>
             </div>
 
+            {/* Amenity Filter Buttons */}
+            <div className="flex gap-2">
+              {amenities.map((amenity) => (
+                <button
+                  key={amenity}
+                  onClick={() => setSelectedAmenity(amenity)}
+                  className={`px-4 py-1.5 rounded-full border text-sm font-normal transition-colors ${
+                    selectedAmenity === amenity
+                      ? 'bg-green-600 text-white border-green-600'
+                      : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  {amenity}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Calendar Container */}
+          <div className="bg-white rounded-2xl border border-gray-200 p-6">
             {/* Week Navigation */}
-            <div className="flex items-center justify-end mb-4">
-              <div className="text-sm font-medium text-gray-600 mr-4">
-                Week of {weekDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {weekDays[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-              </div>
+            <div className="flex items-center justify-between mb-6">
+              <button 
+                onClick={() => navigateWeek(-1)} 
+                className="p-2 hover:bg-gray-100 rounded-full"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
               
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={() => navigateWeek(-1)} 
-                  className="p-2 hover:bg-gray-100 rounded-full"
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                    <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
-                
-                <button 
-                  onClick={() => navigateWeek(1)} 
-                  className="p-2 hover:bg-gray-100 rounded-full"
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                    <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
-              </div>
+              <button 
+                onClick={() => navigateWeek(1)} 
+                className="p-2 hover:bg-gray-100 rounded-full"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
             </div>
 
             {/* Weekly Calendar Grid */}
             <div className="relative">
-              <div className="grid grid-cols-8 border border-gray-200 rounded-lg overflow-hidden">
+              <div className="grid grid-cols-8 border border-gray-300 rounded-xl overflow-hidden">
                 {/* Time column header */}
-                <div className="border-r border-gray-200 bg-gray-50 py-3 px-4">
+                <div className="border-r border-gray-300 bg-white py-4 px-4">
                 </div>
                 
                 {/* Day headers showing actual dates */}
@@ -305,14 +276,16 @@ export default function Calendar() {
                   const isCurrentDay = isToday(date);
                   
                   return (
-                    <div key={index} className="py-3 px-4 border-r border-gray-200 bg-gray-50 last:border-r-0">
-                      <div className="text-center">
-                        <div className="text-xs text-gray-600 font-medium">{dayName}</div>
-                        <div className={`text-sm font-semibold mt-1 ${
-                          isCurrentDay ? 'text-green-600' : 'text-gray-900'
-                        }`}>
-                          {dayNumber}
-                        </div>
+                    <div key={index} className="py-4 px-4 border-r border-gray-300 bg-white last:border-r-0">
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="text-sm text-gray-700 font-normal">{dayName}</span>
+                        {isCurrentDay ? (
+                          <div className="min-w-[28px] w-7 h-7 bg-black rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-white text-xs font-medium">{dayNumber}</span>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-gray-700 font-normal">{dayNumber}</span>
+                        )}
                       </div>
                     </div>
                   );
@@ -325,7 +298,7 @@ export default function Calendar() {
                 ].map((time, timeIndex) => (
                   <React.Fragment key={time}>
                     {/* Time label */}
-                    <div className="border-r border-b border-gray-200 px-4 py-3 bg-white text-sm text-gray-700 font-medium h-16 flex items-center whitespace-nowrap">
+                    <div className="border-r border-b border-gray-300 px-4 py-3 bg-white text-sm text-gray-700 font-medium h-16 flex items-center whitespace-nowrap">
                       {time}
                     </div>
                     
@@ -337,7 +310,7 @@ export default function Calendar() {
                       return (
                         <div 
                           key={dayIndex} 
-                          className={`border-r border-b border-gray-200 h-16 relative last:border-r-0 transition-colors ${
+                          className={`border-r border-b border-gray-300 h-16 relative last:border-r-0 transition-colors ${
                             isCurrentDay 
                               ? 'bg-green-50 hover:bg-green-100' 
                               : isSlotAvailable 
@@ -364,27 +337,43 @@ export default function Calendar() {
                 if (!booking) return null;
                 
                 // Calculate time slot position based on booking times
-                const timeToIndex = (timeStr) => {
-                  const timeSlots = [
-                    '8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
-                    '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM', '6:00 PM'
-                  ];
-                  return timeSlots.findIndex(slot => slot === timeStr);
+                const timeSlots = [
+                  '8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
+                  '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM', '6:00 PM'
+                ];
+                
+                const timeToHours = (timeStr) => {
+                  const [time, period] = timeStr.split(' ');
+                  let [hours] = time.split(':').map(Number);
+                  if (period === 'PM' && hours !== 12) hours += 12;
+                  if (period === 'AM' && hours === 12) hours = 0;
+                  return hours;
                 };
                 
-                const startIndex = timeToIndex(booking.startTime);
-                const endIndex = timeToIndex(booking.endTime);
-                const duration = Math.max(1, endIndex - startIndex);
+                const startHour = timeToHours(booking.startTime);
+                const endHour = timeToHours(booking.endTime);
+                
+                // Find the index of the start time slot
+                const startIndex = timeSlots.findIndex(slot => timeToHours(slot) === startHour);
+                // Find the index of the end time slot
+                const endIndex = timeSlots.findIndex(slot => timeToHours(slot) === endHour);
+                
+                if (startIndex === -1) return null;
+                
+                // Height calculation: each slot is 64px (h-16)
+                const slotHeight = 64;
+                const numSlots = endIndex !== -1 ? (endIndex - startIndex + 1) : Math.ceil((endHour - startHour));
+                const overlayHeight = numSlots * slotHeight;
                 
                 return (
                   <div 
                     key={`booking-${booking.id}-${dayIndex}`}
-                    className="absolute bg-white border-1 border-[#4CAF50] rounded-lg shadow-sm z-10"
+                    className="absolute bg-white border border-[#4CAF50] rounded-lg shadow-sm z-10"
                     style={{
                       left: `${(100 / 8) * (dayIndex + 1) + 0.1}%`,
-                      top: `${65 + (startIndex * 64)}px`,
+                      top: `${65 + (startIndex * slotHeight)}px`,
                       width: `${(100 / 8) - 0.2}%`,
-                      height: `${duration * 64 - 2}px`,
+                      height: `${overlayHeight}px`,
                     }}
                   >
                     <div className="p-3 h-full flex flex-col justify-between">
@@ -399,8 +388,10 @@ export default function Calendar() {
             </div>
           </div>
 
-          {/* General Conditions - Inherits same width as calendar */}
-          <GeneralConditions conditions={bookingConditions} />
+          {/* General Booking Conditions - Reusable component */}
+          <div className="mt-8">
+            <GeneralBookingConditions />
+          </div>
         </div>
 
         {/* Right Sidebar */}

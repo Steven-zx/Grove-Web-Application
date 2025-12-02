@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import MobileNavbar from "../components/layout/MobileNavbar";
 import MobileSidebar from "../components/layout/MobileSidebar";
 import NoticeCard from '../components/shared/NoticeCard';
-import GeneralConditions from '../components/GeneralConditions';
+import GeneralBookingConditions from '../components/GeneralBookingConditions';
 
 export default function CalendarMobile() {
   const navigate = useNavigate();
@@ -34,50 +34,24 @@ export default function CalendarMobile() {
   ];
   const years = Array.from({ length: 10 }, (_, i) => 2024 + i);
   
-  const bookingConditions = [
-    'Eligibility: Only residents with good standing (no outstanding HOA dues) may book amenities',
-    'Booking Limits: Each household may book the clubhouse a maximum of twice per month and reserve the pool for exclusive use once per month.',
-    'Cancellation Policy: Cancellations must be made at least 48 hours in advance for a full refund. Later cancellations forfeit 50% of the booking fee.',
-    'Damages: The booking resident is responsible for any damages incurred during their reservation period.',
-    'Noise Restrictions: All events must observe quiet hours from 10PM to 6AM.',
-    'Cleaning: Facilities must be cleaned and returned to their original condition after use.'
-  ];
+  // General booking conditions are now imported from the reusable component
   
-  // Sample bookings
-  const bookings = [
-    { 
-      id: 1,
-      date: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 1),
-      startTime: '8:00 AM', 
-      endTime: '12:00 PM',
-      status: 'confirmed', 
-      amenity: 'Clubhouse'
-    },
-    { 
-      id: 2,
-      date: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 2),
-      startTime: '1:00 PM', 
-      endTime: '6:00 PM',
-      status: 'confirmed', 
-      amenity: 'Swimming Pool'
-    }
-  ];
+  // TODO: Replace with real bookings from backend/API
+  const bookings = [];
   
-  // Calculate current week days
-  const startOfWeek = new Date(currentDate);
-  const dayOfWeek = startOfWeek.getDay();
-  startOfWeek.setDate(startOfWeek.getDate() - dayOfWeek);
-  
+  // Calculate current 4-day window (instead of 7-day week)
+  const startOfWindow = new Date(currentDate);
   const weekDays = [];
-  for (let i = 0; i < 7; i++) {
-    const day = new Date(startOfWeek);
-    day.setDate(startOfWeek.getDate() + i);
+  for (let i = 0; i < 4; i++) {
+    const day = new Date(startOfWindow);
+    day.setDate(startOfWindow.getDate() + i);
     weekDays.push(day);
   }
   
+  // Move by 4 days instead of 7
   const navigateWeek = (direction) => {
     const newDate = new Date(currentDate);
-    newDate.setDate(currentDate.getDate() + (direction * 7));
+    newDate.setDate(currentDate.getDate() + (direction * 4));
     setCurrentDate(newDate);
   };
 
@@ -88,11 +62,14 @@ export default function CalendarMobile() {
   };
   
   const getBookingForDay = (date, amenity) => {
-    return bookings.find(booking => 
-      booking.date.getTime() === date.getTime() && 
-      booking.amenity === amenity &&
-      booking.status === 'confirmed'
-    );
+    // Compare only year, month, and date (ignore time)
+    return bookings.find(booking => {
+      const bookingDate = new Date(booking.date.getFullYear(), booking.date.getMonth(), booking.date.getDate());
+      const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      return bookingDate.getTime() === checkDate.getTime() &&
+        booking.amenity === amenity &&
+        booking.status === 'confirmed';
+    });
   };
 
   const isTimeSlotAvailable = (date, time, amenity) => {
@@ -135,6 +112,19 @@ export default function CalendarMobile() {
 
       {/* Scrollable Content */}
       <div className="pt-36 pb-6 px-4">
+        {/* Back Navigation */}
+        <div className="flex items-center mb-4">
+          <button 
+            onClick={() => navigate('/amenities')}
+            className="p-2 hover:bg-gray-100 rounded-full -ml-2"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          <h1 className="text-xl font-semibold text-gray-900 ml-2">Calendar</h1>
+        </div>
+
         {/* Notice Card */}
         <div className="mb-4">
           <NoticeCard />
@@ -154,192 +144,154 @@ export default function CalendarMobile() {
           </button>
         </div>
 
-        {/* Month and Amenity Dropdowns */}
-        <div className="mb-4">
-          <div className="flex gap-3 mb-3">
-            {/* Month Dropdown */}
-            <div className="flex-1 relative">
-              <button
-                onClick={() => setShowMonthDropdown(!showMonthDropdown)}
-                className="w-full flex items-center justify-between px-4 py-2.5 border border-gray-200 rounded-lg bg-white"
-              >
-                <span className="text-sm font-medium">{monthName} {year}</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-gray-500">
-                  <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-              
-              {/* Month Dropdown Panel */}
-              {showMonthDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4">
-                  <button 
-                    onClick={() => setShowMonthDropdown(false)}
-                    className="absolute top-3 right-3 p-1 hover:bg-gray-100 rounded-full text-gray-500"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                      <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
-                  
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Month</label>
-                    <select 
-                      value={currentDate.getMonth()}
-                      onChange={(e) => navigateToDate(parseInt(e.target.value), currentDate.getFullYear())}
-                      className="w-full border border-[#D9D9D9] rounded-md px-3 py-2 text-sm"
-                    >
-                      {months.map((month, index) => (
-                        <option key={index} value={index}>{month}</option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Year</label>
-                    <select 
-                      value={currentDate.getFullYear()}
-                      onChange={(e) => navigateToDate(currentDate.getMonth(), parseInt(e.target.value))}
-                      className="w-full border border-[#D9D9D9] rounded-md px-3 py-2 text-sm"
-                    >
-                      {years.map(year => (
-                        <option key={year} value={year}>{year}</option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  <button 
-                    onClick={() => { setCurrentDate(today); setShowMonthDropdown(false); }}
-                    className="w-full px-3 py-2 text-sm bg-green-500 text-white rounded hover:bg-green-600"
-                  >
-                    Go to Today
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Amenity Dropdown */}
-            <div className="flex-1">
-              <select
-                value={selectedAmenity}
-                onChange={(e) => setSelectedAmenity(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-white text-sm font-medium"
-              >
-                {amenities.map((amenity) => (
-                  <option key={amenity} value={amenity}>{amenity}</option>
-                ))}
-              </select>
-            </div>
+        {/* Month/Year and Amenity Dropdowns */}
+        <div className="flex items-center gap-2 mb-4">
+          {/* Month Dropdown */}
+          <div className="flex-1">
+            <select
+              value={currentDate.getMonth()}
+              onChange={e => navigateToDate(parseInt(e.target.value), currentDate.getFullYear())}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            >
+              {months.map((month, idx) => (
+                <option key={idx} value={idx}>{month}</option>
+              ))}
+            </select>
+          </div>
+          {/* Year Dropdown */}
+          <div className="w-28">
+            <select
+              value={currentDate.getFullYear()}
+              onChange={e => navigateToDate(currentDate.getMonth(), parseInt(e.target.value))}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            >
+              {years.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+          </div>
+          {/* Amenity Dropdown */}
+          <div className="flex-1">
+            <select
+              value={selectedAmenity}
+              onChange={e => setSelectedAmenity(e.target.value)}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            >
+              {amenities.map(amenity => (
+                <option key={amenity} value={amenity}>{amenity}</option>
+              ))}
+            </select>
           </div>
         </div>
 
         {/* Calendar */}
-        <div className="bg-white rounded-lg border border-gray-200 mb-6 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-200 mb-6">
           {/* Week Navigation */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
+          <div className="flex items-center justify-between px-2 pt-4 mb-2">
             <button 
               onClick={() => navigateWeek(-1)} 
-              className="p-2 hover:bg-gray-100 rounded-full"
+              className="p-2 hover:bg-gray-100 rounded-full border border-gray-300 bg-white"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
-            
-            <div className="text-sm font-medium text-gray-600">
-              {weekDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {weekDays[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            <div className="text-xs text-gray-700 font-medium">
+              {weekDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {weekDays[weekDays.length-1].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
             </div>
-            
             <button 
               onClick={() => navigateWeek(1)} 
-              className="p-2 hover:bg-gray-100 rounded-full"
+              className="p-2 hover:bg-gray-100 rounded-full border border-gray-300 bg-white"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
           </div>
 
-          {/* Calendar Grid - Horizontal Scroll */}
-          <div className="overflow-x-auto hide-scrollbar">
-            <div className="inline-flex min-w-full">
-              {/* Time Column */}
-              <div className="flex flex-col border-r border-gray-200 bg-gray-50" style={{minWidth: '80px'}}>
-                <div className="h-12 border-b border-gray-200"></div>
-                {timeSlots.map((time) => (
-                  <div key={time} className="h-16 border-b border-gray-200 flex items-center justify-center text-xs text-gray-700 px-2">
-                    {time}
-                  </div>
-                ))}
-              </div>
-
-              {/* Day Columns */}
-              {weekDays.map((date, dayIndex) => {
-                const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
-                const dayNumber = date.getDate();
-                const isCurrentDay = isToday(date);
-                
-                return (
-                  <div key={dayIndex} className="flex flex-col border-r border-gray-200 last:border-r-0" style={{minWidth: '80px'}}>
-                    {/* Day Header */}
-                    <div className="h-12 border-b border-gray-200 bg-gray-50 flex flex-col items-center justify-center">
-                      <div className="text-xs text-gray-600 font-medium">{dayName}</div>
-                      <div className={`text-sm font-semibold mt-0.5 ${isCurrentDay ? 'text-green-600' : 'text-gray-900'}`}>
-                        {dayNumber}
-                      </div>
-                    </div>
-
-                    {/* Time Slots */}
-                    <div className="relative">
-                      {timeSlots.map((time, timeIndex) => {
-                        const isSlotAvailable = isTimeSlotAvailable(date, time, selectedAmenity);
-                        
-                        return (
-                          <div 
-                            key={timeIndex}
-                            className={`h-16 border-b border-gray-200 ${
-                              isCurrentDay 
-                                ? 'bg-green-50' 
-                                : isSlotAvailable 
-                                  ? 'bg-white' 
-                                  : 'bg-gray-100'
-                            }`}
-                          />
-                        );
-                      })}
-
-                      {/* Booking Overlay */}
-                      {(() => {
-                        const booking = getBookingForDay(date, selectedAmenity);
-                        if (!booking) return null;
-                        
-                        const timeToIndex = (timeStr) => timeSlots.findIndex(slot => slot === timeStr);
-                        const startIndex = timeToIndex(booking.startTime);
-                        const endIndex = timeToIndex(booking.endTime);
-                        const duration = Math.max(1, endIndex - startIndex);
-                        
-                        return (
-                          <div 
-                            className="absolute left-1 right-1 bg-white border border-[#40863A] rounded-lg shadow-sm z-10 p-2"
-                            style={{
-                              top: `${48 + (startIndex * 64)}px`,
-                              height: `${duration * 64 - 4}px`,
-                            }}
-                          >
-                            <div className="text-xs font-medium text-gray-800">Booked</div>
-                            <div className="text-xs text-gray-600 mt-1">{booking.startTime} - {booking.endTime}</div>
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                );
-              })}
+          {/* Calendar Grid - 4 columns, fill width, with spacing */}
+          <div className="flex w-full">
+            {/* Time Column */}
+            <div className="flex flex-col border-r border-gray-300 bg-white w-16 flex-shrink-0">
+              <div className="h-12 border-b border-gray-300"></div>
+              {timeSlots.map((time) => (
+                <div key={time} className="h-12 border-b border-gray-300 flex items-center justify-center text-xs text-gray-700 px-2">
+                  {time}
+                </div>
+              ))}
             </div>
+            {/* Day Columns */}
+            {weekDays.map((date, dayIndex) => {
+              const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+              const dayNumber = date.getDate();
+              const isCurrentDay = isToday(date);
+              return (
+                <div
+                  key={dayIndex}
+                  className={`flex flex-col bg-white w-full ${dayIndex !== weekDays.length - 1 ? 'mr-2 border-r border-gray-300' : ''}`}
+                  style={{ minWidth: 0 }}
+                >
+                  {/* Day Header */}
+                  <div className="h-12 border-b border-gray-300 flex flex-col items-center justify-center">
+                    <div className="text-xs text-gray-700 font-normal">{dayName}</div>
+                    {isCurrentDay ? (
+                      <div className="min-w-[24px] w-6 h-6 bg-black rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                        <span className="text-white text-xs font-medium">{dayNumber}</span>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-700 font-normal mt-1">{dayNumber}</span>
+                    )}
+                  </div>
+                  {/* Time Slots */}
+                  <div className="relative">
+                    {timeSlots.map((time, timeIndex) => {
+                      const isSlotAvailable = isTimeSlotAvailable(date, time, selectedAmenity);
+                      return (
+                        <div
+                          key={timeIndex}
+                          className={`h-12 border-b border-gray-300 ${
+                            isCurrentDay
+                              ? 'bg-green-50'
+                              : isSlotAvailable
+                                ? 'bg-white'
+                                : 'bg-gray-100'
+                          }`}
+                        />
+                      );
+                    })}
+                    {/* Booking Overlay */}
+                    {(() => {
+                      const booking = getBookingForDay(date, selectedAmenity);
+                      if (!booking) return null;
+                      const timeToIndex = (timeStr) => timeSlots.findIndex(slot => slot === timeStr);
+                      const startIndex = timeToIndex(booking.startTime);
+                      const endIndex = timeToIndex(booking.endTime);
+                      // Overlay should include the end slot fully, so add 1 to duration
+                      const duration = Math.max(1, endIndex - startIndex + 1);
+                      return (
+                        <div
+                          className="absolute left-1 right-1 bg-white border border-[#4CAF50] rounded-lg shadow-sm z-10 p-1"
+                          style={{
+                            top: `${(startIndex * 48)}px`,
+                            height: `${duration * 48 - 4}px`,
+                          }}
+                        >
+                          <div className="flex flex-col items-start">
+                            <div className="text-[10px] font-medium text-gray-800">Booked</div>
+                            <div className="text-[10px] text-gray-600 mt-1">{booking.startTime} - {booking.endTime}</div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* General Booking Conditions */}
-        <GeneralConditions conditions={bookingConditions} />
+        {/* General Booking Conditions - Reusable component */}
+        <GeneralBookingConditions />
       </div>
     </div>
   );

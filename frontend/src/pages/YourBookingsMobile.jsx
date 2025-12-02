@@ -6,7 +6,7 @@ import MobileNavbar from "../components/layout/MobileNavbar";
 import MobileSidebar from "../components/layout/MobileSidebar";
 import NoticeCard from '../components/shared/NoticeCard';
 import CalendarWidget from '../components/CalendarWidget';
-import GeneralConditions from '../components/GeneralConditions';
+import GeneralBookingConditions from '../components/GeneralBookingConditions';
 import { Calendar } from "lucide-react";
 
 // Import amenity images
@@ -150,14 +150,7 @@ export default function YourBookingsMobile() {
   // Display all bookings
   const displayedBookings = bookings;
 
-  const generalConditions = [
-    'Eligibility: Only residents with good standing (no outstanding HOA dues) may book amenities',
-    'Booking Limits: Each household may book the clubhouse a maximum of twice per month and reserve the pool for exclusive use once per month.',
-    'Cancellation Policy: Cancellations must be made at least 48 hours in advance for a full refund. Later cancellations forfeit 50% of the booking fee.',
-    'Damages: The booking resident is responsible for any damages incurred during their reservation period.',
-    'Noise Restrictions: All events must observe quiet hours from 10PM to 6AM.',
-    'Cleaning: Facilities must be cleaned and returned to their original condition after use.'
-  ];
+
 
   return (
     <div className="flex flex-col w-full bg-white h-screen overflow-hidden">
@@ -287,9 +280,9 @@ export default function YourBookingsMobile() {
           </div>
         )}
 
-        {/* General Conditions */}
+        {/* General Booking Conditions */}
         <div className="mb-6">
-          <GeneralConditions conditions={generalConditions} />
+          <GeneralBookingConditions />
         </div>
       </div>
     </div>

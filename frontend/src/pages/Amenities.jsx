@@ -5,7 +5,7 @@ import InfoCard from '../components/shared/InfoCard';
 import NoticeCard from '../components/shared/NoticeCard';
 import CalendarWidget from '../components/CalendarWidget';
 import AmenityCard from '../components/AmenityCard';
-import GeneralConditions from '../components/GeneralConditions';
+import GeneralBookingConditions from '../components/GeneralBookingConditions';
 
 // Import amenity images
 import clubhouseImg from '../assets/clubhouse.png';
@@ -98,15 +98,7 @@ export default function Amenities() {
     navigate('/booking-modal', { state: { amenity } });
   };
 
-  // PLACEHOLDER: General conditions - Backend-ready for API integration
-  const generalConditions = [
-    'Eligibility: Only residents with good standing (no outstanding HOA dues) may book amenities',
-    'Booking Limits: Each household may book the clubhouse a maximum of twice per month and reserve the pool for exclusive use once per month.',
-    'Cancellation Policy: Cancellations must be made at least 48 hours in advance for a full refund. Later cancellations forfeit 50% of the booking fee.',
-    'Damages: The booking resident is responsible for any damages incurred during their reservation period.',
-    'Noise Restrictions: All events must observe quiet hours from 10PM to 6AM.',
-    'Cleaning: Facilities must be cleaned and returned to their original condition after use.'
-  ];
+
 
 return (
   <div className="flex flex-col md:flex-row bg-white min-h-screen md:justify-start md:items-start w-full md:max-w-[1400px] md:mx-auto">
@@ -154,7 +146,7 @@ return (
 
       {/* General Conditions */}
       <div>
-        <GeneralConditions conditions={generalConditions} />
+        <GeneralBookingConditions />
       </div>
     </main>
 
