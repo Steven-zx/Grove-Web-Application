@@ -1567,9 +1567,14 @@ app.get('/api/admin/bookings', verifyToken, verifyAdmin, async (req, res) => {
     const transformedData = data.map(booking => ({
       id: booking.id,
       name: booking.resident_name || `User ${booking.user_id ? booking.user_id.slice(0, 8) : 'Unknown'}`,
+      resident_name: booking.resident_name,
       amenity: booking.amenity_type,
+      amenity_type: booking.amenity_type,
       date: booking.booking_date,
+      booking_date: booking.booking_date,
       time: `${booking.start_time}-${booking.end_time}`,
+      start_time: booking.start_time,
+      end_time: booking.end_time,
       userType: 'Resident', // All users are residents in this system
       status: booking.status.charAt(0).toUpperCase() + booking.status.slice(1),
       address: booking.resident_address || 'N/A',
@@ -1578,6 +1583,9 @@ app.get('/api/admin/bookings', verifyToken, verifyAdmin, async (req, res) => {
       purpose: booking.purpose,
       attendees: booking.attendees || booking.guest_count,
       notes: booking.additional_notes || booking.notes || '--',
+      payment_proof_url: booking.payment_proof_url,
+      payment_amount: booking.payment_amount,
+      admin_notes: booking.admin_notes,
       createdAt: booking.created_at,
       updatedAt: booking.updated_at
     }));
