@@ -2,6 +2,7 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
 import AnnouncementCard from "../components/AnnouncementCard";
+import AnnouncementModal from "../components/AnnouncementModal";
 import FiltersCard from "../components/shared/FiltersCard";
 
 const categories = ["All categories", "General", "Maintenance", "Sports", "Security", "Facilities"];
@@ -12,6 +13,7 @@ export default function Announcements() {
   const [announcements, setAnnouncements] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
+  const [selectedAnnouncement, setSelectedAnnouncement] = React.useState(null);
   const [filters, setFilters] = React.useState({
     category: "All categories",
     date: "",
@@ -116,7 +118,11 @@ export default function Announcements() {
             </div>
           ) : (
             filteredAnnouncements.map(a => (
-              <AnnouncementCard key={a.id} {...a} />
+              <AnnouncementCard 
+                key={a.id} 
+                {...a} 
+                onClick={() => setSelectedAnnouncement(a)}
+              />
             ))
           )}
         </div>
@@ -143,6 +149,14 @@ export default function Announcements() {
           />
         </div>
       </aside>
+
+      {/* Announcement Modal */}
+      {selectedAnnouncement && (
+        <AnnouncementModal 
+          announcement={selectedAnnouncement}
+          onClose={() => setSelectedAnnouncement(null)}
+        />
+      )}
     </div>
   );
 }

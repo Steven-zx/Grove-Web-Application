@@ -2,6 +2,7 @@
 import React, { useRef, useLayoutEffect, useState, useEffect } from "react";
 import MobileNavbar from "../components/layout/MobileNavbar";
 import MobileSidebar from "../components/layout/MobileSidebar";
+import AnnouncementModal from "../components/AnnouncementModal";
 import filterIcon from "../assets/filter.png";
 import FiltersCard from "../components/shared/FiltersCard";
 
@@ -16,6 +17,7 @@ export default function AnnouncementsMobile() {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
 
   useLayoutEffect(() => {
     if (noticeRef.current) {
@@ -148,23 +150,50 @@ export default function AnnouncementsMobile() {
             </div>
           ) : (
             announcements.map(a => (
-              <div key={a.id} className="bg-white rounded-2xl border border-gray-200 p-4 flex flex-col gap-2">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-[#40863A]">A</div>
-                  <div className="flex flex-col text-left">
-                    <span className="font-semibold text-[#1e1e1e] text-sm">{a.author}</span>
-                    <span className="text-xs text-[#1e1e1e] opacity-60">{a.date}</span>
+              <div 
+                key={a.id} 
+                className="bg-white rounded-2xl border border-gray-200 p-4 flex flex-col gap-2 cursor-pointer active:bg-gray-50"
+                onClick={() => setSelectedAnnouncement(a)}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-[#40863A]">A</div>
+                    <div className="flex flex-col text-left">
+                      <span className="font-semibold text-[#1e1e1e] text-sm">{a.author}</span>
+                      <span className="text-xs text-[#1e1e1e] opacity-60">{a.date}</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-1 flex-wrap justify-end">
+                    {a.category && (
+                      <span className="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-800">
+                        {a.category}
+                      </span>
+                    )}
                   </div>
                 </div>
-                <div className="text-sm text-[#1e1e1e] mb-1">{a.content}</div>
-                {a.image && (
-                  <img src={a.image} alt="Announcement" className="rounded-xl w-full object-cover max-h-60" />
+                {a.title && (
+                  <h3 className="font-bold text-base text-[#1e1e1e]">{a.title}</h3>
                 )}
+                <div className="text-sm text-[#1e1e1e] line-clamp-2">{a.content}</div>
+                {a.image && (
+                  <img src={a.image} alt="Announcement" className="rounded-xl w-full object-cover max-h-48" />
+                )}
+                <div className="text-sm text-[#40863A] font-medium mt-1">
+                  Tap to read more →
+                </div>
               </div>
             ))
           )}
         </div>
       </div>
+
+      {/* Announcement Modal */}
+      {selectedAnnouncement && (
+        <AnnouncementModal 
+          announcement={selectedAnnouncement}
+          onClose={() => setSelectedAnnouncement(null)}
+        />
+      )}
     </div>
   );
 }

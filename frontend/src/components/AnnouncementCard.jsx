@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function AnnouncementCard({ author, date, content, title, importance, category, image }) {
+export default function AnnouncementCard({ author, date, content, title, importance, category, image, onClick }) {
   const getImportanceColor = (importance) => {
     switch (importance?.toLowerCase()) {
       case 'urgent': return 'bg-red-100 text-red-800';
@@ -11,8 +11,14 @@ export default function AnnouncementCard({ author, date, content, title, importa
     }
   };
 
+  // Truncate content to ~150 characters
+  const truncatedContent = content.length > 150 ? content.substring(0, 150) + "..." : content;
+
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-6 flex flex-col gap-4">
+    <div 
+      className="bg-white rounded-2xl border border-gray-200 p-6 flex flex-col gap-4 cursor-pointer hover:shadow-lg hover:border-[#40863A] transition-all"
+      onClick={onClick}
+    >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-3">
           <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-[#40863A]">A</div>
@@ -39,8 +45,20 @@ export default function AnnouncementCard({ author, date, content, title, importa
         <h3 className="font-bold text-lg text-[#1e1e1e] mb-1">{title}</h3>
       )}
       
-      <div className="text-sm text-[#1e1e1e] mb-2">{content}</div>
-      {image && <img src={image} alt="Announcement" className="rounded-xl w-full object-cover max-h-96" />}
+      <div className="text-sm text-[#1e1e1e] mb-2">{truncatedContent}</div>
+      {image && (
+        <img 
+          src={image} 
+          alt="Announcement" 
+          className="rounded-xl w-full object-cover max-h-60"
+        />
+      )}
+      
+      {(content.length > 150 || image) && (
+        <div className="text-sm text-[#40863A] font-medium hover:underline mt-2">
+          Click to read more →
+        </div>
+      )}
     </div>
   );
 }
