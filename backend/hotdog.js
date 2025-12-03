@@ -1815,14 +1815,26 @@ app.post('/api/concerns', verifyToken, async (req, res) => {
   try {
     const { location, issue_type, description, image_url } = req.body;
     
-    // Get user profile for contact info
-    const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('first_name, last_name, email, phone')
-      .eq('id', req.user.userId)
-      .single();
+    // Get user profile for contact info (handle case where profile doesn't exist)
+    let reporter_name = 'Anonymous';
+    let email = null;
+    let phone = null;
     
-    const reporter_name = profile ? `${profile.first_name} ${profile.last_name}` : 'Anonymous';
+    try {
+      const { data: profile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('first_name, last_name, email, phone')
+        .eq('id', req.user.userId)
+        .single();
+      
+      if (profile && !profileError) {
+        reporter_name = `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Anonymous';
+        email = profile.email;
+        phone = profile.phone;
+      }
+    } catch (profileErr) {
+      console.log('Profile not found, using defaults:', profileErr.message);
+    }
     
     const { data, error } = await supabase
       .from('concerns')
@@ -1832,9 +1844,9 @@ app.post('/api/concerns', verifyToken, async (req, res) => {
           reporter_name,
           location,
           issue_type,
-          email: profile?.email,
-          phone: profile?.phone,
-          description,
+          email,
+          phone,
+          description: description || '',
           image_url,
           status: 'unread',
           created_at: new Date().toISOString()
@@ -1843,13 +1855,14 @@ app.post('/api/concerns', verifyToken, async (req, res) => {
       .select();
     
     if (error) {
+      console.error('Insert concern error:', error);
       return res.status(500).json({ error: error.message });
     }
     
     res.json({ message: 'Concern submitted successfully', data });
   } catch (error) {
     console.error('Submit concern error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 });
 
