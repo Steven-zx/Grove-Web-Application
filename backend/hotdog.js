@@ -859,7 +859,15 @@ app.post('/api/admin/login', async (req, res) => {
 // Get User Profile
 app.get('/api/users/profile', verifyToken, async (req, res) => {
   try {
-    console.log('👤 Fetching profile for user ID:', req.user.userId);
+    console.log('👤 Fetching profile for user:', req.user);
+    console.log('👤 User ID from token:', req.user.userId);
+    console.log('👤 User ID type:', typeof req.user.userId);
+    
+    // Validate userId
+    if (!req.user.userId || req.user.userId === 'undefined') {
+      console.error('❌ Invalid userId in token:', req.user.userId);
+      return res.status(400).json({ error: 'Invalid user ID in token' });
+    }
     
     // First, let's try to get the profile without .single() to see what we get
     const { data, error } = await supabaseService

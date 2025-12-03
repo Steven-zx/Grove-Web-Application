@@ -28,13 +28,26 @@ const AuthCallback = () => {
 
         const user = JSON.parse(decodeURIComponent(userStr));
         
+        console.log('🔐 OAuth callback received user:', user);
+        
+        // Ensure user has all required fields
+        const userData = {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          profileCompleted: true
+        };
+        
+        console.log('✅ Storing user data:', userData);
+        
         // Store auth data
         localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('user', JSON.stringify(userData));
         
         // Update authService instance with new data
         authService.token = token;
-        authService.user = user;
+        authService.user = userData;
         
         setStatus('Success! Redirecting to home...');
         
