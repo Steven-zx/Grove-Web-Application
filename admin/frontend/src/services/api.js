@@ -2,6 +2,13 @@
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000') + '/api';
 
+// Log the API URL for debugging (especially useful in production)
+console.log('🔗 Admin API configured:', {
+  baseUrl: API_BASE_URL,
+  envVar: import.meta.env.VITE_API_BASE_URL,
+  mode: import.meta.env.MODE
+});
+
 // Authentication
 let authToken = null;
 

@@ -12,6 +12,7 @@ export default function Login() {
 		password: ''
 	});
 	const [isLoading, setIsLoading] = useState(false);
+	const [error, setError] = useState('');
 
 	const handleInputChange = (e) => {
 		const { name, value } = e.target;
@@ -19,10 +20,13 @@ export default function Login() {
 			...prev,
 			[name]: value
 		}));
+		// Clear error when user types
+		if (error) setError('');
 	};
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+		setError('');
 		setIsLoading(true);
 
 		try {
@@ -39,7 +43,15 @@ export default function Login() {
 			navigate('/announcements');
 		} catch (error) {
 			console.error('❌ Login error:', error);
-			alert('Login failed. Please check your credentials.');
+			
+			// Provide specific error messages
+			if (error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError')) {
+				setError('Cannot connect to server. Please check if the backend is running and VITE_API_BASE_URL is configured correctly in Netlify.');
+			} else if (error.message?.includes('401')) {
+				setError('Invalid admin credentials. Please check your email and password.');
+			} else {
+				setError(error.message || 'Login failed. Please try again.');
+			}
 		} finally {
 			setIsLoading(false);
 		}
@@ -70,6 +82,11 @@ export default function Login() {
 						</div>
 						{/* Form */}
 						<form className="w-full flex flex-col gap-4" onSubmit={handleSubmit}>
+							{error && (
+								<div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+									{error}
+								</div>
+							)}
 							<input 
 								type="email" 
 								name="email"
