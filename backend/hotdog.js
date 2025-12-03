@@ -2387,6 +2387,88 @@ app.delete('/api/admin/gallery/:id', verifyToken, verifyAdmin, async (req, res) 
   }
 });
 
+// Universal Search Endpoint
+app.get('/api/search', verifyToken, async (req, res) => {
+  try {
+    const { q } = req.query;
+    const userId = req.user.userId;
+
+    if (!q || q.trim().length === 0) {
+      return res.json({
+        success: true,
+        results: {
+          amenities: [],
+          announcements: [],
+          bookings: []
+        }
+      });
+    }
+
+    const searchTerm = q.trim();
+
+    // Search Amenities - use supabaseService (amenities table has RLS that blocks standard client)
+    const { data: amenitiesData, error: amenitiesError } = await supabaseService
+      .from('amenities')
+      .select('*')
+      .eq('is_active', true);
+    
+    // Filter amenities in JavaScript since .or() syntax is problematic
+    const amenities = (amenitiesData || []).filter(a => 
+      a.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (a.description && a.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    ).slice(0, 5);
+
+    // Search Announcements
+    const { data: announcementsData, error: announcementsError } = await supabase
+      .from('announcements')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    const announcements = (announcementsData || []).filter(a =>
+      a.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (a.description && a.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (a.category && a.category.toLowerCase().includes(searchTerm.toLowerCase()))
+    ).slice(0, 10);
+
+    // Search User's Bookings
+    const { data: bookingsData, error: bookingsError } = await supabase
+      .from('bookings')
+      .select('*')
+      .eq('user_id', userId)
+      .order('booking_date', { ascending: false });
+    
+    const bookings = (bookingsData || []).filter(b =>
+      (b.amenity_type && b.amenity_type.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (b.purpose && b.purpose.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (b.status && b.status.toLowerCase().includes(searchTerm.toLowerCase()))
+    ).slice(0, 10);
+
+    // Format bookings with proper status capitalization
+    const formattedBookings = bookings.map(booking => ({
+      ...booking,
+      status: booking.status ? booking.status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : 'Pending'
+    }));
+
+    return res.json({
+      success: true,
+      query: q,
+      results: {
+        amenities: amenities || [],
+        announcements: announcements || [],
+        bookings: formattedBookings
+      },
+      counts: {
+        amenities: (amenities || []).length,
+        announcements: (announcements || []).length,
+        bookings: (bookings || []).length
+      }
+    });
+  } catch (error) {
+    console.error('Search error:', error);
+    return res.status(500).json({ error: 'Search failed' });
+  }
+});
+
 // Serve the frontend for non-API routes only
 app.use((req, res, next) => {
   if (req.path.startsWith('/api/')) {
