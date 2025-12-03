@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import NoticeCard from '../components/shared/NoticeCard';
+import InfoCard from '../components/shared/InfoCard';
 import CalendarWidget from '../components/CalendarWidget';
 import GeneralBookingConditions from '../components/GeneralBookingConditions';
 import bookingService from "../services/bookingService";
@@ -236,63 +236,67 @@ export default function YourBookings() {
                       />
                     </div>
 
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2 text-center">{booking.amenityName}</h3>
+                    {/* Details */}
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2 text-center">{booking.amenityName}</h3>
 
-                  <div className={`px-3 py-2 rounded-full border ${getStatusColor(booking.status)} mb-4 text-center`}>
-                    <div className="flex items-center justify-center space-x-2">
-                      <div className={`w-2 h-2 rounded-full ${getStatusDot(booking.status)}`}></div>
-                      <span className="text-xs font-medium capitalize">
-                        {booking.status.toLowerCase() === 'pending_approval' ? 'Pending Approval' : booking.status}
-                      </span>
+                      <div className={`px-3 py-2 rounded-full border ${getStatusColor(booking.status)} mb-4 text-center`}>
+                        <div className="flex items-center justify-center space-x-2">
+                          <div className={`w-2 h-2 rounded-full ${getStatusDot(booking.status)}`}></div>
+                          <span className="text-xs font-medium capitalize">
+                            {booking.status.toLowerCase() === 'pending_approval' ? 'Pending Approval' : booking.status}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="mb-4">
+                        <p className="text-xs text-gray-700 text-center">{getStatusMessage(booking.status)}</p>
+                      </div>
+                      
+                      <div className="space-y-3 mb-6">
+                        <div className="text-center">
+                          <p className="text-xs text-gray-500 mb-1">Date & Time</p>
+                          <p className="font-semibold text-gray-900 text-sm">
+                            {formatDate(booking.date)} • {formatTimeRange(booking.startTime, booking.endTime)}
+                          </p>
+                        </div>
+                      </div>
+
+                      {booking.status.toLowerCase() === 'pending' && (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handlePayNow(booking)}
+                            className="flex-1 bg-[#40863A] text-white text-sm font-medium py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                            </svg>
+                            <span>Pay Now</span>
+                          </button>
+                          <button
+                            onClick={() => handleCancelBooking(booking.id)}
+                            className="flex-1 text-rose-600 hover:text-rose-700 text-sm font-medium hover:bg-gray-50 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            <span>Cancel</span>
+                          </button>
+                        </div>
+                      )}
+                      {booking.status === 'Confirmed' && (
+                        <button
+                          onClick={() => handleCancelBooking(booking.id)}
+                          className="w-full text-rose-600 hover:text-rose-700 text-sm font-medium hover:bg-gray-50 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                          <span>Cancel Booking</span>
+                        </button>
+                      )}
                     </div>
                   </div>
-
-                  <div className="mb-4">
-                    <p className="text-xs text-gray-700 text-center">{getStatusMessage(booking.status)}</p>
-                  </div>
-                  
-                  <div className="space-y-3 mb-6">
-                    <div className="text-center">
-                      <p className="text-xs text-gray-500 mb-1">Date & Time</p>
-                      <p className="font-semibold text-gray-900 text-sm">
-                        {formatDate(booking.date)} • {formatTimeRange(booking.startTime, booking.endTime)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {booking.status.toLowerCase() === 'pending' && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handlePayNow(booking)}
-                        className="flex-1 bg-[#40863A] text-white text-sm font-medium py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                        </svg>
-                        <span>Pay Now</span>
-                      </button>
-                      <button
-                        onClick={() => handleCancelBooking(booking.id)}
-                        className="flex-1 text-rose-600 hover:text-rose-700 text-sm font-medium hover:bg-gray-50 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                        <span>Cancel</span>
-                      </button>
-                    </div>
-                  )}
-                  {booking.status === 'Confirmed' && (
-                    <button
-                      onClick={() => handleCancelBooking(booking.id)}
-                      className="w-full text-rose-600 hover:text-rose-700 text-sm font-medium hover:bg-gray-50 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                      <span>Cancel Booking</span>
-                    </button>
-                  )}
                 </div>
               ))}
             </div>

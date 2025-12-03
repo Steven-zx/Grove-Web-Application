@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, User, MapPin, Phone, Mail, Users } from 'lucide-react';
-import { fetchAdminBookings, updateBookingStatus } from '../services/bookings';
+import { Calendar, Clock, User, MapPin, Phone, Mail, ChevronRight } from 'lucide-react';
+import { fetchAdminBookings, reviewManualPayment } from '../services/bookings';
 
 export default function Bookings() {
   const [bookings, setBookings] = useState([]);
@@ -12,8 +12,23 @@ export default function Bookings() {
     page: 1,
     pageSize: 10
   });
+
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [reviewNotes, setReviewNotes] = useState('');
+  const [reviewLoading, setReviewLoading] = useState(false);
   const [totalPages, setTotalPages] = useState(0);
   const [total, setTotal] = useState(0);
+
+  const openFullScreen = (booking) => {
+    console.log('Opening full screen for:', booking);
+    setSelectedBooking(booking);
+    setReviewNotes('');
+  };
+
+  const closeFullScreen = () => {
+    setSelectedBooking(null);
+    setReviewNotes('');
+  };
 
   // Fetch bookings when component mounts or filters change
   useEffect(() => {
@@ -36,15 +51,18 @@ export default function Bookings() {
     }
   };
 
-  const handleStatusUpdate = async (bookingId, newStatus) => {
+  const handlePaymentReview = async (bookingId, action) => {
     try {
-      await updateBookingStatus(bookingId, newStatus);
-      // Refresh the bookings list
+      setReviewLoading(true);
+      await reviewManualPayment(bookingId, action, reviewNotes);
       await loadBookings();
-      alert('Booking status updated successfully!');
+      closeFullScreen();
+      alert(`Payment ${action}d successfully!`);
     } catch (err) {
-      alert('Failed to update booking status: ' + err.message);
-      console.error('Error updating booking status:', err);
+      alert(err.message || `Failed to ${action} payment`);
+      console.error('Payment review error:', err);
+    } finally {
+      setReviewLoading(false);
     }
   };
 
@@ -52,7 +70,7 @@ export default function Bookings() {
     setFilters(prev => ({
       ...prev,
       [key]: value,
-      page: 1 // Reset to first page when filtering
+      page: 1
     }));
   };
 
@@ -63,6 +81,7 @@ export default function Bookings() {
   const getStatusBadge = (status) => {
     const statusColors = {
       pending: 'bg-yellow-100 text-yellow-800',
+      pending_approval: 'bg-yellow-100 text-yellow-800',
       confirmed: 'bg-green-100 text-green-800',
       cancelled: 'bg-red-100 text-red-800',
       rejected: 'bg-gray-100 text-gray-800'
@@ -87,7 +106,7 @@ export default function Bookings() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">BBookings Management</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Bookings Management</h1>
         <div className="text-sm text-gray-600">
           Total Bookings: {total}
         </div>
@@ -95,6 +114,25 @@ export default function Bookings() {
 
       {/* Filters */}
       <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-semibold text-gray-900">Filters</h2>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="px-3 py-1.5 text-sm rounded-md bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+              onClick={() => setFilters((prev) => ({ ...prev, status: 'pending_approval', page: 1 }))}
+            >
+              Pending Approval
+            </button>
+            <button
+              type="button"
+              className="px-3 py-1.5 text-sm rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200"
+              onClick={() => setFilters((prev) => ({ ...prev, status: 'all', page: 1 }))}
+            >
+              Reset Status
+            </button>
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -124,6 +162,7 @@ export default function Bookings() {
             >
               <option value="all">All Status</option>
               <option value="pending">Pending</option>
+              <option value="pending_approval">Pending Approval</option>
               <option value="confirmed">Confirmed</option>
               <option value="cancelled">Cancelled</option>
               <option value="rejected">Rejected</option>
@@ -172,10 +211,17 @@ export default function Bookings() {
         ) : (
           <div className="divide-y divide-gray-200">
             {bookings.map((booking) => (
-              <div key={booking.id} className="p-6">
-                <div className="flex justify-between items-start mb-4">
+              <div
+                key={booking.id}
+                className="p-6 hover:bg-gray-50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-green-500"
+                role="button"
+                tabIndex={0}
+                onClick={() => openFullScreen(booking)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openFullScreen(booking); }}}
+              >
+                <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
+                    <div className="flex items-center gap-3 mb-3">
                       <h3 className="text-lg font-semibold text-gray-900">
                         {booking.name}
                       </h3>
@@ -207,58 +253,19 @@ export default function Bookings() {
                         <span>{booking.email}</span>
                       </div>
                     </div>
+                    {booking.payment_proof_url && (
+                      <div className="mt-3 flex items-center gap-2 text-sm">
+                        <span className="px-2 py-1 rounded text-xs bg-blue-100 text-blue-800">
+                          Payment Proof
+                        </span>
+                        <span className="text-gray-700">Amount: ₱{booking.payment_amount?.toLocaleString() || 'N/A'}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="ml-4 flex items-center text-gray-400">
+                    <ChevronRight size={24} />
                   </div>
                 </div>
-
-                {/* Booking Details */}
-                <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium text-gray-700">Purpose:</span>
-                      <span className="ml-2 text-gray-600">{booking.purpose}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Users size={16} />
-                      <span className="font-medium text-gray-700">Attendees:</span>
-                      <span className="ml-1 text-gray-600">{booking.attendees}</span>
-                    </div>
-                  </div>
-                  {booking.notes && booking.notes !== '--' && (
-                    <div className="mt-3">
-                      <span className="font-medium text-gray-700">Notes:</span>
-                      <p className="mt-1 text-gray-600">{booking.notes}</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Action Buttons */}
-                {booking.status.toLowerCase() === 'pending' && (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleStatusUpdate(booking.id, 'confirmed')}
-                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm"
-                    >
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => handleStatusUpdate(booking.id, 'rejected')}
-                      className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm"
-                    >
-                      Reject
-                    </button>
-                  </div>
-                )}
-                
-                {booking.status.toLowerCase() === 'confirmed' && (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleStatusUpdate(booking.id, 'cancelled')}
-                      className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 text-sm"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                )}
               </div>
             ))}
           </div>
@@ -287,6 +294,151 @@ export default function Bookings() {
               >
                 Next
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Full Screen Overlay */}
+      {selectedBooking && (
+        <div className="fixed inset-0 z-50" onClick={closeFullScreen}>
+          <div className="absolute inset-0 bg-black/50" />
+          <div className="absolute inset-0 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="min-h-screen flex items-start justify-center p-4">
+              <div className="relative bg-white rounded-lg shadow-xl max-w-6xl w-full my-8">
+                <div className="p-6 md:p-8">
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-6">
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900">Booking Details</h2>
+                      <p className="text-sm text-gray-600 mt-1">Click anywhere outside to close</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {getStatusBadge(selectedBooking.status)}
+                      <button
+                        type="button"
+                        onClick={closeFullScreen}
+                        className="inline-flex items-center px-3 py-1.5 text-sm rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Summary */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <div className="text-sm text-gray-500 mb-1">Amenity</div>
+                      <div className="font-medium text-gray-900">{selectedBooking.amenity}</div>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <div className="text-sm text-gray-500 mb-1">Date</div>
+                      <div className="font-medium text-gray-900">{formatDate(selectedBooking.date)}</div>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <div className="text-sm text-gray-500 mb-1">Time</div>
+                      <div className="font-medium text-gray-900">{selectedBooking.time}</div>
+                    </div>
+                  </div>
+
+                  {/* Booker Details */}
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Booker Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-white border rounded-lg p-4">
+                        <div className="text-sm text-gray-500 mb-1">Name</div>
+                        <div className="font-medium text-gray-900">{selectedBooking.name || '—'}</div>
+                      </div>
+                      <div className="bg-white border rounded-lg p-4">
+                        <div className="text-sm text-gray-500 mb-1">Email</div>
+                        <div className="font-medium text-gray-900">{selectedBooking.email || '—'}</div>
+                      </div>
+                      <div className="bg-white border rounded-lg p-4">
+                        <div className="text-sm text-gray-500 mb-1">Contact</div>
+                        <div className="font-medium text-gray-900">{selectedBooking.contact || '—'}</div>
+                      </div>
+                      <div className="bg-white border rounded-lg p-4">
+                        <div className="text-sm text-gray-500 mb-1">Address</div>
+                        <div className="font-medium text-gray-900">{selectedBooking.address || '—'}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Payment Confirmation */}
+                  <div className="mb-8">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900">Payment Confirmation</h3>
+                      <div className="text-sm text-gray-600">
+                        Amount: <span className="font-semibold text-gray-900">₱{selectedBooking.payment_amount?.toLocaleString() || 'N/A'}</span>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="md:col-span-2">
+                        <div className="border rounded-lg overflow-hidden bg-gray-50">
+                          {selectedBooking.payment_proof_url ? (
+                            <img
+                              src={selectedBooking.payment_proof_url}
+                              alt="Payment Proof"
+                              className="w-full h-[420px] object-contain bg-white"
+                            />
+                          ) : (
+                            <div className="h-[420px] flex items-center justify-center text-gray-500">
+                              No payment proof uploaded
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="md:col-span-1">
+                        <div className="bg-white border rounded-lg p-4">
+                          <div className="text-sm text-gray-600 mb-2">Admin Notes</div>
+                          <textarea
+                            rows={6}
+                            value={reviewNotes}
+                            onChange={(e) => setReviewNotes(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500"
+                            placeholder="Optional notes about your decision"
+                          />
+                          {selectedBooking.status.toLowerCase() === 'pending_approval' ? (
+                            <div className="mt-4 flex flex-col gap-2">
+                              <button
+                                type="button"
+                                disabled={reviewLoading}
+                                onClick={(e) => { e.stopPropagation(); handlePaymentReview(selectedBooking.id, 'approve'); }}
+                                className="w-full inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md bg-green-600 text-white hover:bg-green-700 disabled:opacity-60"
+                              >
+                                {reviewLoading ? 'Processing...' : 'Approve Payment'}
+                              </button>
+                              <button
+                                type="button"
+                                disabled={reviewLoading}
+                                onClick={(e) => { e.stopPropagation(); handlePaymentReview(selectedBooking.id, 'reject'); }}
+                                className="w-full inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
+                              >
+                                {reviewLoading ? 'Processing...' : 'Reject Payment'}
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="mt-4 text-sm text-gray-600">
+                              Payment review actions are available when status is <span className="font-medium">pending_approval</span>.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="flex items-center justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={closeFullScreen}
+                      className="inline-flex items-center px-4 py-2 text-sm rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -192,7 +192,7 @@ export const galleryService = {
     return await apiRequest('/gallery');
   },
 
-  async upload(file) {
+  async upload(file, opts = {}) {
     initializeAuth();
     if (!authService.isAuthenticated()) {
       throw new Error('User not authenticated');
@@ -200,6 +200,9 @@ export const galleryService = {
     const url = `${API_BASE_URL}/admin/gallery/upload`;
     const formData = new FormData();
     formData.append('file', file);
+    if (opts.category) {
+      formData.append('category', opts.category);
+    }
 
     const headers = {};
     // Authorization header for multipart goes in fetch config, not on formData
@@ -223,8 +226,26 @@ export const galleryService = {
     if (!authService.isAuthenticated()) {
       throw new Error('User not authenticated');
     }
+    // id must be URL-encoded; backend expects storage path
     return await apiRequest(`/admin/gallery/${encodeURIComponent(id)}`, {
       method: 'DELETE',
+    });
+  },
+};
+
+// Concerns/Reports Services (admin)
+export const concernsService = {
+  async list(params = {}) {
+    initializeAuth();
+    const query = new URLSearchParams(params).toString();
+    const endpoint = query ? `/admin/concerns?${query}` : '/admin/concerns';
+    return await apiRequest(endpoint);
+  },
+  async updateStatus(id, status) {
+    initializeAuth();
+    return await apiRequest(`/admin/concerns/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
     });
   },
 };

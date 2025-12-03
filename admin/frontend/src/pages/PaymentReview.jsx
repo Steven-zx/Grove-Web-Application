@@ -16,7 +16,13 @@ const PaymentReview = () => {
     try {
       setLoading(true);
       const response = await api.get('/api/admin/bookings?status=pending_approval');
-      setPendingPayments(response.data.bookings || response.data);
+      // Backend returns shape: { data: [...], total, page, pageSize, totalPages }
+      const list = Array.isArray(response.data)
+        ? response.data
+        : Array.isArray(response.data?.data)
+          ? response.data.data
+          : [];
+      setPendingPayments(list);
     } catch (err) {
       console.error('Failed to fetch pending payments:', err);
     } finally {
@@ -60,13 +66,13 @@ const PaymentReview = () => {
     <div className="p-6">
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Manual Payment Review</h1>
 
-      {pendingPayments.length === 0 ? (
+      {Array.isArray(pendingPayments) && pendingPayments.length === 0 ? (
         <div className="bg-gray-50 rounded-lg p-8 text-center">
           <p className="text-gray-600">No pending payments to review</p>
         </div>
       ) : (
         <div className="grid gap-6">
-          {pendingPayments.map((booking) => (
+          {Array.isArray(pendingPayments) ? pendingPayments.map((booking) => (
             <div key={booking.id} className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
               <div className="flex justify-between items-start mb-4">
                 <div>
@@ -145,7 +151,7 @@ const PaymentReview = () => {
                 </button>
               )}
             </div>
-          ))}
+          )) : null}
         </div>
       )}
     </div>

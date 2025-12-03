@@ -123,8 +123,8 @@ export default function ManageAnnouncements() {
 			setAnnouncementList((list) => list.filter((a) => a.id !== confirmDeleteId));
 			setConfirmDeleteId(null);
 			
-			// Optionally refresh from server
-			// fetchAnnouncements();
+			// Refresh from server to confirm deletion
+			fetchAnnouncements();
 		} catch (err) {
 			console.error('❌ Error deleting announcement:', err);
 			

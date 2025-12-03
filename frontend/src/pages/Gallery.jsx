@@ -1,17 +1,6 @@
 // Gallery Page
 
 import React from "react";
-import entrance from "../assets/entrance.jpg";
-import gate from "../assets/gate.jpg";
-import gate2 from "../assets/gate2.jpg";
-import gate3 from "../assets/gate3.jpg";
-import pool from "../assets/pool.jpg";
-import pool2 from "../assets/pool2.jpg";
-import pool3 from "../assets/pool3.jpg";
-import pool4 from "../assets/pool4.jpg";
-import basketball from "../assets/basketball.jpg";
-import guardhouse from "../assets/guardhouse.jpg";
-import clubhouse from "../assets/clubhouse.jpg";
 
 const categories = [
   "All images",
@@ -23,35 +12,66 @@ const categories = [
   "Others",
 ];
 
-const initialImages = [
-  { id: 1, url: entrance, category: "Others" },
-  { id: 2, url: gate, category: "Others" },
-  { id: 3, url: gate2, category: "Others" },
-  { id: 4, url: gate3, category: "Others" },
-  { id: 5, url: pool, category: "Swimming pool" },
-  { id: 6, url: pool2, category: "Swimming pool" },
-  { id: 7, url: pool3, category: "Swimming pool" },
-  { id: 8, url: pool4, category: "Swimming pool" },
-  { id: 9, url: basketball, category: "Basketball court" },
-  { id: 10, url: guardhouse, category: "Others" },
-  { id: 11, url: clubhouse, category: "Clubhouse" },
-];
-
 export default function Gallery() {
-  // Backend-ready: images and categories would be fetched
   const [activeCategory, setActiveCategory] = React.useState(categories[0]);
-  const [images, setImages] = React.useState(initialImages);
+  const [images, setImages] = React.useState([]);
   const [modalOpen, setModalOpen] = React.useState(false);
   const [selectedImage, setSelectedImage] = React.useState(null);
+  const [allImages, setAllImages] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
 
-  // Simulate backend fetch
+  // Fetch images from API on mount
+  React.useEffect(() => {
+    let ignore = false;
+    
+    async function fetchGallery() {
+      try {
+        const response = await fetch('http://localhost:3000/api/gallery');
+        if (!response.ok) {
+          throw new Error('Failed to fetch gallery');
+        }
+        const data = await response.json();
+        
+        if (ignore) return;
+        
+        // Filter out folders and map API data to local format
+        const mappedImages = (data || [])
+          .filter(item => !item.name.endsWith('/') && item.name !== 'payment-proofs')
+          .map(item => ({
+            id: item.id || item.name,
+            url: item.url,
+            category: "Others" // Backend doesn't have categories yet
+          }));
+        
+        setAllImages(mappedImages);
+        setImages(mappedImages);
+        setLoading(false);
+      } catch (error) {
+        console.error('Failed to fetch gallery:', error);
+        // Show empty state on error instead of fallback images
+        if (!ignore) {
+          setAllImages([]);
+          setImages([]);
+          setLoading(false);
+        }
+      }
+    }
+    
+    fetchGallery();
+    
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  // Filter by category
   React.useEffect(() => {
     if (activeCategory === "All images") {
-      setImages(initialImages);
+      setImages(allImages);
     } else {
-      setImages(initialImages.filter(img => img.category === activeCategory));
+      setImages(allImages.filter(img => img.category === activeCategory));
     }
-  }, [activeCategory]);
+  }, [activeCategory, allImages]);
 
   // Modal keyboard navigation
   React.useEffect(() => {
@@ -87,26 +107,37 @@ export default function Gallery() {
   <div className="flex flex-col md:flex-row bg-white min-h-screen md:justify-start md:items-start w-full md:max-w-[1400px] md:mx-auto">
     {/* Main content */}
     <main className="flex-1 px-2 md:px-8 flex flex-col gap-6 md:min-w-[350px] md:max-w-auto">
-      {/* Category Tabs */}
-      <nav className="flex gap-4 mb-8 overflow-x-auto">
-        {categories.map(cat => (
-          <button
-            key={cat}
-            className={`pb-2 font-medium text-base border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
-              activeCategory === cat
-                ? "border-[#1e1e1e]"
-                : "border-transparent text-[#1e1e1e]/50 hover:text-[#1e1e1e]"
-            }`}
-            onClick={() => setActiveCategory(cat)}
-          >
-            {cat}
-          </button>
-        ))}
-      </nav>
+      {/* Category Tabs - hide during loading to prevent flash */}
+      {!loading && (
+        <nav className="flex gap-4 mb-8 overflow-x-auto">
+          {categories.map(cat => (
+            <button
+              key={cat}
+              className={`pb-2 font-medium text-base border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
+                activeCategory === cat
+                  ? "border-[#1e1e1e]"
+                  : "border-transparent text-[#1e1e1e]/50 hover:text-[#1e1e1e]"
+              }`}
+              onClick={() => setActiveCategory(cat)}
+            >
+              {cat}
+            </button>
+          ))}
+        </nav>
+      )}
 
       {/* Image Grid */}
       <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        {images.length === 0 ? (
+        {loading ? (
+          // Loading skeleton - show placeholder boxes
+          Array.from({ length: 10 }).map((_, i) => (
+            <div
+              key={`skeleton-${i}`}
+              className="bg-gray-200 animate-pulse rounded"
+              style={{ aspectRatio: '3/4', width: '100%' }}
+            />
+          ))
+        ) : images.length === 0 ? (
           <div className="col-span-full text-center text-gray-500 py-12">No images found.</div>
         ) : (
           images.map(img => (

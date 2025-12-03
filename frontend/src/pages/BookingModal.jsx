@@ -1,7 +1,7 @@
 // BookingModal Page
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import GeneralConditions from "../components/GeneralConditions";
+import GeneralBookingConditions from "../components/GeneralBookingConditions";
 import bookingService from "../services/bookingService.js";
 import PaymentService from "../services/paymentService.js";
 import { authService } from "../services/authService";

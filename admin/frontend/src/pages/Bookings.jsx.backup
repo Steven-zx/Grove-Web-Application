@@ -1,0 +1,582 @@
+import React, { useState, useEffect } from 'react';
+import { Calendar, Clock, User, MapPin, Phone, Mail, Users, ChevronRight } from 'lucide-react';
+import { fetchAdminBookings, updateBookingStatus, reviewManualPayment } from '../services/bookings';
+
+export default function Bookings() {
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filters, setFilters] = useState({
+    amenity: 'all',
+    status: 'all',
+    page: 1,
+    pageSize: 10
+  });
+
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [reviewNotes, setReviewNotes] = useState('');
+  const [reviewLoading, setReviewLoading] = useState(false);
+
+  const openFullScreen = (booking) => {
+    setSelectedBooking(booking);
+    setReviewNotes('');
+  };
+
+  const closeFullScreen = () => {
+    setSelectedBooking(null);
+    setReviewNotes('');
+  };
+  const [totalPages, setTotalPages] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [expandedId, setExpandedId] = useState(null);
+  const [processing, setProcessing] = useState(false);
+
+  // Fetch bookings when component mounts or filters change
+  useEffect(() => {
+    loadBookings();
+  }, [filters]);
+
+  // Auto-open full screen when a specific amenity tab is active
+  useEffect(() => {
+    if (filters.amenity && filters.amenity !== 'all' && bookings.length > 0) {
+      // Prefer a pending_approval booking for quick review; else first item
+      const pending = bookings.find(b => (b.status || '').toLowerCase() === 'pending_approval');
+      setSelectedBooking(pending || bookings[0]);
+    }
+  }, [bookings, filters.amenity]);
+
+  const loadBookings = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await fetchAdminBookings(filters);
+      setBookings(result.data);
+      setTotalPages(result.totalPages || 0);
+      setTotal(result.total || 0);
+    } catch (err) {
+      setError('Failed to load bookings: ' + err.message);
+      console.error('Error loading bookings:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStatusUpdate = async (bookingId, newStatus) => {
+    try {
+      await updateBookingStatus(bookingId, newStatus);
+      // Refresh the bookings list
+      await loadBookings();
+      alert('Booking status updated successfully!');
+    } catch (err) {
+      alert('Failed to update booking status: ' + err.message);
+      console.error('Error updating booking status:', err);
+    }
+  };
+
+  const handlePaymentReview = async (bookingId, action) => {
+    if (!window.confirm(`Are you sure you want to ${action} this payment?`)) return;
+    try {
+      setProcessing(true);
+      await reviewManualPayment(bookingId, action, reviewNotes);
+      setReviewNotes('');
+      setExpandedId(null);
+      await loadBookings();
+      alert(`Payment ${action}d successfully!`);
+    } catch (err) {
+      alert(err.message || `Failed to ${action} payment`);
+      console.error('Payment review error:', err);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: value,
+      page: 1 // Reset to first page when filtering
+    }));
+  };
+
+  const handlePageChange = (newPage) => {
+    setFilters(prev => ({ ...prev, page: newPage }));
+  };
+
+  const getStatusBadge = (status) => {
+    const statusColors = {
+      pending: 'bg-yellow-100 text-yellow-800',
+      pending_approval: 'bg-yellow-100 text-yellow-800',
+      confirmed: 'bg-green-100 text-green-800',
+      cancelled: 'bg-red-100 text-red-800',
+      rejected: 'bg-gray-100 text-gray-800'
+    };
+    
+    return (
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[status.toLowerCase()] || 'bg-gray-100 text-gray-800'}`}>
+        {status}
+      </span>
+    );
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-900">Bookings Management</h1>
+        <div className="text-sm text-gray-600">
+          Total Bookings: {total}
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-semibold text-gray-900">Filters</h2>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="px-3 py-1.5 text-sm rounded-md bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+              onClick={() => setFilters((prev) => ({ ...prev, status: 'pending_approval', page: 1 }))}
+              title="Show bookings needing payment approval"
+            >
+              Pending Approval
+            </button>
+            <button
+              type="button"
+              className="px-3 py-1.5 text-sm rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200"
+              onClick={() => setFilters((prev) => ({ ...prev, status: 'all', page: 1 }))}
+              title="Show all statuses"
+            >
+              Reset Status
+            </button>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Filter by Amenity
+            </label>
+            <select
+              value={filters.amenity}
+              onChange={(e) => handleFilterChange('amenity', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500"
+            >
+              <option value="all">All Amenities</option>
+              <option value="Swimming Pool">Swimming Pool</option>
+              <option value="Clubhouse">Clubhouse</option>
+              <option value="Basketball Court">Basketball Court</option>
+              <option value="Playground">Playground</option>
+            </select>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Filter by Status
+            </label>
+            <select
+              value={filters.status}
+              onChange={(e) => handleFilterChange('status', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500"
+            >
+              <option value="all">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="pending_approval">Pending Approval</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Results per page
+            </label>
+            <select
+              value={filters.pageSize}
+              onChange={(e) => handleFilterChange('pageSize', parseInt(e.target.value))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500"
+            >
+              <option value="5">5 per page</option>
+              <option value="10">10 per page</option>
+              <option value="20">20 per page</option>
+              <option value="50">50 per page</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Bookings List */}
+      <div className="bg-white rounded-lg shadow">
+        {loading ? (
+          <div className="p-6 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+            <p className="mt-2 text-gray-600">Loading bookings...</p>
+          </div>
+        ) : error ? (
+          <div className="p-6 text-center text-red-600">
+            <p>{error}</p>
+            <button
+              onClick={loadBookings}
+              className="mt-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+            >
+              Retry
+            </button>
+          </div>
+        ) : bookings.length === 0 ? (
+          <div className="p-6 text-center text-gray-500">
+            <p>No bookings found with the current filters.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-200">
+            {bookings.map((booking) => (
+              <div key={booking.id} className="relative">
+                <div
+                  className="p-6 hover:bg-gray-50 cursor-pointer transition-colors border-l-4 border-transparent hover:border-green-500"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => openFullScreen(booking)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openFullScreen(booking); }}
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {booking.name}
+                        </h3>
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          {booking.status}
+                        </span>
+                      </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-gray-600">
+                      <div className="flex items-center gap-2">
+                        <Calendar size={16} />
+                        <span>{formatDate(booking.date)}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock size={16} />
+                        <span>{booking.time}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <MapPin size={16} />
+                        <span>{booking.amenity}</span>
+                      </div>
+                      {/* Payment indicator */}
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-1 rounded text-xs ${booking.payment_proof_url ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600'}`}>
+                          {booking.payment_proof_url ? 'Payment Proof' : 'No Proof'}
+                        </span>
+                        <span className="text-gray-700">Amount: ₱{booking.payment_amount?.toLocaleString() || 'N/A'}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <User size={16} />
+                        <span>{booking.address}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Phone size={16} />
+                        <span>{booking.contact}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Mail size={16} />
+                        <span>{booking.email}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="ml-4 flex items-center text-gray-400">
+                    <ChevronRight size={24} />
+                  </div>
+                </div>
+
+                {/* Booking Details */}
+                <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                            <p className="text-sm text-gray-600 mt-1">Amenity booking overview and payment confirmation</p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            {getStatusBadge(selectedBooking.status)}
+                            <button
+                              type="button"
+                              onClick={closeFullScreen}
+                              className="inline-flex items-center px-3 py-1.5 text-sm rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200"
+                              aria-label="Close full screen"
+                            >
+                              Close
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Summary */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                          <div className="bg-gray-50 rounded-lg p-4">
+                            <div className="text-sm text-gray-500 mb-1">Amenity</div>
+                            <div className="font-medium text-gray-900">{selectedBooking.amenity}</div>
+                          </div>
+                          <div className="bg-gray-50 rounded-lg p-4">
+                            <div className="text-sm text-gray-500 mb-1">Date</div>
+                            <div className="font-medium text-gray-900">{formatDate(selectedBooking.date)}</div>
+                          </div>
+                          <div className="bg-gray-50 rounded-lg p-4">
+                            <div className="text-sm text-gray-500 mb-1">Time</div>
+                            <div className="font-medium text-gray-900">{selectedBooking.time}</div>
+                          </div>
+                        </div>
+
+                        {/* Booker Details */}
+                        <div className="mb-8">
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4">Booker Information</h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
+                            <div className="bg-white border rounded-lg p-4">
+                              <div className="text-gray-500 mb-1">Name</div>
+                              <div className="font-medium">{selectedBooking.name || '—'}</div>
+                            </div>
+                            <div className="bg-white border rounded-lg p-4">
+                              <div className="text-gray-500 mb-1">Email</div>
+                              <div className="font-medium">{selectedBooking.email || '—'}</div>
+                            </div>
+                            <div className="bg-white border rounded-lg p-4">
+                              <div className="text-gray-500 mb-1">Contact</div>
+                              <div className="font-medium">{selectedBooking.contact || '—'}</div>
+                            </div>
+                            <div className="bg-white border rounded-lg p-4">
+                              <div className="text-gray-500 mb-1">Address</div>
+                              <div className="font-medium">{selectedBooking.address || '—'}</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Payment Confirmation */}
+                        <div className="mb-8">
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-gray-900">Payment Confirmation</h3>
+                            <div className="text-sm text-gray-600">
+                              Amount: <span className="font-semibold text-gray-900">₱{selectedBooking.payment_amount?.toLocaleString() || 'N/A'}</span>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="md:col-span-2">
+                              <div className="border rounded-lg overflow-hidden bg-gray-50">
+                                {selectedBooking.payment_proof_url ? (
+                                  <img
+                                    src={selectedBooking.payment_proof_url}
+                                    alt="Payment Proof"
+                                    className="w-full h-[420px] object-contain bg-white"
+                                  />
+                                ) : (
+                                  <div className="h-[420px] flex items-center justify-center text-gray-500">No payment proof uploaded</div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="md:col-span-1">
+                              <div className="bg-white border rounded-lg p-4">
+                                <div className="text-sm text-gray-600 mb-2">Admin Notes</div>
+                                <textarea
+                                  rows={6}
+                                  value={reviewNotes}
+                                  onChange={(e) => setReviewNotes(e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500"
+                                  placeholder="Optional notes about your decision"
+                                />
+                                {selectedBooking.status === 'pending_approval' ? (
+                                  <div className="mt-4 flex flex-col gap-2">
+                                    <button
+                                      type="button"
+                                      disabled={reviewLoading}
+                                      onClick={async () => {
+                                        try {
+                                          setReviewLoading(true);
+                                          await handlePaymentReview(selectedBooking.id, 'approve', reviewNotes);
+                                          closeFullScreen();
+                                        } finally {
+                                          setReviewLoading(false);
+                                        }
+                                      }}
+                                      className="w-full inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md bg-green-600 text-white hover:bg-green-700 disabled:opacity-60"
+                                    >
+                                      Approve Payment
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={reviewLoading}
+                                      onClick={async () => {
+                                        try {
+                                          setReviewLoading(true);
+                                          await handlePaymentReview(selectedBooking.id, 'reject', reviewNotes);
+                                          closeFullScreen();
+                                        } finally {
+                                          setReviewLoading(false);
+                                        }
+                                      }}
+                                      className="w-full inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
+                                    >
+                                      Reject Payment
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div className="mt-4 text-sm text-gray-600">
+                                    Payment review actions are available when status is <span className="font-medium">pending_approval</span>.
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="flex items-center justify-end gap-3">
+                          <button
+                            type="button"
+                            onClick={closeFullScreen}
+                            className="inline-flex items-center px-4 py-2 text-sm rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          >
+                            Close
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Booking Details */}
+                <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-700">Purpose:</span>
+                      <span className="ml-2 text-gray-600">{booking.purpose}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Users size={16} />
+                      <span className="font-medium text-gray-700">Attendees:</span>
+                      <span className="ml-1 text-gray-600">{booking.attendees}</span>
+                    </div>
+                  </div>
+                  {booking.notes && booking.notes !== '--' && (
+                    <div className="mt-3">
+                      <span className="font-medium text-gray-700">Notes:</span>
+                      <p className="mt-1 text-gray-600">{booking.notes}</p>
+                    </div>
+                  )}
+                  <div className="mt-3">
+                    <button
+                      className="text-sm text-blue-600 hover:underline"
+                      onClick={() => setExpandedId(expandedId === booking.id ? null : booking.id)}
+                    >
+                      {expandedId === booking.id ? 'Collapse details' : 'Expand details'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Inline Payment Review when expanded and pending_approval */}
+                {expandedId === booking.id && booking.status.toLowerCase() === 'pending_approval' && (
+                  <div className="border rounded-lg p-4 mb-4">
+                    <h4 className="font-semibold text-gray-800 mb-3">Manual Payment Review</h4>
+                    {booking.payment_proof_url ? (
+                      <div className="mb-3">
+                        <p className="text-sm font-medium text-gray-700">Proof of Payment:</p>
+                        <img
+                          src={booking.payment_proof_url}
+                          alt="Proof of payment"
+                          className="max-w-md h-auto rounded border"
+                        />
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-600 mb-3">No payment proof uploaded.</p>
+                    )}
+                    <div className="text-sm text-gray-700 mb-3">
+                      Amount: <span className="font-semibold">₱{booking.payment_amount?.toLocaleString() || 'N/A'}</span>
+                    </div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Admin Notes (optional)</label>
+                    <textarea
+                      value={reviewNotes}
+                      onChange={(e) => setReviewNotes(e.target.value)}
+                      className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-green-500 focus:border-transparent mb-3"
+                      rows="3"
+                      placeholder="Add notes about this payment review..."
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handlePaymentReview(booking.id, 'approve')}
+                        disabled={processing}
+                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm disabled:bg-gray-400"
+                      >
+                        {processing ? 'Processing...' : 'Approve Payment'}
+                      </button>
+                      <button
+                        onClick={() => handlePaymentReview(booking.id, 'reject')}
+                        disabled={processing}
+                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm disabled:bg-gray-400"
+                      >
+                        {processing ? 'Processing...' : 'Reject Payment'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                {booking.status.toLowerCase() === 'pending' && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleStatusUpdate(booking.id, 'confirmed')}
+                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => handleStatusUpdate(booking.id, 'rejected')}
+                      className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                )}
+                
+                {booking.status.toLowerCase() === 'confirmed' && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleStatusUpdate(booking.id, 'cancelled')}
+                      className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 text-sm"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="flex justify-between items-center">
+            <div className="text-sm text-gray-600">
+              Page {filters.page} of {totalPages}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handlePageChange(filters.page - 1)}
+                disabled={filters.page <= 1}
+                className="px-3 py-1 bg-gray-300 text-gray-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-400"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => handlePageChange(filters.page + 1)}
+                disabled={filters.page >= totalPages}
+                className="px-3 py-1 bg-gray-300 text-gray-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-400"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

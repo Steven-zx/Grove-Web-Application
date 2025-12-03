@@ -1,5 +1,5 @@
 @echo off
 echo Starting Admin Frontend...
-cd admin\frontend
-npm run dev
+cd /d "%~dp0admin\frontend"
+call npm run dev
 pause

@@ -57,7 +57,8 @@ export async function fetchAdminBookings({
     params.append('pageSize', pageSize.toString());
     
     try {
-      const endpoint = `/api/admin/amenities/bookings${params.toString() ? `?${params.toString()}` : ''}`;
+      // Correct backend endpoint
+      const endpoint = `/api/admin/bookings${params.toString() ? `?${params.toString()}` : ''}`;
       const result = await apiRequest(endpoint);
       
       return {
@@ -123,7 +124,7 @@ export async function fetchAdminBookings({
       let filteredData = sampleBookings;
       if (amenity !== 'all') {
         filteredData = sampleBookings.filter(booking => 
-          booking.amenity.toLowerCase().includes(amenity.toLowerCase())
+          booking.amenity.toLowerCase() === amenity.toLowerCase()
         );
       }
       
@@ -163,6 +164,15 @@ export async function updateBookingStatus(id, status) {
     console.error('Failed to update booking status:', error);
     throw error;
   }
+}
+
+// Review manual payment for a booking (approve/reject)
+export async function reviewManualPayment(bookingId, action, adminNotes = '') {
+  const payload = { bookingId, action, adminNotes };
+  return apiRequest(`/api/admin/payments/manual/review`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
 }
 
 // Delete bookings (bulk) - Note: This endpoint doesn't exist yet in backend

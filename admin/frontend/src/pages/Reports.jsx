@@ -2,36 +2,23 @@
 import React, { useState, useEffect } from "react";
 import ReportDetails from "./ReportDetails";
 import FiltersCard from "../components/shared/FiltersCard";
+import { concernsService } from "../services/api";
 
-// Dummy backend fetch function (replace with real API call)
-async function fetchReports() {
-    // Simulate API response
-    return [
-        {
-            id: 1,
-            date: "16 August 2025",
-            type: "Maintenance",
-            name: "John Smith",
-            status: "resolved",
-            unread: false,
-        },
-        {
-            id: 2,
-            date: "11 August 2025",
-            type: "Noise",
-            name: "John Smith",
-            status: "unresolved",
-            unread: false,
-        },
-        {
-            id: 3,
-            date: "10 August 2025",
-            type: "Noise",
-            name: "John Smith",
-            status: "unread",
-            unread: true,
-        },
-    ];
+// Map backend concern to UI report row
+function mapConcernToReport(c) {
+    return {
+        id: c.id,
+        date: new Date(c.created_at).toLocaleDateString(),
+        type: c.issue_type || 'Other',
+        name: c.reporter_name || 'Anonymous',
+        status: c.status || 'unread',
+        unread: c.status === 'unread',
+        description: c.description,
+        location: c.location,
+        email: c.email,
+        phone: c.phone,
+        image_url: c.image_url,
+    };
 }
 
 function Reports() {
@@ -45,7 +32,15 @@ function Reports() {
     const [openReportId, setOpenReportId] = useState(null);
 
     useEffect(() => {
-        fetchReports().then(setReports);
+        (async () => {
+            try {
+                const data = await concernsService.list();
+                setReports((data || []).map(mapConcernToReport));
+            } catch (e) {
+                console.error('Failed to load concerns:', e);
+                setReports([]);
+            }
+        })();
     }, []);
 
     function toggleSelect(id) {
@@ -59,20 +54,32 @@ function Reports() {
         setFilters(f => ({ ...f, [name]: value }));
     }
 
-    function handleFind(e) {
+    async function handleFind(e) {
         e.preventDefault();
-        // Future: fetch filtered reports from backend
+        const params = {};
+        if (filters.type && filters.type !== 'All issue types') params.type = filters.type;
+        try {
+            const data = await concernsService.list(params);
+            setReports((data || []).map(mapConcernToReport));
+        } catch (e) {
+            console.error('Filter load failed:', e);
+        }
     }
 
     // Handler to mark selected reports as resolved
-    function handleMarkResolved() {
-        setReports(reports =>
-            reports.map(report =>
-                selectedIds.includes(report.id)
-                    ? { ...report, status: "resolved" }
-                    : report
-            )
-        );
+    async function handleMarkResolved() {
+        try {
+            await Promise.all(selectedIds.map(id => concernsService.updateStatus(id, 'resolved')));
+            setReports(reports =>
+                reports.map(report =>
+                    selectedIds.includes(report.id)
+                        ? { ...report, status: "resolved" }
+                        : report
+                )
+            );
+        } catch (e) {
+            console.error('Failed to update status:', e);
+        }
     }
 
     // Handler to delete selected reports
@@ -95,14 +102,20 @@ function Reports() {
     function handleCloseDetails() {
         setOpenReportId(null);
     }
-    function handleResolveDetails(id, newStatus) {
-        setReports(reports =>
-            reports.map(report =>
-                report.id === id
-                    ? { ...report, status: newStatus || (report.status === "resolved" ? "unresolved" : "resolved") }
-                    : report
-            )
-        );
+    async function handleResolveDetails(id, newStatus) {
+        try {
+            const status = newStatus || (reports.find(r => r.id === id)?.status === 'resolved' ? 'unresolved' : 'resolved');
+            await concernsService.updateStatus(id, status);
+            setReports(reports =>
+                reports.map(report =>
+                    report.id === id
+                        ? { ...report, status }
+                        : report
+                )
+            );
+        } catch (e) {
+            console.error('Failed to resolve report:', e);
+        }
     }
     function handleDeleteDetails(id) {
         setReports(reports => reports.filter(report => report.id !== id));

@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import MobileNavbar from "../components/layout/MobileNavbar";
 import MobileSidebar from "../components/layout/MobileSidebar";
 import GeneralConditions from "../components/GeneralConditions";
-import { bookingService } from "../services/bookingService";
+import bookingService from "../services/bookingService";
 import { authService } from "../services/authService";
 
 export default function BookingModalMobile() {

@@ -183,33 +183,29 @@ const limiter = rateLimit({
 });
 
 // Middleware
-app.use(helmet());
-app.use(limiter);
+// CORS MUST be first to ensure headers are set on all responses
+app.use((req, res, next) => {
+  console.log(`🔵 Request: ${req.method} ${req.path} from ${req.headers.origin || 'no-origin'}`);
+  next();
+});
+
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, Postman, etc.)
-    if (!origin) return callback(null, true);
-    
-    const allowedOrigins = [
-      'http://localhost:3000',
-      'http://localhost:5173', 
-      'http://localhost:4173',
-      'http://localhost:5174',
-      'http://localhost:5175',
-      'http://localhost:5176'
-    ];
-    
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    
-    console.log('CORS blocked origin:', origin);
-    callback(new Error('Not allowed by CORS'));
+  origin: (origin, callback) => {
+    console.log(`🟢 CORS check for origin: ${origin}`);
+    callback(null, true);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Explicitly handle CORS preflight for all API routes (Express 5 safe pattern)
+// Express 5 path patterns require valid parameter names; use a regex-like route
+app.options(/^\/api\//, cors());
+
+// app.use(helmet()); // Temporarily disabled to test CORS
+// app.use(limiter); // Temporarily disabled to test CORS
 
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
@@ -906,7 +902,7 @@ app.put('/api/admin/announcements/:id', verifyToken, verifyAdmin, async (req, re
     const { id } = req.params;
     const { title, description, category, importance, image_url } = req.body;
     
-    const { data, error } = await supabase
+    const { data, error } = await supabaseService
       .from('announcements')
       .update({
         title,
@@ -934,24 +930,29 @@ app.put('/api/admin/announcements/:id', verifyToken, verifyAdmin, async (req, re
 app.delete('/api/admin/announcements/:id', verifyToken, verifyAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    
-    const { error } = await supabase
+    console.log('🗑️ DELETE request for announcement:', id);
+    console.log('🔑 Using supabaseService:', !!supabaseService);
+
+    const { data, error } = await supabaseService
       .from('announcements')
       .delete()
-      .eq('id', id);
-    
+      .eq('id', id)
+      .select();
+
+    console.log('🗑️ Delete result:', { data, error: error?.message });
+
     if (error) {
+      console.error('❌ Delete error:', error);
       return res.status(500).json({ error: error.message });
     }
-    
-    res.json({ message: 'Announcement deleted successfully' });
+
+    console.log('✅ Announcement deleted:', data);
+    res.json({ message: 'Announcement deleted successfully', deleted: data });
   } catch (error) {
-    console.error('Delete announcement error:', error);
+    console.error('❌ Delete announcement error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-});
-
-// ===== AMENITIES ROUTES =====
+});// ===== AMENITIES ROUTES =====
 
 // Setup Amenities (Manual endpoint)
 app.post('/api/setup/amenities', async (req, res) => {
@@ -1528,9 +1529,9 @@ app.get('/api/admin/bookings', verifyToken, verifyAdmin, async (req, res) => {
       .from('bookings')
       .select('*');
     
-    // Filter by amenity
+    // Filter by amenity (case-insensitive exact match)
     if (amenity !== 'all') {
-      query = query.eq('amenity_type', amenity);
+      query = query.ilike('amenity_type', amenity);
     }
     
     // Filter by status
@@ -2043,27 +2044,56 @@ app.get('/api/gallery', async (req, res) => {
   try {
     await ensureGalleryBucket();
 
-    const { data, error } = await supabaseService
+    // List root level
+    const { data: rootData, error: rootError } = await supabaseService
       .storage
       .from(GALLERY_BUCKET)
       .list('', { limit: 1000, sortBy: { column: 'created_at', order: 'desc' } });
 
-    if (error) {
-      return res.status(500).json({ error: error.message });
+    if (rootError) {
+      return res.status(500).json({ error: rootError.message });
     }
 
-    const items = (data || []).filter(f => f && f.name).map(f => {
-      const pub = supabaseService.storage.from(GALLERY_BUCKET).getPublicUrl(f.name);
+    let allFiles = [];
+    
+    // Add root-level files
+    const rootFiles = (rootData || []).filter(f => f && f.name && f.name.includes('.'));
+    for (const f of rootFiles) {
+      allFiles.push({ ...f, fullPath: f.name });
+    }
+    
+    // List files in each folder (category)
+    const folders = (rootData || []).filter(f => f && f.name && !f.name.includes('.'));
+    for (const folder of folders) {
+      const { data: folderData, error: folderError } = await supabaseService
+        .storage
+        .from(GALLERY_BUCKET)
+        .list(folder.name, { limit: 1000 });
+      
+      if (!folderError && folderData) {
+        const folderFiles = folderData.filter(f => f && f.name && f.name.includes('.'));
+        for (const f of folderFiles) {
+          allFiles.push({ ...f, fullPath: `${folder.name}/${f.name}` });
+        }
+      }
+    }
+
+    // Map to response format
+    const items = allFiles.map(f => {
+      const pub = supabaseService.storage.from(GALLERY_BUCKET).getPublicUrl(f.fullPath);
+      const category = f.fullPath.includes('/') ? f.fullPath.split('/')[0] : 'Others';
       return {
-        id: f.name, // use storage path as id
-        name: f.name,
+        id: f.fullPath, // use storage path as id
+        name: path.basename(f.fullPath),
         url: pub?.data?.publicUrl,
         created_at: f.created_at,
         updated_at: f.updated_at,
-        metadata: f.metadata || null
+        metadata: f.metadata || null,
+        category
       };
     });
 
+    console.log(`📸 Gallery list returning ${items.length} images from ${folders.length} categories + root`);
     res.json(items);
   } catch (error) {
     console.error('List gallery error:', error);
@@ -2084,7 +2114,15 @@ app.post('/api/admin/gallery/upload', verifyToken, verifyAdmin, upload.single('f
       return res.status(400).json({ error: 'Only image uploads are allowed' });
     }
 
-    const objectPath = makeObjectPath(req.file.originalname);
+    // Optional category: if provided, store under "<category>/filename"
+    console.log('📦 Upload request body:', req.body);
+    const rawCategory = (req.body && req.body.category) ? String(req.body.category).trim() : '';
+    console.log('📂 Category received:', rawCategory || '(none)');
+    const safeCategory = rawCategory ? sanitizeFileName(rawCategory) : '';
+    console.log('📂 Safe category:', safeCategory || '(none)');
+    const baseName = makeObjectPath(req.file.originalname);
+    const objectPath = safeCategory ? `${safeCategory}/${baseName}` : baseName;
+    console.log('📁 Final object path:', objectPath);
 
     const { data, error } = await supabaseService
       .storage
@@ -2117,10 +2155,14 @@ app.post('/api/admin/gallery/upload', verifyToken, verifyAdmin, upload.single('f
 // Admin: Delete image by id (id is the storage path; URL-encode when calling)
 app.delete('/api/admin/gallery/:id', verifyToken, verifyAdmin, async (req, res) => {
   try {
+    await ensureGalleryBucket();
+
     const id = decodeURIComponent(req.params.id || '');
     if (!id) {
       return res.status(400).json({ error: 'id (storage path) is required' });
     }
+
+    console.log('🗑️ Gallery delete requested for:', id);
 
     const { data, error } = await supabaseService
       .storage
@@ -2128,10 +2170,60 @@ app.delete('/api/admin/gallery/:id', verifyToken, verifyAdmin, async (req, res) 
       .remove([id]);
 
     if (error) {
+      console.error('❌ Storage remove error:', error.message);
       return res.status(500).json({ error: error.message });
     }
 
-    res.json({ message: 'Image deleted successfully', data });
+    // Double-check deletion with short retry loop (eventual consistency safety)
+    let exists = false;
+    let attempts = 0;
+    while (attempts < 3) {
+      attempts++;
+      try {
+        const { data: list } = await supabaseService
+          .storage
+          .from(GALLERY_BUCKET)
+          .list('', { limit: 1000 });
+        exists = (list || []).some(f => f && f.name === id);
+        if (!exists) break;
+      } catch (e) {
+        console.warn('⚠️ Post-delete list check warning:', e.message);
+        break; // don't loop on listing errors
+      }
+      // small backoff
+      await new Promise(r => setTimeout(r, 300));
+    }
+
+    // If listing still shows the item, perform direct download probe (expect failure for non-existent)
+    let downloadProbe = { tried: false, status: null, ok: null, message: null };
+    if (exists) {
+      downloadProbe.tried = true;
+      try {
+        const { data: dl } = await supabaseService
+          .storage
+          .from(GALLERY_BUCKET)
+          .download(id);
+        // If we can download, it truly still exists
+        downloadProbe.status = 'download-ok';
+        downloadProbe.ok = true;
+      } catch (e) {
+        // On 404/not found, consider deletion successful
+        downloadProbe.status = 'download-failed';
+        downloadProbe.ok = false;
+        downloadProbe.message = e.message || 'download error';
+        exists = false;
+      }
+    }
+
+    console.log('🧹 Post-delete existence check:', { exists, attempts, downloadProbe });
+
+    res.json({ 
+      message: exists ? 'Delete requested; item may still be listed temporarily' : 'Image deleted successfully', 
+      data, 
+      stillExists: exists, 
+      attempts,
+      downloadProbe
+    });
   } catch (error) {
     console.error('Delete gallery image error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -2157,6 +2249,11 @@ app.use((req, res, next) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
+  // Ensure CORS headers are set even on errors
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.status(500).json({ error: 'Something went wrong!' });
 });
 

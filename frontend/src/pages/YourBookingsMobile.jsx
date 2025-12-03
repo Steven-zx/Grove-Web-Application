@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
-import { bookingService } from '../services/bookingService';
+import bookingService from '../services/bookingService';
 import MobileNavbar from "../components/layout/MobileNavbar";
 import MobileSidebar from "../components/layout/MobileSidebar";
 import NoticeCard from '../components/shared/NoticeCard';

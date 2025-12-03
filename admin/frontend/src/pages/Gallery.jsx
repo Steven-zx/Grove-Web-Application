@@ -3,17 +3,6 @@
 import React from "react";
 import ConfirmationPopUp from "../components/shared/ConfirmationPopUp";
 import { galleryService } from "../services/api";
-import entrance from "../assets/entrance.jpg";
-import gate from "../assets/gate.jpg";
-import gate2 from "../assets/gate2.jpg";
-import gate3 from "../assets/gate3.jpg";
-import pool from "../assets/pool.jpg";
-import pool2 from "../assets/pool2.jpg";
-import pool3 from "../assets/pool3.jpg";
-import pool4 from "../assets/pool4.jpg";
-import basketball from "../assets/basketball.jpg";
-import guardhouse from "../assets/guardhouse.jpg";
-import clubhouse from "../assets/clubhouse.jpg";
 
 const categories = [
   "All images",
@@ -54,29 +43,18 @@ function CheckIcon({ size = 14, color = '#1e1e1e' }) {
     </svg>
   );
 }
-// Fallback initial images (local assets) used before backend list loads
-const initialImages = [
-  { id: 'local-1', url: entrance, category: "Others" },
-  { id: 'local-2', url: gate, category: "Others" },
-  { id: 'local-3', url: gate2, category: "Others" },
-  { id: 'local-4', url: gate3, category: "Others" },
-  { id: 'local-5', url: pool, category: "Swimming pool" },
-  { id: 'local-6', url: pool2, category: "Swimming pool" },
-  { id: 'local-7', url: pool3, category: "Swimming pool" },
-  { id: 'local-8', url: pool4, category: "Swimming pool" },
-  { id: 'local-9', url: basketball, category: "Basketball court" },
-  { id: 'local-10', url: guardhouse, category: "Others" },
-  { id: 'local-11', url: clubhouse, category: "Clubhouse" },
-];
+// No local fallback: we only show database images
 
 export default function Gallery() {
-  // Backend-ready: images and categories would be fetched
+  // Backend-only: images are fetched from API
   const [activeCategory, setActiveCategory] = React.useState(categories[0]);
-  const [images, setImages] = React.useState(initialImages);
+  const [images, setImages] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
   const [modalOpen, setModalOpen] = React.useState(false);
   const [selectedImage, setSelectedImage] = React.useState(null);
   const [uploadOpen, setUploadOpen] = React.useState(false);
   const [selectedIds, setSelectedIds] = React.useState([]);
+  const [selectMode, setSelectMode] = React.useState(false);
   const [hoveredId, setHoveredId] = React.useState(null);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
   const [isDragOver, setIsDragOver] = React.useState(false);
@@ -90,20 +68,19 @@ export default function Gallery() {
         const items = await galleryService.list();
         if (ignore) return;
         // Map to UI shape (no categories from backend yet)
-        const mapped = (items || []).map(it => ({ id: it.id, url: it.url, category: 'Others' }));
-        setImages(mapped.length ? mapped : initialImages);
+        const mapped = (items || [])
+          .filter(it => it && it.url)
+          .map(it => ({ id: it.id, url: it.url, category: it.category || 'Others' }));
+        setImages(mapped);
       } catch (e) {
-        console.warn('Failed to load gallery, using local seed:', e);
-        setImages(initialImages);
+        console.warn('Failed to load gallery from API:', e);
+        setImages([]);
+      } finally {
+        setLoading(false);
       }
     })();
     return () => { ignore = true; };
   }, []);
-
-  // Filter by category client-side (backend does not categorize yet)
-  React.useEffect(() => {
-    // No-op: categories are static placeholders; all backend images are "Others"
-  }, [activeCategory]);
 
   // Modal keyboard navigation
   React.useEffect(() => {
@@ -140,11 +117,28 @@ export default function Gallery() {
     if (fileInputRef.current) fileInputRef.current.click();
   }
   async function handleFileChange(e) {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    await uploadFile(file);
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    await uploadFiles(Array.from(files));
     e.target.value = "";
   }
+
+  // Infer category based on active tab when uploading (except "All images")
+  function inferCategory() {
+    return activeCategory !== categories[0] ? activeCategory : 'Others';
+  }
+
+  // Normalize category name for comparison (e.g., "Basketball court" → "basketball-court")
+  function normalizeCategory(cat) {
+    return cat.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  }
+
+  // Client-side filter view is driven by activeCategory
+  const visibleImages = React.useMemo(() => {
+    if (activeCategory === categories[0]) return images; // All images
+    const normalized = normalizeCategory(activeCategory);
+    return images.filter(img => normalizeCategory(img.category || '') === normalized);
+  }, [images, activeCategory]);
 
   async function uploadFile(file) {
     // Validate file type
@@ -160,15 +154,39 @@ export default function Gallery() {
     }
 
     try {
-      const res = await galleryService.upload(file);
+      // Pass category context to backend if supported
+      const res = await galleryService.upload(file, { category: inferCategory() });
       const newItem = res?.item;
       if (newItem) {
-        setImages(prev => [{ id: newItem.id, url: newItem.url, category: 'Others' }, ...prev.filter(i => !String(i.id).startsWith('local-'))]);
+        const cat = newItem.category || inferCategory();
+        setImages(prev => [{ id: newItem.id, url: newItem.url, category: cat }, ...prev.filter(i => !String(i.id).startsWith('local-'))]);
       }
     } catch (err) {
       console.error('Upload failed:', err);
       alert('Failed to upload image: ' + (err?.message || 'Unknown error'));
     }
+  }
+
+  async function uploadFiles(files) {
+    const valid = files.filter(f => f && f.type && f.type.startsWith('image/'));
+    if (valid.length === 0) {
+      alert('Please drop only image files.');
+      return;
+    }
+    // Optional: size filter
+    const tooBig = valid.filter(f => f.size > 5 * 1024 * 1024);
+    if (tooBig.length) {
+      alert('Some files exceed 5MB and were skipped.');
+    }
+    const toUpload = valid.filter(f => f.size <= 5 * 1024 * 1024);
+    for (const f of toUpload) {
+      // upload sequentially for simplicity; could be parallelized later
+      await uploadFile(f);
+    }
+    // Refresh list to ensure consistency
+    const items = await galleryService.list();
+    const mapped = (items || []).filter(it => it && it.url).map(it => ({ id: it.id, url: it.url, category: it.category || 'Others' }));
+    setImages(mapped);
   }
 
   // Drag and drop handlers
@@ -194,8 +212,7 @@ export default function Gallery() {
     
     const files = e.dataTransfer.files;
     if (files && files.length > 0) {
-      const file = files[0];
-      uploadFile(file);
+      uploadFiles(Array.from(files));
     }
   }
 
@@ -238,6 +255,29 @@ export default function Gallery() {
             </button>
           </div>
         ))}
+        {/* Selection mode toggle */}
+        <button
+          type="button"
+          aria-label={selectMode ? "Disable selection" : "Enable selection"}
+          className={`ml-4 px-3 py-1 rounded text-sm font-medium border transition-colors ${selectMode ? 'bg-green-600 text-white border-green-600' : 'bg-white text-green-700 border-green-600'}`}
+          onClick={() => {
+            setSelectMode(v => !v);
+            if (selectMode) setSelectedIds([]);
+          }}
+        >
+          Select
+        </button>
+        {/* Select All button (only visible in selection mode) */}
+        {selectMode && (
+          <button
+            type="button"
+            aria-label="Select all images"
+            className="ml-2 px-3 py-1 rounded text-sm font-medium border bg-white text-green-700 border-green-600 hover:bg-green-50 transition-colors"
+            onClick={() => setSelectedIds(visibleImages.map(img => img.id))}
+          >
+            Select All
+          </button>
+        )}
         {/* Action button: plus or trash */}
         {selectedIds.length === 0 ? (
           <button
@@ -275,6 +315,7 @@ export default function Gallery() {
         <input
           type="file"
           accept="image/*"
+          multiple
           ref={fileInputRef}
           style={{ display: 'none' }}
           onChange={handleFileChange}
@@ -283,10 +324,14 @@ export default function Gallery() {
 
       {/* Image Grid */}
       <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        {images.length === 0 ? (
+        {loading ? (
+          Array.from({ length: 10 }).map((_, i) => (
+            <div key={`skeleton-${i}`} className="bg-gray-200 animate-pulse rounded" style={{ aspectRatio: '3/4', width: '100%' }} />
+          ))
+        ) : images.length === 0 ? (
           <div className="col-span-full text-center text-gray-500 py-12">No images found.</div>
         ) : (
-          images.map(img => {
+          visibleImages.map(img => {
             const isSelected = selectedIds.includes(img.id);
             return (
               <div
@@ -299,7 +344,13 @@ export default function Gallery() {
                 <button
                   className="overflow-hidden border border-gray-200 bg-white shadow-sm flex items-center justify-center focus:outline-none cursor-pointer"
                   style={{ aspectRatio: '3/4', width: '100%' }}
-                  onClick={() => !selectedIds.length ? openModal(img) : setSelectedIds(ids => ids.includes(img.id) ? ids.filter(id => id !== img.id) : [...ids, img.id])}
+                  onClick={() => {
+                    if (selectMode) {
+                      setSelectedIds(ids => ids.includes(img.id) ? ids.filter(id => id !== img.id) : [...ids, img.id]);
+                    } else {
+                      openModal(img);
+                    }
+                  }}
                   tabIndex={0}
                 >
                   <img
@@ -310,19 +361,24 @@ export default function Gallery() {
                     loading="lazy"
                   />
                 </button>
-                {/* Select circle: show on hover or if selected */}
-                {(hoveredId === img.id || isSelected || selectedIds.length > 0) && (
+                {/* Select circle: always show in selection mode */}
+                {selectMode && (
                   <button
                     type="button"
                     aria-label={isSelected ? "Deselect image" : "Select image"}
-                    className="absolute top-2 left-2 w-7 h-7 flex items-center justify-center rounded-full border-none shadow focus:outline-none cursor-pointer"
-                    style={{ background: isSelected ? '#FFFFFF' : '#D9D9D9', transition: 'background 0.2s', zIndex: 2, boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}
+                    className="absolute top-2 left-2 w-7 h-7 flex items-center justify-center rounded-full border-2 shadow focus:outline-none cursor-pointer transition-all"
+                    style={{ 
+                      background: isSelected ? '#10B981' : '#FFFFFF', 
+                      borderColor: isSelected ? '#10B981' : '#D1D5DB',
+                      zIndex: 2, 
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.15)' 
+                    }}
                     onClick={e => {
                       e.stopPropagation();
                       setSelectedIds(ids => ids.includes(img.id) ? ids.filter(id => id !== img.id) : [...ids, img.id]);
                     }}
                   >
-                    <CheckIcon size={16} color="#1e1e1e" />
+                    {isSelected && <CheckIcon size={16} color="#FFFFFF" />}
                   </button>
                 )}
               </div>
@@ -340,13 +396,14 @@ export default function Gallery() {
         cancelText="Cancel"
         onConfirm={async () => {
           try {
-            // Delete backend items only (ignore local seed)
+            // Delete backend items
             for (const id of selectedIds) {
-              if (!String(id).startsWith('local-')) {
-                await galleryService.remove(id);
-              }
+              await galleryService.remove(id);
             }
-            setImages(prev => prev.filter(img => !selectedIds.includes(img.id)));
+            // Refresh from backend to ensure state matches storage
+            const items = await galleryService.list();
+            const mapped = (items || []).filter(it => it && it.url).map(it => ({ id: it.id, url: it.url, category: 'Others' }));
+            setImages(mapped);
           } catch (err) {
             console.error('Delete failed:', err);
             alert('Failed to delete one or more images.');

@@ -60,6 +60,7 @@ export default function App() {
                       <Route path="/gallery" element={<Gallery />} />
                       <Route path="/reports" element={<Reports />} />
                       <Route path="/visitor-scanner" element={<VisitorScanner />} />
+                      <Route path="/payments" element={<PaymentReview />} />
                     </Routes>
                   </main>
                 </div>
