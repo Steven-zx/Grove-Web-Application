@@ -685,7 +685,7 @@ app.get('/api/auth/google/callback', async (req, res) => {
 
     if (existingUser) {
       // User exists, update Google info if needed
-      userId = existingUser.user_id;
+      userId = existingUser.id;  // Use 'id' not 'user_id'
       
       const { data: updated } = await supabaseService
         .from('user_profiles')
@@ -693,7 +693,7 @@ app.get('/api/auth/google/callback', async (req, res) => {
           google_id: googleId,
           updated_at: new Date().toISOString()
         })
-        .eq('user_id', userId)
+        .eq('id', userId)  // Use 'id' not 'user_id'
         .select()
         .single();
       
@@ -720,7 +720,7 @@ app.get('/api/auth/google/callback', async (req, res) => {
       const { data: newProfile, error: profileError } = await supabaseService
         .from('user_profiles')
         .insert({
-          user_id: userId,
+          id: userId,  // Primary key that references auth.users(id)
           email: email,
           first_name: firstName,
           last_name: lastName,

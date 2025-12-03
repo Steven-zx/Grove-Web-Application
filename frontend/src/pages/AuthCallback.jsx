@@ -32,11 +32,16 @@ const AuthCallback = () => {
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(user));
         
+        // Update authService instance with new data
+        authService.token = token;
+        authService.user = user;
+        
         setStatus('Success! Redirecting to home...');
         
         // Small delay for better UX
         setTimeout(() => {
           navigate('/');
+          window.location.reload(); // Force reload to ensure auth state is updated
         }, 1000);
 
       } catch (error) {
