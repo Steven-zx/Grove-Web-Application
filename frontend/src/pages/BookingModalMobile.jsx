@@ -120,8 +120,7 @@ export default function BookingModalMobile() {
     
     try {
       const bookingData = {
-        amenityId: amenity?.id,
-        amenityName: amenity?.name,
+        amenity_type: amenity?.name,  // Send name to avoid FK errors
         ...formData
       };
       

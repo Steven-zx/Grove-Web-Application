@@ -133,7 +133,7 @@ export default function BookingModal() {
     try {
       // Create booking data (bookingService will normalize to guest_count)
       const bookingData = {
-        amenity_id: amenity.id,  // Remove the ?. since we checked above
+        amenity_type: amenity.name,  // Send name instead of ID to avoid FK errors
         booking_date: formData.selectDate,
         start_time: formData.startTime,
         end_time: formData.endTime,
