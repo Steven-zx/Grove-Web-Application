@@ -24,6 +24,7 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentFailed from "./pages/PaymentFailed";
 import ManualGCashPayment from "./pages/ManualGCashPayment";
 import Search from "./pages/Search";
+import AuthCallback from "./pages/AuthCallback";
 
 // Mobile Pages
 import HomeMobile from "./pages/HomeMobile";
@@ -76,6 +77,7 @@ export default function App() {
         <Route path="/payment/failed" element={<PaymentFailed />} />
         <Route path="/payment/manual-gcash" element={<ManualGCashPayment />} />
         <Route path="/search" element={isMobile ? <SearchMobile /> : <Search />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
 
         {/* Mobile Routes */}
         {isMobile && (

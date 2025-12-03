@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { authService } from "../services/authService";
+import GoogleSignInButton from "../components/GoogleSignInButton";
 import logo from "../assets/logo.svg";
 import bgImg from "../assets/login-bg.png";
 
@@ -71,11 +72,6 @@ export default function Login() {
 		}
 	};
 
-	const handleGoogleLogin = async () => {
-		// Backend-ready: Replace with actual Google OAuth
-		// window.location.href = '/api/auth/google';
-		console.log('Google login initiated');
-	};
 	return (
 		<div className="min-h-screen flex flex-col bg-white">
 			{/* Header */}
@@ -97,15 +93,12 @@ export default function Login() {
 					{/* Card */}
 					<div className="relative z-10 w-full max-w-md mx-auto bg-white rounded-3xl shadow-lg p-10 flex flex-col items-center">
 						<h2 className="text-2xl font-bold mb-8 text-center">Welcome back</h2>
-						{/* Google button */}
-						<button 
-							type="button" 
-							onClick={handleGoogleLogin}
-							className="w-full flex items-center justify-center gap-2 bg-gray-100 rounded-full py-3 mb-6 font-medium text-[#1e1e1e] border-none hover:bg-gray-200 transition-colors"
-						>
-							<img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="h-5 w-5" />
-							Continue with Google
-						</button>
+						
+						{/* Google Sign In Button */}
+						<GoogleSignInButton 
+							onError={(error) => setErrors({ general: error })}
+						/>
+						
 						<div className="w-full flex items-center my-4 mb-6">
 							<div className="flex-1 h-px bg-gray-200" />
 							<span className="mx-3 text-gray-400 text-sm">or</span>

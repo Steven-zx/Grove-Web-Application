@@ -11,6 +11,7 @@ const axios = require('axios');
 const { createClient } = require('@supabase/supabase-js');
 const multer = require('multer');
 const crypto = require('crypto');
+const { OAuth2Client } = require('google-auth-library');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const app = express();
@@ -32,6 +33,13 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Service role client for admin operations (bypasses RLS)
 const supabaseService = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_KEY);
+
+// Initialize Google OAuth client
+const googleClient = new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  process.env.GOOGLE_REDIRECT_URI
+);
 
 // Debug: Verify service key is loaded
 console.log('🔑 Service key loaded:', process.env.SUPABASE_SERVICE_KEY ? 'Yes' : 'No');
@@ -624,21 +632,133 @@ app.post('/api/auth/test-register', async (req, res) => {
   }
 });
 
-// Google OAuth Routes (Placeholder - requires Google OAuth setup)
+// Google OAuth Routes
 app.get('/api/auth/google', (req, res) => {
-  // TODO: Implement Google OAuth
-  // For now, return a message indicating this feature is coming soon
-  res.status(501).json({ 
-    error: 'Google OAuth integration coming soon',
-    message: 'Please use email/password registration for now' 
-  });
+  try {
+    // Generate Google OAuth URL
+    const authUrl = googleClient.generateAuthUrl({
+      access_type: 'offline',
+      scope: [
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'https://www.googleapis.com/auth/userinfo.email'
+      ],
+      prompt: 'consent'
+    });
+    
+    res.json({ url: authUrl });
+  } catch (error) {
+    console.error('Google OAuth error:', error);
+    res.status(500).json({ error: 'Failed to generate OAuth URL' });
+  }
 });
 
-app.get('/api/auth/google/callback', (req, res) => {
-  // TODO: Implement Google OAuth callback
-  res.status(501).json({ 
-    error: 'Google OAuth integration coming soon' 
-  });
+app.get('/api/auth/google/callback', async (req, res) => {
+  try {
+    const { code } = req.query;
+    
+    if (!code) {
+      return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=no_code`);
+    }
+
+    // Exchange code for tokens
+    const { tokens } = await googleClient.getToken(code);
+    googleClient.setCredentials(tokens);
+
+    // Get user info from Google
+    const ticket = await googleClient.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: process.env.GOOGLE_CLIENT_ID
+    });
+    
+    const payload = ticket.getPayload();
+    const { email, name, picture, sub: googleId } = payload;
+
+    // Check if user exists
+    const { data: existingUser, error: findError } = await supabaseService
+      .from('user_profiles')
+      .select('*')
+      .eq('email', email)
+      .single();
+
+    let userId;
+    let userProfile;
+
+    if (existingUser) {
+      // User exists, update Google info if needed
+      userId = existingUser.user_id;
+      
+      const { data: updated } = await supabaseService
+        .from('user_profiles')
+        .update({ 
+          google_id: googleId,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId)
+        .select()
+        .single();
+      
+      userProfile = updated || existingUser;
+    } else {
+      // Create new user with Google auth
+      const { data: authData, error: authError } = await supabaseService.auth.admin.createUser({
+        email: email,
+        email_confirm: true,
+        user_metadata: {
+          name: name,
+          picture: picture,
+          google_id: googleId
+        }
+      });
+
+      if (authError) throw authError;
+      userId = authData.user.id;
+
+      // Create user profile
+      const [firstName, ...lastNameParts] = (name || 'User').split(' ');
+      const lastName = lastNameParts.join(' ') || '';
+
+      const { data: newProfile, error: profileError } = await supabaseService
+        .from('user_profiles')
+        .insert({
+          user_id: userId,
+          email: email,
+          first_name: firstName,
+          last_name: lastName,
+          google_id: googleId,
+          created_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (profileError) throw profileError;
+      userProfile = newProfile;
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { 
+        userId: userId, 
+        email: email,
+        role: 'user'
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
+    );
+
+    // Redirect to frontend with token
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    res.redirect(`${frontendUrl}/auth/callback?token=${token}&user=${encodeURIComponent(JSON.stringify({
+      id: userId,
+      email: email,
+      firstName: userProfile.first_name,
+      lastName: userProfile.last_name
+    }))}`);
+
+  } catch (error) {
+    console.error('Google OAuth callback error:', error);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    res.redirect(`${frontendUrl}/login?error=google_auth_failed`);
+  }
 });
 
 // User Login

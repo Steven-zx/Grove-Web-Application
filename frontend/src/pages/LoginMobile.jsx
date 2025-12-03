@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.svg";
 import bgImg from "../assets/login-bg.png";
 import { authService } from "../services/authService";
+import GoogleSignInButton from "../components/GoogleSignInButton";
 
 export default function LoginMobile() {
 	const navigate = useNavigate();
@@ -46,11 +47,6 @@ export default function LoginMobile() {
 		}
 	};
 
-	const handleGoogleLogin = async () => {
-		// window.location.href = '/api/auth/google';
-		console.log('Google login initiated');
-	};
-
 	return (
 		<div className="min-h-screen flex flex-col bg-white">
 			{/* Header */}
@@ -79,15 +75,10 @@ export default function LoginMobile() {
             <div className="relative z-10 bg-white rounded-3xl px-6 py-8 min-h-[420px] w-[95%] sm:w-[95%] max-w-sm mx-auto mt-8 shadow-lg">
             <h2 className="text-xl font-bold mb-10 text-center">Welcome back</h2>
 
-            {/* Google button */}
-            <button
-                type="button"
-                onClick={handleGoogleLogin}
-                className="flex items-center justify-center gap-2 bg-gray-100 rounded-full py-3 mb-5 w-full font-medium text-[#1e1e1e] hover:bg-gray-200"
-            >
-                <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="h-5 w-5" />
-                Continue with Google
-            </button>
+            {/* Google Sign In */}
+            <GoogleSignInButton 
+                onError={(error) => setErrors({ general: error })}
+            />
 
             <div className="flex items-center my-2 w-full mb-5">
                 <div className="flex-1 h-px bg-gray-200" />
