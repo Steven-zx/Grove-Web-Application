@@ -1,6 +1,6 @@
 // services/bookings.js
 // Admin bookings data access with real backend API integration
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
 // Get auth token from localStorage
 const getAuthToken = () => {

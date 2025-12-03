@@ -45,11 +45,6 @@ export default function Login() {
 		}
 	};
 
-	const handleGoogleLogin = async () => {
-		// Backend-ready: Replace with actual Google OAuth
-		// window.location.href = '/api/auth/google';
-		console.log('Google login initiated');
-	};
 	return (
 			<div className="min-h-screen flex flex-col bg-white">
 				{/* Header */}
@@ -69,20 +64,9 @@ export default function Login() {
 					<img src={bgImg} alt="Background" className="absolute inset-0 w-full h-full object-cover rounded-3xl" style={{ zIndex: 0 }} />
 					{/* Card */}
 					<div className="relative z-10 w-full max-w-md mx-auto bg-white rounded-3xl shadow-lg p-10 flex flex-col items-center">
-						<h2 className="text-2xl font-bold mb-8 text-center">Admin Login</h2>
-						{/* Google button */}
-						<button 
-							type="button" 
-							onClick={handleGoogleLogin}
-							className="w-full flex items-center justify-center gap-2 bg-gray-100 rounded-full py-3 mb-6 font-medium text-[#1e1e1e] border-none hover:bg-gray-200 transition-colors"
-						>
-							<img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="h-5 w-5" />
-							Continue with Google
-						</button>
-						<div className="w-full flex items-center my-4">
-							<div className="flex-1 h-px bg-gray-200" />
-							<span className="mx-3 text-gray-400 text-sm">or</span>
-							<div className="flex-1 h-px bg-gray-200" />
+						<div className="mb-8 text-center">
+							<h2 className="text-2xl font-bold text-[#40863A]">Administrator Portal</h2>
+							<p className="text-sm text-gray-600 mt-2">Please sign in with your admin credentials</p>
 						</div>
 						{/* Form */}
 						<form className="w-full flex flex-col gap-4" onSubmit={handleSubmit}>
