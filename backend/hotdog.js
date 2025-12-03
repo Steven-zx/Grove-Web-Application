@@ -1687,7 +1687,7 @@ app.get('/api/admin/bookings', verifyToken, verifyAdmin, async (req, res) => {
       start_time: booking.start_time,
       end_time: booking.end_time,
       userType: 'Resident', // All users are residents in this system
-      status: booking.status.charAt(0).toUpperCase() + booking.status.slice(1),
+      status: booking.status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
       address: booking.resident_address || 'N/A',
       contact: booking.mobile_number || 'N/A',
       email: booking.email || 'N/A',
@@ -2169,7 +2169,7 @@ app.get('/api/admin/amenities/bookings', verifyToken, verifyAdmin, async (req, r
         `${booking.start_time}-${booking.end_time}` : 'TBD',
       userType: 'Resident',
       status: booking.status ? 
-        booking.status.charAt(0).toUpperCase() + booking.status.slice(1) : 'Pending',
+        booking.status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : 'Pending',
       address: booking.resident_address || 'N/A',
       contact: booking.mobile_number || 'N/A',
       email: booking.email || 'N/A',
