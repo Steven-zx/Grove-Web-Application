@@ -63,14 +63,14 @@ const bookingService = {
   async createBooking(data) {
     console.log('🎯 bookingService.createBooking called with:', data);
     
-    // Ensure amenity_id is included
-    if (!data.amenity_id) {
-      console.error('❌ amenity_id is missing from booking data!');
-      throw new Error('Amenity ID is required');
+    // Accept either amenity_type (name) or amenity_id
+    if (!data.amenity_type && !data.amenity_id) {
+      console.error('❌ amenity_type or amenity_id is required!');
+      throw new Error('Amenity type or ID is required');
     }
     // Normalize to backend's strict create endpoint payload
     const payload = {
-      amenity_id: data.amenity_id,
+      amenity_type: data.amenity_type,  // Send name to avoid FK errors
       booking_date: data.booking_date,
       start_time: data.start_time,
       end_time: data.end_time,
