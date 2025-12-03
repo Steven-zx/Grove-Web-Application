@@ -1944,12 +1944,6 @@ app.delete('/api/admin/concerns/:id', verifyToken, verifyAdmin, async (req, res)
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-    res.json({ message: 'Concern status updated successfully', data });
-  } catch (error) {
-    console.error('Update concern error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
 
 // ===== ADMIN DASHBOARD ROUTES =====
 
