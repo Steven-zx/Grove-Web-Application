@@ -22,8 +22,48 @@ export default function ReportIssueModal({ open, onClose }) {
 
   function handleSubmit(e) {
     e.preventDefault();
-    // Submit logic here
-    onClose();
+    
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      alert('Please log in to submit a report');
+      return;
+    }
+    
+    fetch(`${API_BASE_URL}/api/concerns`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        location: form.location,
+        issue_type: form.type,
+        description: form.description
+      })
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to submit report');
+      }
+      return response.json();
+    })
+    .then(data => {
+      alert('Report submitted successfully!');
+      setForm({
+        name: "",
+        location: "",
+        type: "",
+        contact: "",
+        description: ""
+      });
+      onClose();
+    })
+    .catch(error => {
+      console.error('Submit error:', error);
+      alert('Failed to submit report. Please try again.');
+    });
   }
 
   if (!open) return null;
