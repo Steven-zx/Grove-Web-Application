@@ -1389,7 +1389,7 @@ app.get('/api/bookings/calendar', async (req, res) => {
       .select('*')
       .gte('booking_date', start_date)
       .lte('booking_date', end_date)
-      .in('status', ['confirmed', 'pending']);
+      .in('status', ['accepted', 'pending']);
     
     if (amenity) {
       query = query.eq('amenity_type', amenity);
@@ -1472,7 +1472,7 @@ app.get('/api/payments/verify/:sourceId', verifyToken, async (req, res) => {
       try {
         await supabaseService
           .from('bookings')
-          .update({ status: 'confirmed', updated_at: new Date().toISOString() })
+          .update({ status: 'accepted', updated_at: new Date().toISOString() })
           .eq('id', bookingId);
       } catch (dbErr) {
         console.warn('Booking payment_status update failed:', dbErr?.message || dbErr);
@@ -1587,7 +1587,7 @@ app.post('/api/admin/payments/manual/review', verifyToken, verifyAdmin, async (r
       return res.status(400).json({ error: 'bookingId and valid action (approve/reject) are required' });
     }
 
-    const newStatus = action === 'approve' ? 'confirmed' : 'rejected';
+    const newStatus = action === 'approve' ? 'accepted' : 'rejected';
     
     const { data, error } = await supabaseService
       .from('bookings')

@@ -95,7 +95,7 @@ export default function Bookings() {
     const statusColors = {
       pending: 'bg-yellow-100 text-yellow-800',
       pending_approval: 'bg-yellow-100 text-yellow-800',
-      confirmed: 'bg-green-100 text-green-800',
+      accepted: 'bg-green-100 text-green-800',
       cancelled: 'bg-red-100 text-red-800',
       rejected: 'bg-gray-100 text-gray-800'
     };
@@ -176,7 +176,7 @@ export default function Bookings() {
               <option value="all">All Status</option>
               <option value="pending">Pending</option>
               <option value="pending_approval">Pending Approval</option>
-              <option value="confirmed">Confirmed</option>
+              <option value="accepted">Accepted</option>
               <option value="cancelled">Cancelled</option>
               <option value="rejected">Rejected</option>
             </select>
