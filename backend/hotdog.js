@@ -2219,8 +2219,8 @@ app.get('/api/gallery', async (req, res) => {
       allFiles.push({ ...f, fullPath: f.name });
     }
     
-    // List files in each folder (category)
-    const folders = (rootData || []).filter(f => f && f.name && !f.name.includes('.'));
+    // List files in each folder (category), excluding payment-proofs
+    const folders = (rootData || []).filter(f => f && f.name && !f.name.includes('.') && f.name !== 'payment-proofs');
     for (const folder of folders) {
       const { data: folderData, error: folderError } = await supabaseService
         .storage
