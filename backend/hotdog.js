@@ -1251,17 +1251,55 @@ app.post('/api/bookings', verifyToken, async (req, res) => {
 // Create Booking (new, strict payload) — avoids legacy fields entirely
 app.post('/api/bookings/create', verifyToken, async (req, res) => {
   try {
-    const { amenity_id, booking_date, start_time, end_time, guest_count = 1, purpose } = req.body || {};
-    if (!amenity_id || !booking_date || !start_time || !end_time) {
-      return res.status(400).json({ error: 'amenity_id, booking_date, start_time, end_time are required' });
+    const { amenity_id: rawAmenityId, amenity_type: rawAmenityType, booking_date, start_time, end_time, guest_count = 1, purpose } = req.body || {};
+    if (!booking_date || !start_time || !end_time) {
+      return res.status(400).json({ error: 'booking_date, start_time, end_time are required' });
     }
 
-    // Resolve amenity name
-    let amenity_type = 'Amenity';
+    // Resolve amenity_id from either provided id or amenity_type (name)
+    let amenity_id = rawAmenityId || null;
+    let amenity_type = rawAmenityType || 'Amenity';
     try {
-      const { data: a } = await supabaseService.from('amenities').select('name').eq('id', amenity_id).single();
-      if (a?.name) amenity_type = a.name;
-    } catch {}
+      if (amenity_id) {
+        // Verify the amenity_id exists; if not, try to resolve by name
+        const { data: byId } = await supabaseService
+          .from('amenities')
+          .select('id,name')
+          .eq('id', amenity_id)
+          .single();
+        if (byId) {
+          amenity_type = byId.name;
+        } else if (rawAmenityType) {
+          const { data: byName } = await supabaseService
+            .from('amenities')
+            .select('id,name')
+            .ilike('name', rawAmenityType)
+            .single();
+          if (byName) {
+            amenity_id = byName.id;
+            amenity_type = byName.name;
+          }
+        }
+      } else if (rawAmenityType) {
+        const { data: byName } = await supabaseService
+          .from('amenities')
+          .select('id,name')
+          .ilike('name', rawAmenityType)
+          .single();
+        if (byName) {
+          amenity_id = byName.id;
+          amenity_type = byName.name;
+        }
+      }
+    } catch (e) {
+      console.warn('⚠️ [create] Amenity resolve warning:', e?.message || e);
+    }
+
+    if (!amenity_id) {
+      return res.status(400).json({ error: 'Valid amenity_id or amenity_type is required' });
+    }
+
+    // amenity_type already resolved above
 
     // Resolve resident name
     let resident_name = 'Resident';
