@@ -54,11 +54,9 @@ export default function AnnouncementCard({ author, date, content, title, importa
         />
       )}
       
-      {(content.length > 150 || image) && (
-        <div className="text-sm text-[#40863A] font-medium hover:underline mt-2">
-          Click to read more →
-        </div>
-      )}
+      <div className="text-sm text-[#40863A] font-medium hover:underline mt-2">
+        Click to read more →
+      </div>
     </div>
   );
 }
