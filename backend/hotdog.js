@@ -684,19 +684,39 @@ app.get('/api/auth/google/callback', async (req, res) => {
     let userProfile;
 
     if (existingUser) {
-      // User exists, update Google info if needed
-      userId = existingUser.id;  // Use 'id' not 'user_id'
+      // User exists, update Google info and name if needed
+      userId = existingUser.id;
       
-      const { data: updated } = await supabaseService
+      // Parse name from Google
+      const [firstName, ...lastNameParts] = (name || existingUser.first_name || 'User').split(' ');
+      const lastName = lastNameParts.join(' ') || existingUser.last_name || '';
+      
+      console.log('📝 Updating existing user with Google data:', {
+        userId,
+        googleId,
+        firstName,
+        lastName,
+        email
+      });
+      
+      const { data: updated, error: updateError } = await supabaseService
         .from('user_profiles')
         .update({ 
           google_id: googleId,
+          first_name: firstName,
+          last_name: lastName,
           updated_at: new Date().toISOString()
         })
-        .eq('id', userId)  // Use 'id' not 'user_id'
+        .eq('id', userId)
         .select()
         .single();
       
+      if (updateError) {
+        console.error('❌ Failed to update profile:', updateError);
+        throw updateError;
+      }
+      
+      console.log('✅ Profile updated with Google data:', updated);
       userProfile = updated || existingUser;
     } else {
       // Create new user with Google auth
@@ -745,14 +765,18 @@ app.get('/api/auth/google/callback', async (req, res) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
     );
 
-    // Redirect to frontend with token
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-    res.redirect(`${frontendUrl}/auth/callback?token=${token}&user=${encodeURIComponent(JSON.stringify({
+    const userData = {
       id: userId,
       email: email,
       firstName: userProfile.first_name,
       lastName: userProfile.last_name
-    }))}`);
+    };
+    
+    console.log('✅ Google OAuth complete, redirecting with user data:', userData);
+
+    // Redirect to frontend with token
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    res.redirect(`${frontendUrl}/auth/callback?token=${token}&user=${encodeURIComponent(JSON.stringify(userData))}`);
 
   } catch (error) {
     console.error('Google OAuth callback error:', error);
