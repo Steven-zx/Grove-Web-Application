@@ -59,7 +59,7 @@ export default function AmenitiesMobile() {
         const mappedAmenities = data.map(amenity => ({
           id: amenity.id,
           name: amenity.name,
-          status: amenity.status,
+          status: amenity.is_active ? 'Available' : 'Not Available',
           image: amenityImages[amenity.name] || clubhouseImg,
           description: amenity.description
         }));
