@@ -239,14 +239,24 @@ export default function Amenities() {
     const selectedBooking = rows.find(r => r.id === selectedId) || null;
 
     async function handleStatusChange(id, status) {
-        // Optimistic update; rollback if backend (future) fails
+        console.log('🔄 Changing status for booking:', id, 'to:', status);
+        
+        // Optimistic update
         const prev = rows;
         setRows(prevRows => prevRows.map(r => (r.id === id ? { ...r, status } : r)));
+        
         try {
-            await updateBookingStatus(id, status); // placeholder mock now
+            const result = await updateBookingStatus(id, status);
+            console.log('✅ Status updated successfully:', result);
+            
+            // Reload data from server to ensure sync
+            const { data, total } = await fetchAdminBookings({ amenity: filter, page, pageSize });
+            setRows(data);
+            setTotal(total);
         } catch (e) {
-            console.error(e);
-            setRows(prev); // rollback
+            console.error('❌ Status update failed:', e);
+            setRows(prev); // rollback on failure
+            alert('Failed to update booking status: ' + (e.message || 'Unknown error'));
         }
     }
 

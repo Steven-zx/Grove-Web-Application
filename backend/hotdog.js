@@ -1590,6 +1590,8 @@ app.get('/api/admin/bookings', verifyToken, verifyAdmin, async (req, res) => {
       endDate 
     } = req.query;
     
+    console.log('📋 Fetching admin bookings with filters:', { amenity, status, page, pageSize });
+    
     // Try to get bookings with user profile data
     // First attempt with foreign key, fallback to basic query if relationship doesn't exist
     let query = supabaseService
@@ -1628,8 +1630,11 @@ app.get('/api/admin/bookings', verifyToken, verifyAdmin, async (req, res) => {
     const { data, error } = await query;
     
     if (error) {
+      console.error('❌ Error fetching bookings:', error);
       return res.status(500).json({ error: error.message });
     }
+    
+    console.log(`✅ Found ${data.length} bookings. Raw statuses:`, data.map(b => ({ id: b.id.slice(0, 8), status: b.status })));
     
     // Transform data to match admin UI expectations
     const transformedData = data.map(booking => ({
@@ -1677,20 +1682,32 @@ app.put('/api/admin/bookings/:id', verifyToken, verifyAdmin, async (req, res) =>
     const { id } = req.params;
     const { status } = req.body;
     
-    const { data, error } = await supabase
+    // Normalize status to lowercase
+    const normalizedStatus = status.toLowerCase();
+    
+    console.log(`🔄 Admin updating booking ${id} to status: ${normalizedStatus}`);
+    
+    const { data, error } = await supabaseService
       .from('bookings')
       .update({ 
-        status,
+        status: normalizedStatus,
         updated_at: new Date().toISOString() 
       })
       .eq('id', id)
-      .select();
+      .select()
+      .single();
     
     if (error) {
+      console.error('❌ Booking update error:', error);
       return res.status(500).json({ error: error.message });
     }
     
-    res.json({ message: 'Booking status updated successfully', data });
+    console.log('✅ Booking status updated successfully:', data);
+    res.json({ 
+      success: true,
+      message: 'Booking status updated successfully', 
+      booking: data 
+    });
   } catch (error) {
     console.error('Update booking error:', error);
     res.status(500).json({ error: 'Internal server error' });

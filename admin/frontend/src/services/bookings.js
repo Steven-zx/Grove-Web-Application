@@ -147,21 +147,17 @@ export async function fetchAdminBookings({
 // Update booking status via backend API
 export async function updateBookingStatus(id, status) {
   try {
-    // Try to update via API first
-    try {
-      const result = await apiRequest(`/api/admin/bookings/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify({ status: status.toLowerCase() }),
-      });
-      
-      return { id, status, ...result };
-    } catch (apiError) {
-      console.warn('API update not available, status change simulated:', apiError.message);
-      // For demo purposes, return success
-      return { id, status, message: 'Status updated (demo mode)' };
-    }
+    console.log('🔄 Updating booking status:', { id, status });
+    
+    const result = await apiRequest(`/api/admin/bookings/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ status: status.toLowerCase() }),
+    });
+    
+    console.log('✅ Booking status updated:', result);
+    return result;
   } catch (error) {
-    console.error('Failed to update booking status:', error);
+    console.error('❌ Failed to update booking status:', error);
     throw error;
   }
 }

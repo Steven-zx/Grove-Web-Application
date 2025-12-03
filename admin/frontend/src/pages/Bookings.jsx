@@ -54,9 +54,22 @@ export default function Bookings() {
   const handlePaymentReview = async (bookingId, action) => {
     try {
       setReviewLoading(true);
-      await reviewManualPayment(bookingId, action, reviewNotes);
+      const result = await reviewManualPayment(bookingId, action, reviewNotes);
+      
+      // Reload bookings to get updated data from server
       await loadBookings();
+      
+      // Update the selected booking with new status
+      if (result.booking) {
+        setSelectedBooking(result.booking);
+      }
+      
+      // Clear review notes
+      setReviewNotes('');
+      
+      // Close the modal
       closeFullScreen();
+      
       alert(`Payment ${action}d successfully!`);
     } catch (err) {
       alert(err.message || `Failed to ${action} payment`);
