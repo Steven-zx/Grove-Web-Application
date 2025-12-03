@@ -83,9 +83,15 @@ function Reports() {
     }
 
     // Handler to delete selected reports
-    function handleDeleteSelected() {
-        setReports(reports => reports.filter(report => !selectedIds.includes(report.id)));
-        setSelectedIds([]);
+    async function handleDeleteSelected() {
+        try {
+            await Promise.all(selectedIds.map(id => concernsService.delete(id)));
+            setReports(reports => reports.filter(report => !selectedIds.includes(report.id)));
+            setSelectedIds([]);
+        } catch (e) {
+            console.error('Failed to delete reports:', e);
+            alert('Failed to delete reports. Please try again.');
+        }
     }
 
     // Handlers for details modal
@@ -117,9 +123,15 @@ function Reports() {
             console.error('Failed to resolve report:', e);
         }
     }
-    function handleDeleteDetails(id) {
-        setReports(reports => reports.filter(report => report.id !== id));
-        setOpenReportId(null);
+    async function handleDeleteDetails(id) {
+        try {
+            await concernsService.delete(id);
+            setReports(reports => reports.filter(report => report.id !== id));
+            setOpenReportId(null);
+        } catch (e) {
+            console.error('Failed to delete report:', e);
+            alert('Failed to delete report. Please try again.');
+        }
     }
 
     // Find the open report object

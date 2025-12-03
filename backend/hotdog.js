@@ -1916,6 +1916,34 @@ app.put('/api/admin/concerns/:id', verifyToken, verifyAdmin, async (req, res) =>
       return res.status(500).json({ error: error.message });
     }
     
+    res.json(data);
+  } catch (error) {
+    console.error('Update concern error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Delete Concern (Admin)
+app.delete('/api/admin/concerns/:id', verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const { error } = await supabase
+      .from('concerns')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Delete concern error:', error);
+      return res.status(500).json({ error: error.message });
+    }
+    
+    res.json({ message: 'Concern deleted successfully' });
+  } catch (error) {
+    console.error('Delete concern error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
     res.json({ message: 'Concern status updated successfully', data });
   } catch (error) {
     console.error('Update concern error:', error);

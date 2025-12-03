@@ -255,6 +255,15 @@ export const concernsService = {
       body: JSON.stringify({ status }),
     });
   },
+  async delete(id) {
+    initializeAuth();
+    if (!authService.isAuthenticated()) {
+      throw new Error('User not authenticated');
+    }
+    return await apiRequest(`/admin/concerns/${id}`, {
+      method: 'DELETE',
+    });
+  },
 };
 
 // Utility function to format announcements for the admin UI
