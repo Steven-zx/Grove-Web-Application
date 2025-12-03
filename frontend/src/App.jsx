@@ -23,6 +23,7 @@ import Admin from "./pages/Admin";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentFailed from "./pages/PaymentFailed";
 import ManualGCashPayment from "./pages/ManualGCashPayment";
+import Search from "./pages/Search";
 
 // Mobile Pages
 import HomeMobile from "./pages/HomeMobile";
@@ -37,6 +38,7 @@ import LoginMobile from "./pages/LoginMobile";
 import SignUpMobile from "./pages/SignUpMobile";
 import SignUpDetailsMobile from "./pages/SignUpDetailsMobile";
 import ProfileMobile from "./pages/ProfileMobile";
+import SearchMobile from "./pages/SearchMobile";
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
@@ -73,6 +75,7 @@ export default function App() {
         <Route path="/payment/success" element={<PaymentSuccess />} />
         <Route path="/payment/failed" element={<PaymentFailed />} />
         <Route path="/payment/manual-gcash" element={<ManualGCashPayment />} />
+        <Route path="/search" element={isMobile ? <SearchMobile /> : <Search />} />
 
         {/* Mobile Routes */}
         {isMobile && (
@@ -110,6 +113,7 @@ export default function App() {
                     <Route path="/gallery" element={<Gallery />} />
                     <Route path="/about" element={<About />} />
                     <Route path="/profile" element={<Profile />} />
+                    <Route path="/search" element={<Search />} />
                   </Routes>
                 </main>
               </div>

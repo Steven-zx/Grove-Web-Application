@@ -32,9 +32,12 @@ export default function Navbar() {
     setShowSuggestions(true);
   };
 
-  // Handle search submit (on Enter) - disabled since no search results page
+  // Handle search submit (on Enter)
   const handleSearchKeyDown = (e) => {
-    if (e.key === "Escape") {
+    if (e.key === "Enter" && searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+      setShowSuggestions(false);
+    } else if (e.key === "Escape") {
       setShowSuggestions(false);
     }
   };
