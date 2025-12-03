@@ -31,11 +31,10 @@ export default function Announcements() {
         params.append('sort', 'asc');
       }
       
-      console.log('Fetching announcements from:', `http://localhost:3000/api/announcements?${params}`);
-      
-      const response = await fetch(`http://localhost:3000/api/announcements?${params}`);
-      
-      console.log('Response status:', response.status);
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+      console.log('Fetching announcements from:', `${API_BASE_URL}/api/announcements?${params}`);
+
+      const response = await fetch(`${API_BASE_URL}/api/announcements?${params}`);      console.log('Response status:', response.status);
       
       if (!response.ok) {
         const errorText = await response.text();

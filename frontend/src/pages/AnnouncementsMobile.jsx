@@ -38,7 +38,8 @@ export default function AnnouncementsMobile() {
         // Optionally add date filter if backend supports it
         // if (filters.date) params.append("date", filters.date);
 
-        const response = await fetch(`http://localhost:3000/api/announcements?${params}`);
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+        const response = await fetch(`${API_BASE_URL}/api/announcements?${params}`);
         if (!response.ok) {
           const errorText = await response.text();
           throw new Error(`HTTP ${response.status}: ${errorText}`);

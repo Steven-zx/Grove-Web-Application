@@ -54,7 +54,8 @@ export default function Admin() {
   const fetchAnnouncements = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3000/api/announcements');
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+      const response = await fetch(`${API_BASE_URL}/api/announcements`);
       const data = await response.json();
       setAnnouncements(data);
     } catch (error) {
