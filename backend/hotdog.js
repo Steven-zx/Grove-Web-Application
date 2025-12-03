@@ -252,6 +252,73 @@ const verifyAdmin = (req, res, next) => {
   next();
 };
 
+// Google Sign-In (User) via ID Token verification
+// Frontend should obtain a Google ID token and POST it here.
+app.post('/api/auth/google', async (req, res) => {
+  try {
+    const { idToken } = req.body;
+    if (!idToken) {
+      return res.status(400).json({ error: 'Missing idToken' });
+    }
+
+    // Verify the Google ID token via tokeninfo endpoint
+    // Ref: https://developers.google.com/identity/gsi/web/guides/verify-google-id-token
+    const tokenInfoUrl = `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`;
+    const { data: tokenInfo } = await axios.get(tokenInfoUrl);
+
+    // Expected fields: email, email_verified, name, picture, aud (client_id)
+    if (!tokenInfo || !tokenInfo.email || tokenInfo.email_verified !== 'true') {
+      return res.status(401).json({ error: 'Invalid Google token or email not verified' });
+    }
+
+    const email = String(tokenInfo.email).toLowerCase();
+    const name = tokenInfo.name || 'Google User';
+    const avatar_url = tokenInfo.picture || null;
+
+    // Upsert user into Supabase 'users' table (id/email unique)
+    try {
+      const { data: existingUser, error: fetchErr } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .limit(1)
+        .maybeSingle();
+
+      if (fetchErr) {
+        console.warn('Supabase fetch user error:', fetchErr.message);
+      }
+
+      if (!existingUser) {
+        const { error: insertErr } = await supabase
+          .from('users')
+          .insert({ email, name, avatar_url, auth_provider: 'google' });
+        if (insertErr) {
+          console.warn('Supabase insert user error:', insertErr.message);
+        }
+      } else {
+        // Optionally update profile info
+        const { error: updateErr } = await supabase
+          .from('users')
+          .update({ name, avatar_url, auth_provider: 'google' })
+          .eq('email', email);
+        if (updateErr) {
+          console.warn('Supabase update user error:', updateErr.message);
+        }
+      }
+    } catch (dbErr) {
+      console.error('User upsert error:', dbErr);
+      // Continue; not fatal for issuing token
+    }
+
+    // Issue our own JWT for app auth
+    const token = generateToken({ userId: email, email, isAdmin: false });
+    return res.json({ message: 'Google login successful', token, user: { email, name, avatar_url } });
+  } catch (error) {
+    console.error('Google login error:', error?.response?.data || error.message);
+    return res.status(401).json({ error: 'Google token verification failed' });
+  }
+});
+
 // ===== PAYMONGO HELPERS =====
 const PAYMONGO_SECRET_KEY = process.env.PAYMONGO_SECRET_KEY;
 const PAYMONGO_MODE = (process.env.PAYMONGO_MODE || 'test').toLowerCase();

@@ -1,6 +1,8 @@
 // services/bookingService.js
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
+console.log('🔗 Booking API configured:', API_URL);
+
 function getAuthToken() {
   const token = localStorage.getItem('token');
   console.log('🔑 Getting auth token:', token ? 'Found' : 'Not found');

@@ -1,6 +1,13 @@
 // services/authService.js
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
+// Debug: Log the API URL configuration
+console.log('🔗 User Auth API configured:', {
+  baseUrl: API_BASE_URL,
+  envVar: import.meta.env.VITE_API_BASE_URL,
+  mode: import.meta.env.MODE
+});
+
 class AuthService {
   constructor() {
     this.token = localStorage.getItem('token');
