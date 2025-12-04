@@ -4,8 +4,9 @@ import React, { useState, useRef } from "react";
 import AnnouncementPreview from "./AnnouncementPreview";
 import ManageAnnouncements from "./ManageAnnouncements";
 import FiltersCard from "../components/shared/FiltersCard";
-import { Image } from "lucide-react";
-import { announcementService, formatAnnouncementForBackend } from "../services/api";
+import { Image, X } from "lucide-react";
+import { announcementService, formatAnnouncementForBackend, galleryService } from "../services/api";
+import announcement1 from "../assets/announcement1.png";
 
 const categories = ["General", "Facilities", "Upgrade"];
 const filterCategories = ["All categories", "General", "Facilities", "Upgrade"];
@@ -30,6 +31,8 @@ export default function Announcements() {
         date: "",
         sort: "Newest First",
     });
+    const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
+    const [isUploading, setIsUploading] = useState(false);
 
     function handleFilterChange(e) {
         const { name, value } = e.target;
@@ -44,16 +47,25 @@ export default function Announcements() {
 
     function handleChange(e) {
         const { name, value, files } = e.target;
-        setForm(f => ({
-            ...f,
-            [name]: files ? files[0] : value,
-        }));
+        if (files && files[0]) {
+            const file = files[0];
+            setForm(f => ({ ...f, [name]: file }));
+            // Create preview URL
+            const previewUrl = URL.createObjectURL(file);
+            setImagePreviewUrl(previewUrl);
+        } else {
+            setForm(f => ({ ...f, [name]: value }));
+        }
     }
 
     function handleFileDrop(e) {
         e.preventDefault();
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            setForm(f => ({ ...f, file: e.dataTransfer.files[0] }));
+            const file = e.dataTransfer.files[0];
+            setForm(f => ({ ...f, file }));
+            // Create preview URL
+            const previewUrl = URL.createObjectURL(file);
+            setImagePreviewUrl(previewUrl);
         }
     }
 
@@ -61,19 +73,53 @@ export default function Announcements() {
         fileInputRef.current.click();
     }
 
+    function clearUploadedImage() {
+        setForm(f => ({ ...f, file: null }));
+        if (imagePreviewUrl) {
+            URL.revokeObjectURL(imagePreviewUrl);
+            setImagePreviewUrl(null);
+        }
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    }
+
     async function handleSubmit(e) {
         e.preventDefault();
         
         try {
             console.log('📝 Submitting announcement:', form);
+            setIsUploading(true);
+            
+            let imageUrl = announcement1; // Default placeholder
+            
+            // Upload image if provided
+            if (form.file) {
+                try {
+                    console.log('📤 Uploading image...');
+                    const uploadResponse = await galleryService.upload(form.file, { category: 'announcements' });
+                    imageUrl = uploadResponse.item?.url || uploadResponse.url;
+                    console.log('✅ Image uploaded:', imageUrl);
+                } catch (uploadError) {
+                    console.error('⚠️ Image upload failed, using placeholder:', uploadError);
+                    // Continue with placeholder image if upload fails
+                }
+            }
             
             // Format the form data for backend
             const announcementData = formatAnnouncementForBackend(form);
+            announcementData.image_url = imageUrl;
             
             // Submit to backend
             const response = await announcementService.create(announcementData);
             
             console.log('✅ Announcement created successfully:', response);
+            
+            // Clean up preview URL
+            if (imagePreviewUrl) {
+                URL.revokeObjectURL(imagePreviewUrl);
+                setImagePreviewUrl(null);
+            }
             
             // Reset form
             setForm({
@@ -94,6 +140,8 @@ export default function Announcements() {
         } catch (error) {
             console.error('❌ Error creating announcement:', error);
             alert('Failed to create announcement. Please check your connection and try again.');
+        } finally {
+            setIsUploading(false);
         }
     }
 
@@ -224,25 +272,45 @@ export default function Announcements() {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
                                 {/* Attachments */}
                                 <div className="flex flex-col gap-2">
-                                    <label className="font-bold">Attachments <span className="text-gray-400 font-normal">(optional)</span></label>
-                                    <div
-                                        className="border border-gray-300 rounded-lg px-4 py-3 flex items-center gap-2 cursor-pointer bg-[#F9F9F9] hover:bg-[#F3F6F3]"
-                                        onClick={handleFileClick}
-                                        onDrop={handleFileDrop}
-                                        onDragOver={e => e.preventDefault()}
-                                    >
-                                        <Image color="#40863A" size={22} />
-                                        <span className="font-medium text-[#40863A]"><u>Upload a file</u></span>
-                                        <span className="text-gray-400"> or drag and drop</span>
-                                        <input
-                                            type="file"
-                                            name="file"
-                                            ref={fileInputRef}
-                                            className="hidden"
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-                                    {form.file && <span className="text-sm text-gray-600 mt-1">{form.file.name}</span>}
+                                    <label className="font-bold">Image <span className="text-gray-400 font-normal">(optional)</span></label>
+                                    {!imagePreviewUrl ? (
+                                        <div
+                                            className="border border-gray-300 rounded-lg px-4 py-3 flex items-center gap-2 cursor-pointer bg-[#F9F9F9] hover:bg-[#F3F6F3]"
+                                            onClick={handleFileClick}
+                                            onDrop={handleFileDrop}
+                                            onDragOver={e => e.preventDefault()}
+                                        >
+                                            <Image color="#40863A" size={22} />
+                                            <span className="font-medium text-[#40863A]"><u>Upload image</u></span>
+                                            <span className="text-gray-400"> or drag</span>
+                                            <input
+                                                type="file"
+                                                name="file"
+                                                accept="image/*"
+                                                ref={fileInputRef}
+                                                className="hidden"
+                                                onChange={handleChange}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="relative">
+                                            <img
+                                                src={imagePreviewUrl}
+                                                alt="Preview"
+                                                className="w-full h-24 object-cover rounded-lg border border-gray-300"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={clearUploadedImage}
+                                                className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1 hover:bg-red-700 shadow-lg"
+                                                title="Remove image"
+                                            >
+                                                <X size={16} />
+                                            </button>
+                                            <p className="text-xs text-gray-600 mt-1 truncate">{form.file?.name}</p>
+                                        </div>
+                                    )}
+                                    <p className="text-xs text-gray-500 mt-1">Placeholder used if none uploaded</p>
                                 </div>
 
                                 {/* Post Date & Time */}
@@ -277,16 +345,18 @@ export default function Announcements() {
                             <div className="flex justify-end gap-4 mt-6">
                                 <button
                                     type="button"
-                                    className="px-6 py-2 rounded-lg font-semibold border border-gray-300 bg-white text-gray-800 hover:bg-gray-100"
+                                    className="px-6 py-2 rounded-lg font-semibold border border-gray-300 bg-white text-gray-800 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                                     onClick={() => setPreviewMode(true)}
+                                    disabled={isUploading}
                                 >
                                     Preview
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-6 py-2 rounded-lg font-semibold bg-[#40863A] text-white hover:bg-[#32692C]"
+                                    className="px-6 py-2 rounded-lg font-semibold bg-[#40863A] text-white hover:bg-[#32692C] disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled={isUploading}
                                 >
-                                    Post
+                                    {isUploading ? 'Uploading...' : 'Post'}
                                 </button>
                             </div>
                         </form>

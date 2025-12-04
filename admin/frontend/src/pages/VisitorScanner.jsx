@@ -51,20 +51,22 @@ export default function VisitorScanner() {
       }
 
       // Initialize QR code reader
-      codeReaderRef.current = new BrowserMultiFormatReader();
+      if (!codeReaderRef.current) {
+        codeReaderRef.current = new BrowserMultiFormatReader();
+      }
       
       setIsScanning(true);
 
-      // Start decoding
+      // Configure video element before starting camera
       if (videoRef.current) {
         videoRef.current.setAttribute("playsinline", "true");
+        videoRef.current.setAttribute("autoplay", "true");
         videoRef.current.muted = true;
-        videoRef.current.onloadedmetadata = () => {
-          try { videoRef.current.play(); } catch (_) {}
-        };
       }
 
       const deviceId = selectedCameraId || undefined;
+      
+      // Start decoding - this will set video.srcObject internally
       await codeReaderRef.current.decodeFromVideoDevice(
         deviceId,
         videoRef.current,
@@ -78,23 +80,46 @@ export default function VisitorScanner() {
           }
         }
       );
+      
+      // Ensure video plays after stream is attached
+      if (videoRef.current && videoRef.current.srcObject) {
+        try {
+          await videoRef.current.play();
+        } catch (playErr) {
+          console.debug("Video play error (may be normal):", playErr);
+        }
+      }
+      
       setCameraPermission(true);
     } catch (err) {
       console.error("Camera access error:", err);
       setCameraPermission(false);
       setError(err?.message || "Unable to access camera. Please grant camera permission and try again.");
+      setIsScanning(false);
     }
   };
 
   const stopScanning = () => {
+    // Reset ZXing reader first
     if (codeReaderRef.current) {
-      codeReaderRef.current.reset();
+      try {
+        codeReaderRef.current.reset();
+      } catch (err) {
+        console.debug("Reset error:", err);
+      }
     }
     
+    // Stop all video tracks
     if (videoRef.current && videoRef.current.srcObject) {
       const stream = videoRef.current.srcObject;
       const tracks = stream.getTracks();
-      tracks.forEach(track => track.stop());
+      tracks.forEach(track => {
+        try {
+          track.stop();
+        } catch (err) {
+          console.debug("Track stop error:", err);
+        }
+      });
       videoRef.current.srcObject = null;
     }
     
@@ -230,8 +255,16 @@ export default function VisitorScanner() {
       if (isScanning) {
         stopScanning();
       }
+      // Extra cleanup for reader
+      if (codeReaderRef.current) {
+        try {
+          codeReaderRef.current.reset();
+        } catch (err) {
+          console.debug("Cleanup reset error:", err);
+        }
+      }
     };
-  }, []);
+  }, [isScanning]);
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -370,7 +403,7 @@ export default function VisitorScanner() {
               </div>
             </div>
           ) : (
-            <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 min-h-[320px] w-full max-w-[400px] text-center text-gray-500 flex-1 flex items-center justify-center mx-auto mb-8">
+            <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 min-h-80 w-full max-w-[400px] text-center text-gray-500 flex-1 flex items-center justify-center mx-auto mb-8">
               No image selected yet
             </div>
           )}
