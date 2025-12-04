@@ -1,7 +1,52 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Search as SearchIcon, Calendar, MapPin, FileText, Loader, ChevronRight } from 'lucide-react';
+import { Search as SearchIcon, Calendar, MapPin, FileText, Loader, ChevronRight, Clock, X } from 'lucide-react';
 import api from '../services/api';
+
+// Utility functions (same as desktop)
+const saveRecentSearch = (query) => {
+  if (!query || query.trim().length === 0) return;
+  try {
+    const recent = JSON.parse(localStorage.getItem('recentSearches') || '[]');
+    const filtered = recent.filter(q => q.toLowerCase() !== query.toLowerCase());
+    const updated = [query, ...filtered].slice(0, 10);
+    localStorage.setItem('recentSearches', JSON.stringify(updated));
+  } catch (error) {
+    console.error('Failed to save recent search:', error);
+  }
+};
+
+const getRecentSearches = () => {
+  try {
+    return JSON.parse(localStorage.getItem('recentSearches') || '[]');
+  } catch (error) {
+    return [];
+  }
+};
+
+const clearRecentSearches = () => {
+  try {
+    localStorage.removeItem('recentSearches');
+  } catch (error) {
+    console.error('Failed to clear recent searches:', error);
+  }
+};
+
+const highlightText = (text, query) => {
+  if (!query || !text) return text;
+  const parts = text.split(new RegExp(`(${query})`, 'gi'));
+  return (
+    <>
+      {parts.map((part, i) => 
+        part.toLowerCase() === query.toLowerCase() ? (
+          <mark key={i} className="bg-yellow-200 font-semibold">{part}</mark>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
+};
 
 export default function SearchMobile() {
   const [searchParams] = useSearchParams();
@@ -20,17 +65,34 @@ export default function SearchMobile() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [recentSearches, setRecentSearches] = useState([]);
+  const debounceTimerRef = useRef(null);
+
+  useEffect(() => {
+    setRecentSearches(getRecentSearches());
+  }, []);
 
   useEffect(() => {
     if (query.trim()) {
-      performSearch(query);
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      debounceTimerRef.current = setTimeout(() => {
+        performSearch(query);
+        saveRecentSearch(query);
+        setRecentSearches(getRecentSearches());
+      }, 300);
     }
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
   }, [query]);
 
   const performSearch = async (searchQuery) => {
     setLoading(true);
     setError(null);
-    
     try {
       const response = await api.get(`/api/search?q=${encodeURIComponent(searchQuery)}`);
       setResults(response.data.results);
@@ -41,6 +103,15 @@ export default function SearchMobile() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRecentSearchClick = (search) => {
+    navigate(`/search?q=${encodeURIComponent(search)}`);
+  };
+
+  const handleClearRecentSearches = () => {
+    clearRecentSearches();
+    setRecentSearches([]);
   };
 
   const totalResults = counts.amenities + counts.announcements + counts.bookings;
@@ -108,10 +179,41 @@ export default function SearchMobile() {
 
         {/* No Query */}
         {!query && !loading && (
-          <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-            <SearchIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Start Searching</h3>
-            <p className="text-sm text-gray-600">Enter a search term to find amenities, announcements, and bookings.</p>
+          <div className="space-y-4">
+            <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+              <SearchIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Start Searching</h3>
+              <p className="text-sm text-gray-600">Enter a search term to find amenities, announcements, and bookings.</p>
+            </div>
+            
+            {recentSearches.length > 0 && (
+              <div className="bg-white rounded-lg shadow-sm p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-[#4A7C59]" />
+                    Recent Searches
+                  </h3>
+                  <button
+                    onClick={handleClearRecentSearches}
+                    className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1"
+                  >
+                    <X className="w-3 h-3" />
+                    Clear
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {recentSearches.map((search, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleRecentSearchClick(search)}
+                      className="px-3 py-1.5 bg-gray-100 active:bg-gray-200 rounded-full text-sm text-gray-700"
+                    >
+                      {search}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -143,8 +245,8 @@ export default function SearchMobile() {
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h3 className="text-base font-semibold text-gray-900 mb-1">{amenity.name}</h3>
-                          <p className="text-sm text-gray-600 mb-2 line-clamp-2">{amenity.description}</p>
+                          <h3 className="text-base font-semibold text-gray-900 mb-1">{highlightText(amenity.name, query)}</h3>
+                          <p className="text-sm text-gray-600 mb-2 line-clamp-2">{highlightText(amenity.description, query)}</p>
                           <div className="flex items-center gap-3 text-xs text-gray-500">
                             <span>Capacity: {amenity.capacity}</span>
                             <span>₱{amenity.hourly_rate}/hr</span>
@@ -173,14 +275,14 @@ export default function SearchMobile() {
                       className="bg-white rounded-lg shadow-sm p-4 active:bg-gray-50 border border-gray-200"
                     >
                       <div className="flex items-start justify-between mb-2">
-                        <h3 className="text-base font-semibold text-gray-900 flex-1">{announcement.title}</h3>
+                        <h3 className="text-base font-semibold text-gray-900 flex-1">{highlightText(announcement.title, query)}</h3>
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ml-2 flex-shrink-0 ${getImportanceColor(announcement.importance)}`}>
                           {announcement.importance}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2 line-clamp-2">{announcement.description}</p>
+                      <p className="text-sm text-gray-600 mb-2 line-clamp-2">{highlightText(announcement.description, query)}</p>
                       <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <span className="px-2 py-0.5 bg-gray-100 rounded">{announcement.category}</span>
+                        <span className="px-2 py-0.5 bg-gray-100 rounded">{highlightText(announcement.category, query)}</span>
                         <span>{formatDate(announcement.created_at)}</span>
                       </div>
                     </div>
@@ -205,8 +307,8 @@ export default function SearchMobile() {
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1">
-                          <h3 className="text-base font-semibold text-gray-900">{booking.amenity_type}</h3>
-                          <p className="text-sm text-gray-600">{booking.purpose}</p>
+                          <h3 className="text-base font-semibold text-gray-900">{highlightText(booking.amenity_type, query)}</h3>
+                          <p className="text-sm text-gray-600">{highlightText(booking.purpose, query)}</p>
                         </div>
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ml-2 flex-shrink-0 ${getStatusColor(booking.status)}`}>
                           {booking.status}

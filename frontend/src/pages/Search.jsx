@@ -1,7 +1,57 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Search as SearchIcon, Calendar, MapPin, FileText, Loader } from 'lucide-react';
+import { Search as SearchIcon, Calendar, MapPin, FileText, Loader, Clock, X } from 'lucide-react';
 import api from '../services/api';
+
+// Utility: Save search to recent searches
+const saveRecentSearch = (query) => {
+  if (!query || query.trim().length === 0) return;
+  
+  try {
+    const recent = JSON.parse(localStorage.getItem('recentSearches') || '[]');
+    const filtered = recent.filter(q => q.toLowerCase() !== query.toLowerCase());
+    const updated = [query, ...filtered].slice(0, 10);
+    localStorage.setItem('recentSearches', JSON.stringify(updated));
+  } catch (error) {
+    console.error('Failed to save recent search:', error);
+  }
+};
+
+// Utility: Get recent searches
+const getRecentSearches = () => {
+  try {
+    return JSON.parse(localStorage.getItem('recentSearches') || '[]');
+  } catch (error) {
+    return [];
+  }
+};
+
+// Utility: Clear recent searches
+const clearRecentSearches = () => {
+  try {
+    localStorage.removeItem('recentSearches');
+  } catch (error) {
+    console.error('Failed to clear recent searches:', error);
+  }
+};
+
+// Utility: Highlight matching text
+const highlightText = (text, query) => {
+  if (!query || !text) return text;
+  
+  const parts = text.split(new RegExp(`(${query})`, 'gi'));
+  return (
+    <>
+      {parts.map((part, i) => 
+        part.toLowerCase() === query.toLowerCase() ? (
+          <mark key={i} className="bg-yellow-200 font-semibold">{part}</mark>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
+};
 
 export default function SearchPage() {
   const [searchParams] = useSearchParams();
@@ -20,11 +70,36 @@ export default function SearchPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [recentSearches, setRecentSearches] = useState([]);
+  const debounceTimerRef = useRef(null);
 
+  // Load recent searches on mount
+  useEffect(() => {
+    setRecentSearches(getRecentSearches());
+  }, []);
+
+  // Debounced search effect
   useEffect(() => {
     if (query.trim()) {
-      performSearch(query);
+      // Clear existing timer
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      
+      // Set new timer for 300ms
+      debounceTimerRef.current = setTimeout(() => {
+        performSearch(query);
+        saveRecentSearch(query);
+        setRecentSearches(getRecentSearches());
+      }, 300);
     }
+    
+    // Cleanup
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
   }, [query]);
 
   const performSearch = async (searchQuery) => {
@@ -41,6 +116,15 @@ export default function SearchPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRecentSearchClick = (search) => {
+    navigate(`/search?q=${encodeURIComponent(search)}`);
+  };
+
+  const handleClearRecentSearches = () => {
+    clearRecentSearches();
+    setRecentSearches([]);
   };
 
   const totalResults = counts.amenities + counts.announcements + counts.bookings;
@@ -106,12 +190,44 @@ export default function SearchPage() {
           </div>
         )}
 
-        {/* No Query */}
+        {/* No Query - Show Recent Searches */}
         {!query && !loading && (
-          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-            <SearchIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Start Searching</h3>
-            <p className="text-gray-600">Enter a search term in the search bar above to find amenities, announcements, and bookings.</p>
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+              <SearchIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Start Searching</h3>
+              <p className="text-gray-600">Enter a search term in the search bar above to find amenities, announcements, and bookings.</p>
+            </div>
+            
+            {/* Recent Searches */}
+            {recentSearches.length > 0 && (
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-[#4A7C59]" />
+                    Recent Searches
+                  </h3>
+                  <button
+                    onClick={handleClearRecentSearches}
+                    className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
+                  >
+                    <X className="w-4 h-4" />
+                    Clear
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {recentSearches.map((search, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleRecentSearchClick(search)}
+                      className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-sm text-gray-700 transition-colors"
+                    >
+                      {search}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -140,8 +256,8 @@ export default function SearchPage() {
                       onClick={() => navigate('/amenities')}
                       className="bg-white rounded-lg shadow-sm p-5 hover:shadow-md transition-shadow cursor-pointer border border-gray-200"
                     >
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">{amenity.name}</h3>
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">{amenity.description}</p>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">{highlightText(amenity.name, query)}</h3>
+                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">{highlightText(amenity.description, query)}</p>
                       <div className="flex items-center gap-4 text-sm text-gray-500">
                         <span>Capacity: {amenity.capacity}</span>
                         <span>₱{amenity.hourly_rate}/hour</span>
@@ -167,14 +283,14 @@ export default function SearchPage() {
                       className="bg-white rounded-lg shadow-sm p-5 hover:shadow-md transition-shadow cursor-pointer border border-gray-200"
                     >
                       <div className="flex items-start justify-between mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900">{announcement.title}</h3>
+                        <h3 className="text-lg font-semibold text-gray-900">{highlightText(announcement.title, query)}</h3>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getImportanceColor(announcement.importance)}`}>
                           {announcement.importance}
                         </span>
                       </div>
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">{announcement.description}</p>
+                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">{highlightText(announcement.description, query)}</p>
                       <div className="flex items-center gap-4 text-xs text-gray-500">
-                        <span className="px-2 py-1 bg-gray-100 rounded">{announcement.category}</span>
+                        <span className="px-2 py-1 bg-gray-100 rounded">{highlightText(announcement.category, query)}</span>
                         <span>{formatDate(announcement.created_at)}</span>
                       </div>
                     </div>
@@ -199,8 +315,8 @@ export default function SearchPage() {
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div>
-                          <h3 className="text-lg font-semibold text-gray-900">{booking.amenity_type}</h3>
-                          <p className="text-sm text-gray-600">{booking.purpose}</p>
+                          <h3 className="text-lg font-semibold text-gray-900">{highlightText(booking.amenity_type, query)}</h3>
+                          <p className="text-sm text-gray-600">{highlightText(booking.purpose, query)}</p>
                         </div>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
                           {booking.status}
