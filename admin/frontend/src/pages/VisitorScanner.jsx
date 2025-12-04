@@ -50,51 +50,85 @@ export default function VisitorScanner() {
         throw new Error("Camera requires a secure context (HTTPS/localhost)");
       }
 
-      // Initialize QR code reader
-      if (!codeReaderRef.current) {
-        codeReaderRef.current = new BrowserMultiFormatReader();
-      }
-      
       setIsScanning(true);
 
-      // Configure video element before starting camera
+      // Get camera stream manually first
+      const constraints = {
+        video: {
+          facingMode: 'environment', // Prefer back camera on mobile
+          ...(selectedCameraId && { deviceId: { exact: selectedCameraId } })
+        }
+      };
+
+      console.log("🎥 Requesting camera with constraints:", constraints);
+      
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      console.log("✅ Got camera stream:", stream.id);
+      console.log("📹 Video tracks:", stream.getVideoTracks().map(t => ({ label: t.label, enabled: t.enabled })));
+
+      // Attach stream to video element
       if (videoRef.current) {
+        videoRef.current.srcObject = stream;
         videoRef.current.setAttribute("playsinline", "true");
         videoRef.current.setAttribute("autoplay", "true");
         videoRef.current.muted = true;
+        
+        // Wait for video to be ready
+        videoRef.current.onloadedmetadata = async () => {
+          console.log("✅ Video metadata loaded, dimensions:", videoRef.current.videoWidth, "x", videoRef.current.videoHeight);
+          try {
+            await videoRef.current.play();
+            console.log("✅ Video playing");
+          } catch (playErr) {
+            console.error("❌ Play error:", playErr);
+          }
+        };
       }
 
-      const deviceId = selectedCameraId || undefined;
+      // Now initialize ZXing reader for QR code detection
+      if (!codeReaderRef.current) {
+        codeReaderRef.current = new BrowserMultiFormatReader();
+      }
+
+      // Give video a moment to start playing
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      console.log("🔍 Starting QR code detection...");
       
-      // Start decoding - this will set video.srcObject internally
-      await codeReaderRef.current.decodeFromVideoDevice(
-        deviceId,
+      // Start continuous QR code scanning on the video element
+      codeReaderRef.current.decodeFromConstraints(
+        constraints,
         videoRef.current,
         (result, err) => {
           if (result) {
+            console.log("✅ QR Code detected:", result.getText());
             handleScanSuccess(result.getText());
           }
           if (err && err.name !== "NotFoundException") {
-            // surface intermittent errors only for debugging
-            console.debug("ZXing video decode warning:", err);
+            console.debug("ZXing decode:", err.name);
           }
         }
       );
       
-      // Ensure video plays after stream is attached
-      if (videoRef.current && videoRef.current.srcObject) {
-        try {
-          await videoRef.current.play();
-        } catch (playErr) {
-          console.debug("Video play error (may be normal):", playErr);
-        }
+      setCameraPermission(true);
+      console.log("✅ Scanner fully initialized");
+    } catch (err) {
+      console.error("❌ Camera error:", err);
+      setCameraPermission(false);
+      
+      // Better error messages
+      let errorMsg = "Unable to access camera.";
+      if (err.name === 'NotAllowedError') {
+        errorMsg = "Camera permission denied. Please allow camera access and try again.";
+      } else if (err.name === 'NotFoundError') {
+        errorMsg = "No camera found. Please connect a camera and try again.";
+      } else if (err.name === 'NotReadableError') {
+        errorMsg = "Camera is already in use by another application.";
+      } else {
+        errorMsg = err.message || errorMsg;
       }
       
-      setCameraPermission(true);
-    } catch (err) {
-      console.error("Camera access error:", err);
-      setCameraPermission(false);
-      setError(err?.message || "Unable to access camera. Please grant camera permission and try again.");
+      setError(errorMsg);
       setIsScanning(false);
     }
   };
