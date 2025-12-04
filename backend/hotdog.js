@@ -1904,7 +1904,57 @@ app.put('/api/admin/bookings/:id', verifyToken, verifyAdmin, async (req, res) =>
   }
 });
 
-// Cancel Booking
+// Cancel Booking (User can cancel their own bookings)
+app.put('/api/bookings/:id/cancel', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // First check if booking exists and belongs to user (use service client)
+    const { data: existingBooking, error: fetchError } = await supabaseService
+      .from('bookings')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', req.user.userId)
+      .single();
+    
+    if (fetchError || !existingBooking) {
+      console.log('Booking not found:', { id, userId: req.user.userId, error: fetchError });
+      return res.status(404).json({ error: 'Booking not found or unauthorized' });
+    }
+    
+    // Check if booking can be cancelled (not already cancelled)
+    if (existingBooking.status === 'cancelled') {
+      return res.status(400).json({ error: 'Booking is already cancelled' });
+    }
+    
+    // Use service client to update booking status
+    const { data, error } = await supabaseService
+      .from('bookings')
+      .update({ 
+        status: 'cancelled',
+        updated_at: new Date().toISOString() 
+      })
+      .eq('id', id)
+      .eq('user_id', req.user.userId)
+      .select();
+    
+    if (error) {
+      console.error('Cancel booking update error:', error);
+      return res.status(500).json({ error: error.message });
+    }
+    
+    if (data.length === 0) {
+      return res.status(404).json({ error: 'Booking not found or unauthorized' });
+    }
+    
+    res.json({ message: 'Booking cancelled successfully', data });
+  } catch (error) {
+    console.error('Cancel booking error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Cancel Booking (Legacy DELETE endpoint - kept for backward compatibility)
 app.delete('/api/bookings/:id', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
