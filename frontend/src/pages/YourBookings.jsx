@@ -284,7 +284,7 @@ export default function YourBookings() {
                           </button>
                         </div>
                       )}
-                      {booking.status === 'Confirmed' && (
+                      {(booking.status === 'Confirmed' || booking.status === 'Pending_approval') && (
                         <button
                           onClick={() => handleCancelBooking(booking.id)}
                           className="w-full text-rose-600 hover:text-rose-700 text-sm font-medium hover:bg-gray-50 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"

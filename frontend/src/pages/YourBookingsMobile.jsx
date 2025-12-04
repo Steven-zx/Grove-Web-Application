@@ -257,7 +257,7 @@ export default function YourBookingsMobile() {
                     </p>
 
                     {/* Action Buttons */}
-                    {(booking.status === 'Pending' || booking.status === 'Confirmed') && (
+                    {(booking.status === 'Pending' || booking.status === 'Confirmed' || booking.status === 'Pending_approval' || booking.status === 'Pending Approval') && (
                       <button
                         onClick={() => handleCancelBooking(booking.id)}
                         className="text-rose-600 text-xs font-medium hover:text-rose-700 transition-colors"

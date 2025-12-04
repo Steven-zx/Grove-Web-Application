@@ -400,8 +400,7 @@ export default function Calendar() {
           <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
             <h3 className="text-lg font-semibold mb-4">Notice</h3>
             <p className="text-sm text-gray-600 leading-relaxed">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut 
-              labore et dolore magna aliqua.
+              Amenities are available all-week long!
             </p>
           </div>
 
