@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <style>
+      .logo-green { fill: #40863A; }
+    </style>
+  </defs>
+  <!-- House/Building icon -->
+  <path class="logo-green" d="M50 15 L20 40 L20 75 L35 75 L35 55 L65 55 L65 75 L80 75 L80 40 Z M50 25 L70 40 L70 70 L60 70 L60 50 L40 50 L40 70 L30 70 L30 40 Z"/>
+  <!-- AG letters -->
+  <text x="50" y="95" font-family="Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle" class="logo-green">AG</text>
+</svg>
